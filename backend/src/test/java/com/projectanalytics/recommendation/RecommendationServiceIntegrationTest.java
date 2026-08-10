@@ -16,6 +16,7 @@ import com.projectanalytics.recommendation.api.dto.RecommendationResponse;
 import com.projectanalytics.recommendation.application.RecommendationService;
 import com.projectanalytics.recommendation.domain.RecommendationSeverity;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,6 +67,9 @@ class RecommendationServiceIntegrationTest {
     @Autowired
     private AnalyticsSnapshotRepository analyticsSnapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     private UUID workspaceId;
     private UUID portfolioId;
     private UUID projectId;
@@ -79,6 +83,7 @@ class RecommendationServiceIntegrationTest {
         portfolioProjectRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         WorkspaceEntity workspace = workspaceRepository.save(new WorkspaceEntity("Reco WS", "https://op-reco.test"));

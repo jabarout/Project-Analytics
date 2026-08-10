@@ -12,6 +12,7 @@ import com.projectanalytics.project.persistence.ProjectEntity;
 import com.projectanalytics.project.persistence.ProjectRepository;
 import com.projectanalytics.project.persistence.WorkPackageEntity;
 import com.projectanalytics.project.persistence.WorkPackageRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
@@ -66,6 +67,9 @@ class AnalyticsEngineIntegrationTest {
     @Autowired
     private com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository snapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     @BeforeEach
     void cleanAndSeed() {
         recommendationRepository.deleteAll();
@@ -75,6 +79,7 @@ class AnalyticsEngineIntegrationTest {
         portfolioProjectRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         workspace = workspaceRepository.save(new WorkspaceEntity("Analytics WS", "https://op-analytics.test"));

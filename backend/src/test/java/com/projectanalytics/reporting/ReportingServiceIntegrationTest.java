@@ -20,6 +20,7 @@ import com.projectanalytics.reporting.domain.ReportScopeType;
 import com.projectanalytics.reporting.domain.ReportStatus;
 import com.projectanalytics.reporting.domain.ReportType;
 import com.projectanalytics.reporting.persistence.ReportRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +79,9 @@ class ReportingServiceIntegrationTest {
     @Autowired
     private AnalyticsSnapshotRepository analyticsSnapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     private UUID workspaceId;
     private UUID portfolioId;
     private UUID projectId;
@@ -92,6 +96,7 @@ class ReportingServiceIntegrationTest {
         portfolioProjectRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         WorkspaceEntity workspace = workspaceRepository.save(new WorkspaceEntity("Report WS", "https://op-report.test"));

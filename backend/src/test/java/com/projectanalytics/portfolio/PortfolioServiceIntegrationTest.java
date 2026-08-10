@@ -19,6 +19,7 @@ import com.projectanalytics.project.persistence.ProjectRepository;
 import com.projectanalytics.project.persistence.WorkPackageEntity;
 import com.projectanalytics.project.persistence.WorkPackageRepository;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,9 @@ class PortfolioServiceIntegrationTest {
     @Autowired
     private com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository analyticsSnapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     private WorkspaceEntity workspace;
     private PortfolioEntity financePortfolio;
     private ProjectEntity activeProject;
@@ -85,6 +89,7 @@ class PortfolioServiceIntegrationTest {
         workPackageRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         workspace = workspaceRepository.save(new WorkspaceEntity("WS", "https://op.local.test"));

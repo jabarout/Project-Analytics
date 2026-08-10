@@ -7,6 +7,7 @@ import com.projectanalytics.portfolio.persistence.PortfolioProjectRepository;
 import com.projectanalytics.project.persistence.ProjectEntity;
 import com.projectanalytics.project.persistence.ProjectRepository;
 import com.projectanalytics.project.persistence.WorkPackageRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
@@ -61,6 +62,9 @@ class PortfolioApiIntegrationTest {
     @Autowired
     private com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository analyticsSnapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     @BeforeEach
     void setUp() {
         recommendationRepository.deleteAll();
@@ -70,6 +74,7 @@ class PortfolioApiIntegrationTest {
         portfolioProjectRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         WorkspaceEntity workspace = workspaceRepository.save(

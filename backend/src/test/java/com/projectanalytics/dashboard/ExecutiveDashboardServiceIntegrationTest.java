@@ -13,6 +13,7 @@ import com.projectanalytics.project.persistence.WorkPackageRepository;
 import com.projectanalytics.analytics.persistence.AnalyticsRepository;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
 import com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository;
+import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +62,9 @@ class ExecutiveDashboardServiceIntegrationTest {
     @Autowired
     private AnalyticsSnapshotRepository analyticsSnapshotRepository;
 
+    @Autowired
+    private SynchronizationHistoryRepository synchronizationHistoryRepository;
+
     @BeforeEach
     void setUp() {
         recommendationRepository.deleteAll();
@@ -70,6 +74,7 @@ class ExecutiveDashboardServiceIntegrationTest {
         portfolioProjectRepository.deleteAll();
         projectRepository.deleteAll();
         portfolioRepository.deleteAll();
+        synchronizationHistoryRepository.deleteAll();
         workspaceRepository.deleteAll();
 
         WorkspaceEntity workspace = workspaceRepository.save(new WorkspaceEntity("Exec WS", "https://op-exec.test"));
