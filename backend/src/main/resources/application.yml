@@ -1,0 +1,163 @@
+spring:
+  application:
+    name: project-analytics-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:projectanalytics}
+    username: ${DB_USERNAME:projectanalytics}
+    password: ${DB_PASSWORD:projectanalytics}
+    driver-class-name: org.postgresql.Driver
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # health/probes + prometheus for scrapers; secrets never exposed via actuator
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+      group:
+        # Liveness: process only (independent of OpenProject and local infra)
+        liveness:
+          include: livenessState,ping
+        # Readiness: local infrastructure only — never OpenProject.
+        # Redis is added in profiles where Redis health is enabled (dev/prod).
+        readiness:
+          include: readinessState,db,diskSpace
+  info:
+    env:
+      enabled: true
+  health:
+    redis:
+      enabled: ${projectanalytics.redis.enabled:true}
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  # Micrometer metrics remain the bridge for future OpenTelemetry export (M10+/enterprise).
+  tracing:
+    enabled: false
+  observations:
+    annotations:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+projectanalytics:
+  info:
+    version: ${APP_VERSION:1.0.0-SNAPSHOT}
+  redis:
+    enabled: ${REDIS_ENABLED:true}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  jwt:
+    # Override via JWT_SECRET in every non-local environment. Dev default is for local only.
+    secret: ${JWT_SECRET:project-analytics-dev-jwt-secret-change-me-32b}
+    expiration-seconds: ${JWT_EXPIRATION:3600}
+    refresh-expiration-seconds: ${JWT_REFRESH_EXPIRATION:86400}
+  security:
+    password:
+      min-length: ${PASSWORD_MIN_LENGTH:8}
+      require-uppercase: ${PASSWORD_REQUIRE_UPPERCASE:true}
+      require-lowercase: ${PASSWORD_REQUIRE_LOWERCASE:true}
+      require-digit: ${PASSWORD_REQUIRE_DIGIT:true}
+      require-special: ${PASSWORD_REQUIRE_SPECIAL:true}
+    # When false, OpenAPI/Swagger UI require authentication (recommended for prod).
+    openapi-public: ${OPENAPI_PUBLIC:true}
+  openproject:
+    url: ${OPENPROJECT_URL:}
+    api-key: ${OPENPROJECT_API_KEY:}
+    timeout-seconds: ${OPENPROJECT_TIMEOUT:30}
+    verify-ssl: ${OPENPROJECT_VERIFY_SSL:true}
+  sync:
+    enabled: ${SYNC_ENABLED:true}
+    interval-ms: ${SYNC_INTERVAL_MS:3600000}
+    batch-size: ${SYNC_BATCH_SIZE:100}
+    retry-count: ${SYNC_RETRY_COUNT:1}
+    timeout-seconds: ${SYNC_TIMEOUT:120}
+    # Max age of last SUCCESS sync before ops consider the platform "stale" (metrics + alerts).
+    success-stale-seconds: ${SYNC_SUCCESS_STALE_SECONDS:86400}
+  observability:
+    # Reserved for future OTEL endpoint wiring; tracing stays disabled until M10+/enterprise.
+    otel-compatible: true
+  analytics:
+    health-score-enabled: ${HEALTH_SCORE_ENABLED:true}
+    risk-score-enabled: ${RISK_SCORE_ENABLED:true}
+    attention-score-enabled: ${ATTENTION_SCORE_ENABLED:true}
+    health-schedule-weight: 0.35
+    health-delivery-weight: 0.35
+    health-overdue-weight: 0.30
+    risk-overdue-work-package-weight: 0.40
+    risk-schedule-weight: 0.35
+    risk-completion-weight: 0.25
+    attention-health-weight: 0.45
+    attention-risk-weight: 0.40
+    attention-overdue-weight: 0.15
+    snapshot-retention-days: ${ANALYTICS_SNAPSHOT_RETENTION_DAYS:90}
+    snapshot-purge-enabled: ${ANALYTICS_SNAPSHOT_PURGE_ENABLED:true}
+    snapshot-purge-cron: ${ANALYTICS_SNAPSHOT_PURGE_CRON:0 0 3 * * *}
+  reporting:
+    storage-path: ${REPORT_STORAGE_PATH:./data/reports}
+    retention-days: ${REPORT_RETENTION_DAYS:90}
+    purge-enabled: ${REPORT_PURGE_ENABLED:true}
+    purge-cron: ${REPORT_PURGE_CRON:0 30 2 * * *}
+    max-size-bytes: ${MAX_REPORT_SIZE:10485760}
+  recommendation:
+    critical-health-threshold: ${RECOMMENDATION_CRITICAL_HEALTH:40}
+    high-risk-threshold: ${RECOMMENDATION_HIGH_RISK:70}
+    high-attention-threshold: ${RECOMMENDATION_HIGH_ATTENTION:50}
+    health-decline-points: ${RECOMMENDATION_HEALTH_DECLINE:5}
+    low-completion-threshold: ${RECOMMENDATION_LOW_COMPLETION:50}
+    max-per-project: ${RECOMMENDATION_MAX_PER_PROJECT:10}
+    max-per-scope: ${RECOMMENDATION_MAX_PER_SCOPE:25}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.projectanalytics: ${LOG_LEVEL:INFO}
+  pattern:
+    console: ${LOG_PATTERN:%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [%X{requestId}] %logger{36} - %msg%n}

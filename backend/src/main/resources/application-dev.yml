@@ -1,0 +1,22 @@
+# Development profile defaults (non-secret). Secrets remain in environment variables.
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      group:
+        readiness:
+          # Dev assumes Redis is up; tests disable Redis and use the base readiness group.
+          include: readinessState,db,redis,diskSpace
+
+logging:
+  level:
+    com.projectanalytics: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO

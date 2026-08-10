@@ -1,0 +1,283 @@
+<section class="detail">
+  <a routerLink="/portfolios" class="detail__back">← Back to portfolios</a>
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading portfolio…" />
+  } @else if (errorMessage() && !detail()) {
+    <app-empty-state title="Unavailable" [message]="errorMessage()!" />
+  } @else if (detail(); as portfolio) {
+    <header class="detail__header">
+      <div>
+        <h2>{{ portfolio.name }}</h2>
+        <p>Analytical collection — dig into schedule, progress quality, and exceptions for these members only.</p>
+      </div>
+      <div class="detail__header-actions">
+        <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
+        <button type="button" class="danger" (click)="deletePortfolio()">Delete portfolio</button>
+      </div>
+    </header>
+
+    <div class="detail__tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        [class.is-active]="activeTab() === 'overview'"
+        (click)="activeTab.set('overview')"
+      >
+        Analytics
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [class.is-active]="activeTab() === 'membership'"
+        (click)="activeTab.set('membership')"
+      >
+        Membership
+      </button>
+    </div>
+
+    @if (message()) {
+      <p class="detail__ok" role="status">{{ message() }}</p>
+    }
+    @if (errorMessage()) {
+      <p class="detail__error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    @if (activeTab() === 'overview' && dashboard(); as board) {
+      <section class="health-summary" [attr.data-band]="healthSummaryBand()">
+        <div>
+          <h3>Portfolio Health Summary</h3>
+          <p class="health-summary__band">Band: {{ healthSummaryBand() }}</p>
+          <p class="health-summary__narrative">{{ board.executiveSummary }}</p>
+          <p>
+            {{ board.kpis.totalProjects }} members · {{ board.kpis.activeProjects }} active ·
+            {{ board.kpis.totalWorkPackages }} work packages
+            @if (board.kpis.lastCalculatedAt) {
+              · Last scored {{ board.kpis.lastCalculatedAt | date: 'medium' }}
+            }
+          </p>
+        </div>
+        <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
+      </section>
+
+      <h3 class="detail__section-title">Exceptions</h3>
+      <div class="kpi-row">
+        <app-kpi-card
+          label="Projects needing attention"
+          [value]="needsAttentionDisplay()"
+          kind="count"
+          severity="critical"
+          [infoTitle]="glossary.needsAttention.title"
+          [infoBody]="glossary.needsAttention.summary"
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('needsAttention')"
+        />
+        <app-kpi-card
+          label="Critical health"
+          [value]="board.kpis.criticalProjects"
+          kind="count"
+          severity="critical"
+          [infoTitle]="glossary.health.title"
+          [infoBody]="glossary.health.thresholds"
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('critical')"
+        />
+        <app-kpi-card
+          label="Past end date"
+          [value]="board.kpis.overdueProjects"
+          kind="count"
+          severity="watch"
+          hint="Project finish date in the past"
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('delayed')"
+        />
+        <app-kpi-card
+          label="Behind schedule"
+          [value]="board.kpis.projectsBehindSchedule"
+          kind="count"
+          severity="watch"
+          hint="Actual progress below expected"
+          actionLabel="Explore →"
+          [clickable]="true"
+          (activated)="openExplorer('clearExceptions')"
+        />
+        <app-kpi-card
+          label="With overdue WPs"
+          [value]="board.kpis.projectsWithOverdueWorkPackages"
+          kind="count"
+          severity="watch"
+          hint="At least one open WP past due"
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('hasOverdueWp')"
+        />
+      </div>
+
+      <h3 class="detail__section-title">Progress & schedule quality</h3>
+      <p class="detail__hint">
+        Actual progress is the same canonical metric as Explorer and Project Detail (WP completion when available).
+        Expected progress and gap come from stored ProgressMetrics values.
+      </p>
+      <div class="kpi-row">
+        <app-kpi-card
+          label="Avg actual progress"
+          [value]="board.kpis.averageCompletion ?? '—'"
+          kind="score"
+          hint="Completion %"
+        />
+        <app-kpi-card
+          label="Avg expected progress"
+          [value]="board.kpis.averageExpectedProgress ?? '—'"
+          kind="score"
+          hint="From schedule elapsed"
+        />
+        <app-kpi-card
+          label="Avg progress gap"
+          [value]="formatGap(board.kpis.averageProgressGap)"
+          kind="score"
+          [hint]="board.kpis.averageProgressGap != null && board.kpis.averageProgressGap < 0 ? 'Behind on average' : 'Actual − expected'"
+        />
+        <app-kpi-card
+          label="Avg overdue ratio"
+          [value]="formatOverdueRatio(board.kpis.averageOverdueRatio)"
+          kind="score"
+          hint="Overdue WPs / total WPs"
+        />
+        <app-kpi-card
+          label="Avg health"
+          [value]="board.kpis.averageHealthScore ?? '—'"
+          kind="score"
+          [infoTitle]="glossary.health.title"
+          [infoBody]="glossary.health.summary"
+        />
+        <app-kpi-card
+          label="Avg risk"
+          [value]="board.kpis.averageRiskScore ?? '—'"
+          kind="score"
+          [infoTitle]="glossary.risk.title"
+          [infoBody]="glossary.risk.summary"
+        />
+      </div>
+
+      <h3 class="detail__section-title">Visual analytics</h3>
+      <div class="charts">
+        <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Risk distribution" [data]="riskChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Progress vs schedule" [data]="progressGapChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Actual progress bands" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Past end date" [data]="delayedChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      </div>
+
+      <h3 class="detail__section-title">Member intelligence</h3>
+      <p class="detail__hint">
+        All members sorted by attention — open a project for factor breakdown, or use Explorer for full filtering.
+      </p>
+      @if (memberRows().length === 0) {
+        <app-empty-state
+          title="No members yet"
+          message="Add workspace projects on the Membership tab to build this analytical view."
+        />
+      } @else {
+        <app-project-table
+          [rows]="memberRows()"
+          [columns]="memberColumns"
+          [sort]="[{ key: 'attentionScore', direction: 'desc' }]"
+          density="dense"
+        />
+      }
+
+      <div class="detail__two-col">
+        <app-attention-table title="Highest attention" [projects]="board.topAttentionProjects" />
+        <app-attention-table title="Critical health" [projects]="board.criticalHealthProjects" />
+      </div>
+
+      <app-insight-list title="Portfolio insights" [items]="board.insights" />
+
+      @if (recommendations(); as reco) {
+        <app-recommendation-list
+          title="Portfolio recommendations"
+          [summary]="reco.executiveSummary"
+          [items]="reco.recommendations"
+        />
+      }
+    }
+
+    @if (activeTab() === 'membership') {
+      <section class="detail__block">
+        <h3>Member projects</h3>
+        <p class="detail__hint">
+          Membership is many-to-many and organizational only. Use analytical filters to shortlist candidates, then
+          multi-select and add.
+        </p>
+
+        <div class="detail__assign-panel">
+          <app-project-membership-picker
+            title="Available workspace projects"
+            [projects]="availableProjects()"
+            [analyticsRows]="workspaceExplorerRows()"
+            [selected]="selectedProjectIds()"
+            (selectionChange)="onSelectionChange($event)"
+          />
+          <button
+            type="button"
+            class="detail__add"
+            (click)="addSelected()"
+            [disabled]="selectedProjectIds().length === 0 || adding()"
+          >
+            {{
+              adding()
+                ? 'Adding…'
+                : selectedProjectIds().length > 0
+                  ? 'Add ' + selectedProjectIds().length + ' selected'
+                  : 'Add selected'
+            }}
+          </button>
+        </div>
+
+        @if (portfolio.projects.length === 0) {
+          <app-empty-state
+            title="No projects in this collection"
+            message="Filter and select synchronized workspace projects above to build this analytical view."
+          />
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Actual progress</th>
+                <th>Progress gap</th>
+                <th>Health</th>
+                <th>Risk</th>
+                <th>End date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (project of portfolio.projects; track project.id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/projects', project.id]">{{ project.name }}</a>
+                  </td>
+                  <td>{{ project.status || '—' }}</td>
+                  <td>{{ memberMetric(project.id, 'progress') }}</td>
+                  <td>{{ memberMetric(project.id, 'gap') }}</td>
+                  <td>{{ memberMetric(project.id, 'health') }}</td>
+                  <td>{{ memberMetric(project.id, 'risk') }}</td>
+                  <td>{{ project.endDate || '—' }}</td>
+                  <td>
+                    <button type="button" class="linkish" (click)="removeProject(project.id)">Remove</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
+  }
+</section>

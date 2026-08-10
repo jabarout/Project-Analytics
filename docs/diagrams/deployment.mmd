@@ -1,0 +1,27 @@
+flowchart TB
+
+Client
+
+subgraph DockerHost
+
+    Frontend["Angular Container"]
+
+    Backend["Spring Boot Container"]
+
+    PostgreSQL[(PostgreSQL)]
+
+    Redis[(Redis)]
+
+end
+
+OpenProject[(OpenProject)]
+
+Client --> Frontend
+
+Frontend --> Backend
+
+Backend --> PostgreSQL
+
+Backend --> Redis
+
+Backend --> OpenProject

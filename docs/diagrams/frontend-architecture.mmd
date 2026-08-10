@@ -1,0 +1,23 @@
+flowchart TD
+
+AppComponent
+
+AppComponent --> MainLayout
+
+MainLayout --> Sidebar
+MainLayout --> Navbar
+MainLayout --> RouterOutlet
+
+RouterOutlet --> DashboardFeature
+RouterOutlet --> PortfolioFeature
+RouterOutlet --> ProjectFeature
+RouterOutlet --> ReportsFeature
+RouterOutlet --> SettingsFeature
+
+DashboardFeature --> SharedComponents
+PortfolioFeature --> SharedComponents
+ProjectFeature --> SharedComponents
+ReportsFeature --> SharedComponents
+
+SharedComponents --> ApiServices
+ApiServices --> BackendAPI

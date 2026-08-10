@@ -1,0 +1,131 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pa-bg);
+  color: var(--pa-text);
+}
+
+.shell__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--pa-border);
+  background: var(--pa-surface);
+}
+
+.shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.shell__mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #1d4ed8, #0f766e);
+  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.25);
+}
+
+.shell__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pa-text-muted);
+}
+
+.shell__title {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.shell__user {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.shell__username {
+  color: var(--pa-text-muted);
+  font-size: 0.9rem;
+}
+
+.shell__logout {
+  border: 1px solid var(--pa-border);
+  background: var(--pa-surface);
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.shell__logout:hover {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+}
+
+.shell__body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.shell__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  border-right: 1px solid var(--pa-border);
+  background: var(--pa-surface);
+}
+
+.shell__nav a {
+  color: var(--pa-text);
+  text-decoration: none;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  font-weight: 500;
+}
+
+.shell__nav a:hover,
+.shell__nav a.is-active {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1d4ed8;
+}
+
+.shell__nav-hint {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--pa-text-muted);
+}
+
+.shell__content {
+  padding: 1.75rem 2rem 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .shell__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .shell__subtitle {
+    text-align: left;
+  }
+
+  .shell__body {
+    grid-template-columns: 1fr;
+  }
+
+  .shell__nav {
+    border-right: none;
+    border-bottom: 1px solid var(--pa-border);
+  }
+}

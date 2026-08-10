@@ -1,0 +1,122 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1200px;
+}
+
+.home__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.home__header h2 {
+  margin: 0 0 0.4rem;
+}
+
+.home__header p,
+.home__summary {
+  margin: 0;
+  color: var(--pa-text-muted);
+  line-height: 1.5;
+}
+
+.home__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.home__actions button,
+.home__workspace-picker button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.home__actions button {
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1rem;
+  background: #0f766e;
+  color: #fff;
+  font-weight: 600;
+}
+
+.home__actions button.secondary {
+  background: var(--pa-surface);
+  color: var(--pa-text);
+  border: 1px solid var(--pa-border);
+}
+
+.home__workspace-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.home__workspace-picker button {
+  border: 1px solid var(--pa-border);
+  background: var(--pa-surface);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+}
+
+.home__workspace-picker button.is-active {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+  background: rgba(29, 78, 216, 0.08);
+}
+
+.home__link {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home__error {
+  color: #b91c1c;
+  margin: 0;
+}
+
+.home__section-title {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.home__explorer-link {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--pa-border);
+  background: #1d4ed8;
+  color: #fff !important;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home__view-all {
+  align-self: flex-start;
+  border: 1px solid var(--pa-border);
+  background: var(--pa-surface);
+  border-radius: 0.55rem;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: flex-start;
+}

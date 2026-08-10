@@ -1,0 +1,13 @@
+sequenceDiagram
+
+participant User
+participant Angular
+participant Backend
+participant Database
+
+User->>Angular: Open Dashboard
+Angular->>Backend: GET /dashboard
+Backend->>Database: Load Analytics
+Database-->>Backend: Analytics Data
+Backend-->>Angular: Dashboard DTO
+Angular-->>User: Display Dashboard

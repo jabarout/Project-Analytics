@@ -1,0 +1,117 @@
+<section class="workspaces">
+  <header>
+    <h2>Connections</h2>
+    <p>
+      Connect OpenProject and synchronize operational data. The <strong>base URL</strong> is set here; the
+      <strong>API key</strong> is platform configuration (<code>OPENPROJECT_API_KEY</code> in
+      <code>.env</code>) and is loaded only when the backend starts. After changing the key or URL in
+      <code>.env</code>, restart with <code>./scripts/run-backend.sh</code>. Analytics use local data only after sync.
+    </p>
+  </header>
+
+  <form class="workspaces__form" [formGroup]="form" (ngSubmit)="create()">
+    <h3>Connect OpenProject</h3>
+    <label>
+      <span>Display name</span>
+      <input type="text" formControlName="name" placeholder="Production OpenProject" />
+    </label>
+    <label>
+      <span>Base URL</span>
+      <input type="url" formControlName="baseUrl" placeholder="https://openproject.example.com" />
+    </label>
+    <button type="submit">Connect</button>
+  </form>
+
+  @if (message()) {
+    <p class="workspaces__ok" role="status">{{ message() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="workspaces__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading connections…" />
+  } @else if (workspaces().length === 0) {
+    <app-empty-state
+      title="No OpenProject connection"
+      message="Connect an OpenProject base URL to begin synchronization."
+    />
+  } @else {
+    @if (isMulti()) {
+      <p class="workspaces__multi-hint">{{ workspaces().length }} connections configured.</p>
+    } @else {
+      <p class="workspaces__multi-hint">Active connection</p>
+    }
+    <div class="workspaces__list" [class.workspaces__list--single]="!isMulti()">
+      @for (workspace of workspaces(); track workspace.id) {
+        <article class="workspace-card">
+          <div class="workspace-card__body">
+            <div>
+              <label class="workspace-card__rename">
+                <span>Name</span>
+                <input
+                  type="text"
+                  [value]="editName()[workspace.id] ?? workspace.name"
+                  (input)="setEditName(workspace.id, $any($event.target).value)"
+                />
+              </label>
+              <p class="workspace-card__url">{{ workspace.baseUrl }}</p>
+              <dl>
+                <div>
+                  <dt>Sync status</dt>
+                  <dd>{{ workspace.synchronizationStatus }}</dd>
+                </div>
+                <div>
+                  <dt>Version</dt>
+                  <dd>{{ workspace.version || '—' }}</dd>
+                </div>
+                @if (latestSync()[workspace.id]; as sync) {
+                  <div>
+                    <dt>Last run</dt>
+                    <dd>
+                      {{ sync.status }}
+                      @if (sync.finishedAt) {
+                        · {{ sync.finishedAt }}
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Imported</dt>
+                    <dd>
+                      {{ sync.synchronizedProjects }} projects /
+                      {{ sync.synchronizedWorkPackages }} work packages
+                    </dd>
+                  </div>
+                  @if (sync.errorMessage) {
+                    <div>
+                      <dt>Error</dt>
+                      <dd class="workspace-card__err">{{ sync.errorMessage }}</dd>
+                    </div>
+                  }
+                }
+              </dl>
+            </div>
+            <div class="workspace-card__actions">
+              <button
+                type="button"
+                class="secondary"
+                (click)="rename(workspace.id)"
+                [disabled]="renamingId() === workspace.id"
+              >
+                {{ renamingId() === workspace.id ? 'Saving…' : 'Save name' }}
+              </button>
+              <button type="button" (click)="synchronize(workspace.id)" [disabled]="syncingId() === workspace.id">
+                @if (syncingId() === workspace.id) {
+                  Synchronizing…
+                } @else {
+                  Synchronize
+                }
+              </button>
+              <button type="button" class="danger" (click)="disconnect(workspace)">Disconnect</button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

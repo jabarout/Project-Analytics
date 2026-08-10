@@ -1,0 +1,14 @@
+classDiagram
+
+Workspace "1" --> "*" Portfolio
+Portfolio "1" --> "*" Project
+Project "1" --> "*" WorkPackage
+Project "1" --> "1" Analytics
+Analytics "1" --> "*" Recommendation
+Project "1" --> "*" Alert
+
+Dashboard "1" --> "*" Widget
+Widget --> KPI
+
+User "1" --> "*" Dashboard
+User "1" --> "*" Report

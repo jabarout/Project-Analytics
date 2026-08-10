@@ -1,0 +1,124 @@
+# Project Analytics local development stack (Milestone 1 — Foundation).
+# Usage (from repository root or docker/):
+#   docker compose --env-file ../.env.example -f docker-compose.yml up --build
+#
+# Secrets must never be committed. Copy .env.example to .env for local overrides.
+
+name: project-analytics
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-projectanalytics}
+      POSTGRES_USER: ${DB_USERNAME:-projectanalytics}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-projectanalytics}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-projectanalytics} -d ${DB_NAME:-projectanalytics}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pa-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: pa-redis
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - pa-network
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: pa-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SERVER_PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-projectanalytics}
+      DB_USERNAME: ${DB_USERNAME:-projectanalytics}
+      DB_PASSWORD: ${DB_PASSWORD:-projectanalytics}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_ENABLED: "true"
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:8088}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_VERSION: ${APP_VERSION:-1.0.0-SNAPSHOT}
+      JWT_SECRET: ${JWT_SECRET:-project-analytics-dev-jwt-secret-change-me-32b}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400}
+      OPENPROJECT_URL: ${OPENPROJECT_URL:-}
+      OPENPROJECT_API_KEY: ${OPENPROJECT_API_KEY:-}
+      OPENPROJECT_TIMEOUT: ${OPENPROJECT_TIMEOUT:-30}
+      REPORT_STORAGE_PATH: ${REPORT_STORAGE_PATH:-/data/reports}
+      REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-90}
+      REPORT_PURGE_ENABLED: ${REPORT_PURGE_ENABLED:-true}
+      ANALYTICS_SNAPSHOT_RETENTION_DAYS: ${ANALYTICS_SNAPSHOT_RETENTION_DAYS:-90}
+      ANALYTICS_SNAPSHOT_PURGE_ENABLED: ${ANALYTICS_SNAPSHOT_PURGE_ENABLED:-true}
+      OPENAPI_PUBLIC: ${OPENAPI_PUBLIC:-true}
+      OPENPROJECT_VERIFY_SSL: ${OPENPROJECT_VERIFY_SSL:-true}
+      SYNC_ENABLED: ${SYNC_ENABLED:-true}
+      SYNC_INTERVAL_MS: ${SYNC_INTERVAL_MS:-3600000}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    healthcheck:
+      # Matches Dockerfile HEALTHCHECK; curl is installed in the backend image.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - pa-network
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL:-http://localhost:8080/api/v1}
+    container_name: pa-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8088}:80"
+    networks:
+      - pa-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  pa-network:
+    driver: bridge

@@ -1,0 +1,19 @@
+flowchart TD
+
+Scheduler --> SynchronizationService
+
+ManualSync --> SynchronizationService
+
+SynchronizationService --> OpenProject
+
+OpenProject --> DataMapping
+
+DataMapping --> Validation
+
+Validation --> PostgreSQL
+
+PostgreSQL --> AnalyticsEngine
+
+AnalyticsEngine --> Redis
+
+Redis --> DashboardAPI

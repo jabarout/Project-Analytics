@@ -1,0 +1,108 @@
+# OS
+.DS_Store
+Thumbs.db
+*~
+
+# IDE / editors
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+.factorypath
+*.sublime-workspace
+*.launch
+.history/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Local AI / agent instructions (not for public GitHub)
+AI_INSTRUCTIONS.md
+**/AI_INSTRUCTIONS.md
+
+# Local agent / session tooling
+.grok/
+**/.grok/
+
+# Backend (Maven / Java)
+backend/target/
+**/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.log
+backend/logs/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+*.exec
+
+# Frontend (Node / Angular)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+frontend/out-tsc/
+frontend/tmp/
+frontend/bazel-out/
+frontend/.sass-cache/
+frontend/connect.lock/
+frontend/libpeerconnection.log
+frontend/typings/
+frontend/__screenshots__/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/.vite/
+**/*.tsbuildinfo
+
+# Test / coverage reports
+coverage/
+.nyc_output/
+.vitest/
+htmlcov/
+test-results/
+playwright-report/
+junit.xml
+**/surefire-reports/
+**/failsafe-reports/
+
+# Logs
+*.log
+logs/
+
+# Reports / local storage
+reports/
+generated-reports/
+data/reports/
+backend/data/
+*.pdf
+!docs/**/*.pdf
+
+# Docker local state
+docker/postgres/data/
+docker/redis/data/
+
+# Build / cache
+.cache/
+.turbo/
+*.bak
+*.tmp
+*.orig
+.DS_Store
+
+# Python tooling noise (if any local scripts)
+__pycache__/
+*.pyc
+.venv/
+venv/

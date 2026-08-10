@@ -1,0 +1,199 @@
+<section class="home">
+  <header class="home__header">
+    <div>
+      <h2>Home</h2>
+      <p>Triage what needs attention across the workspace. Charts and KPIs drill into Explorer.</p>
+    </div>
+    <div class="home__actions">
+      @if (selectedWorkspaceId()) {
+        <a class="home__explorer-link" [routerLink]="['/explorer']" [queryParams]="{ workspaceId: selectedWorkspaceId() }">
+          Open Explorer
+        </a>
+        <button type="button" class="secondary" (click)="generateReport()">Generate report</button>
+        <button
+          type="button"
+          class="secondary"
+          (click)="recalculate()"
+          [disabled]="recalculating() || loading()"
+        >
+          {{ recalculating() ? 'Recalculating…' : 'Recalculate' }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (workspaces().length === 0 && !loading()) {
+    <app-empty-state
+      title="No workspace connected"
+      message="Connect and synchronize an OpenProject workspace to see analytics."
+    />
+    <a routerLink="/workspaces" class="home__link">Go to Connections →</a>
+  } @else {
+    <div class="home__workspace-picker">
+      @for (workspace of workspaces(); track workspace.id) {
+        <button
+          type="button"
+          [class.is-active]="selectedWorkspaceId() === workspace.id"
+          (click)="selectWorkspace(workspace.id)"
+        >
+          {{ workspace.name }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="home__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading workspace triage…" />
+  } @else if (dashboard(); as board) {
+    <h3 class="home__section-title">Exceptions</h3>
+    <div class="kpi-row">
+      <app-kpi-card
+        label="Projects needing attention"
+        [value]="needsAttentionDisplay()"
+        kind="count"
+        severity="critical"
+        [hint]="glossary.needsAttention.thresholds"
+        [infoTitle]="glossary.needsAttention.title"
+        [infoBody]="glossary.needsAttention.summary + ' ' + glossary.needsAttention.detail"
+        actionLabel="View all →"
+        [clickable]="true"
+        (activated)="openExplorer('needsAttention')"
+      />
+      <app-kpi-card
+        label="Critical projects"
+        [value]="board.kpis.criticalProjects"
+        kind="count"
+        severity="critical"
+        hint="Health &lt; 40"
+        [infoTitle]="glossary.health.title"
+        [infoBody]="glossary.health.thresholds"
+        actionLabel="View all →"
+        [clickable]="true"
+        (activated)="openExplorer('critical')"
+      />
+      <app-kpi-card
+        label="Delayed projects"
+        [value]="board.kpis.overdueProjects"
+        kind="count"
+        severity="watch"
+        hint="Past planned end date"
+        actionLabel="View all →"
+        [clickable]="true"
+        (activated)="openExplorer('delayed')"
+      />
+      <app-kpi-card
+        label="Overdue work packages"
+        [value]="overdueWpTotal()"
+        kind="count"
+        severity="watch"
+        hint="Open WPs past due (local)"
+        actionLabel="View all →"
+        [clickable]="true"
+        (activated)="openExplorer('hasOverdueWp')"
+      />
+      <app-kpi-card
+        label="Upcoming deadlines"
+        [value]="upcomingCount()"
+        kind="count"
+        hint="Next 14 days · project finish or next open WP due"
+        actionLabel="View all →"
+        [clickable]="true"
+        (activated)="openExplorer('upcoming')"
+      />
+    </div>
+
+    <h3 class="home__section-title">Visual analytics</h3>
+    <div class="charts">
+      <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      <app-bar-chart title="Progress distribution" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      <app-bar-chart title="Delayed vs on track" [data]="delayedChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      <app-bar-chart
+        title="Recommendation severity"
+        [data]="recoChart()"
+        [interactive]="true"
+        (segmentClick)="onChartSegment($event)"
+      />
+    </div>
+
+    <h3 class="home__section-title">Synthesis</h3>
+    <div class="kpi-row">
+      <app-kpi-card
+        label="Average progress"
+        [value]="board.kpis.averageCompletion ?? '—'"
+        kind="score"
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Average health"
+        [value]="board.kpis.averageHealthScore ?? '—'"
+        kind="score"
+        severity="positive"
+        [infoTitle]="glossary.health.title"
+        [infoBody]="glossary.health.summary + ' ' + glossary.health.thresholds"
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Average risk"
+        [value]="board.kpis.averageRiskScore ?? '—'"
+        kind="score"
+        severity="watch"
+        [infoTitle]="glossary.risk.title"
+        [infoBody]="glossary.risk.summary + ' ' + glossary.risk.thresholds"
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Total projects"
+        [value]="board.kpis.totalProjects"
+        kind="volume"
+        [accent]="true"
+        [clickable]="true"
+        actionLabel="Explore all →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Recommendations"
+        [value]="recommendations()?.recommendations?.length ?? 0"
+        kind="count"
+        hint="Open recommendations in scope"
+      />
+    </div>
+
+    <h3 class="home__section-title">Exception queue</h3>
+    @if (exceptionQueue().length) {
+      <app-project-table
+        [rows]="exceptionQueue()"
+        [columns]="queueColumns"
+        [sort]="[{ key: 'attentionScore', direction: 'desc' }]"
+      />
+      <button type="button" class="home__view-all" (click)="openExplorer('needsAttention')">
+        View all in Explorer →
+      </button>
+    } @else {
+      <app-empty-state
+        title="No exceptions in queue"
+        message="No critical, delayed, or Needs Attention projects in this workspace right now."
+      />
+    }
+
+    <app-attention-table title="Top Needs Attention" [projects]="board.topAttentionProjects" />
+
+    @if (recommendations(); as reco) {
+      <app-recommendation-list
+        title="Recommendations"
+        [summary]="reco.executiveSummary"
+        [items]="reco.recommendations.slice(0, 5)"
+      />
+    }
+  }
+</section>

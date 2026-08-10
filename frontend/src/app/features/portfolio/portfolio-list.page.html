@@ -1,0 +1,83 @@
+<section class="portfolios">
+  <header>
+    <h2>Portfolios</h2>
+    <p>
+      Optional analytical collections of workspace projects (many-to-many). Filter and multi-select projects when
+      creating a portfolio — no need to pick them one by one. Membership does not change workspace ownership.
+    </p>
+  </header>
+
+  <form class="portfolios__form" [formGroup]="form" (ngSubmit)="create()">
+    <h3>Create portfolio</h3>
+    <label>
+      <span>Workspace</span>
+      <select formControlName="workspaceId">
+        @for (workspace of workspaces(); track workspace.id) {
+          <option [value]="workspace.id">{{ workspace.name }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Name</span>
+      <input type="text" formControlName="name" />
+    </label>
+    <label>
+      <span>Description</span>
+      <input type="text" formControlName="description" />
+    </label>
+
+    <div class="portfolios__picker">
+      <h4>Initial members (optional)</h4>
+      <p class="portfolios__picker-hint">
+        Use analytical filters (health, risk, progress, delayed, Needs Attention, overdue WPs) to shortlist projects,
+        multi-select, then create. You can refine membership later.
+      </p>
+      <app-project-membership-picker
+        title="Workspace projects"
+        [projects]="workspaceProjects()"
+        [analyticsRows]="analyticsRows()"
+        [selected]="selectedProjectIds()"
+        (selectionChange)="onSelectionChange($event)"
+      />
+    </div>
+
+    <button type="submit" [disabled]="creating()">
+      {{ creating() ? 'Creating…' : 'Create portfolio' }}
+    </button>
+  </form>
+
+  @if (message()) {
+    <p class="portfolios__ok" role="status">{{ message() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="portfolios__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading portfolios…" />
+  } @else if (portfolios().length === 0) {
+    <app-empty-state
+      title="No portfolios"
+      message="Create a portfolio and select projects with the filter above."
+    />
+  } @else {
+    <div class="portfolios__grid">
+      @for (portfolio of portfolios(); track portfolio.id) {
+        <a class="portfolio-card" [routerLink]="['/portfolios', portfolio.id]">
+          <h3>{{ portfolio.name }}</h3>
+          <p>{{ portfolio.description || 'No description' }}</p>
+          <dl>
+            <div>
+              <dt>Projects</dt>
+              <dd>{{ portfolio.totalProjects }}</dd>
+            </div>
+            <div>
+              <dt>Active</dt>
+              <dd>{{ portfolio.activeProjects }}</dd>
+            </div>
+          </dl>
+        </a>
+      }
+    </div>
+  }
+</section>

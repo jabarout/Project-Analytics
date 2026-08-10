@@ -1,0 +1,13 @@
+erDiagram
+
+WORKSPACE ||--o{ PORTFOLIO : contains
+PORTFOLIO ||--o{ PROJECT : contains
+PROJECT ||--o{ WORK_PACKAGE : contains
+PROJECT ||--|| ANALYTICS : owns
+ANALYTICS ||--o{ RECOMMENDATION : generates
+PROJECT ||--o{ ALERT : creates
+USER ||--o{ DASHBOARD : owns
+DASHBOARD ||--o{ WIDGET : contains
+USER ||--o{ REPORT : generates
+USER ||--|| USER_PREFERENCE : has
+WORKSPACE ||--o{ SYNCHRONIZATION_HISTORY : records

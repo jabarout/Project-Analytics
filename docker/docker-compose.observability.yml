@@ -1,0 +1,65 @@
+# Project Analytics — observability overlay (M9)
+# Additive only. Does not change product architecture or OpenProject boundaries.
+#
+# Usage (from docker/):
+#   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+#
+# UI:
+#   Prometheus  http://localhost:9090
+#   Alertmanager http://localhost:9093
+#   Grafana     http://localhost:3000  (admin / ${GRAFANA_ADMIN_PASSWORD:-admin})
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: pa-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - pa-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: pa-alertmanager
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    ports:
+      - "${ALERTMANAGER_PORT:-9093}:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - pa-network
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: pa-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - pa-network
+
+volumes:
+  prometheus_data:
+  grafana_data:

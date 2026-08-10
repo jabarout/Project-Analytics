@@ -1,0 +1,14 @@
+flowchart LR
+
+Controller --> Service
+Service --> Domain
+Service --> Repository
+Repository --> PostgreSQL
+
+Service --> Redis
+
+Service --> OpenProjectClient
+OpenProjectClient --> OpenProject
+
+Domain --> AnalyticsEngine
+AnalyticsEngine --> RecommendationEngine

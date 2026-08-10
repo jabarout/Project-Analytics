@@ -1,0 +1,58 @@
+<section class="settings">
+  <header>
+    <h2>Settings</h2>
+    <p>Manage your personal preferences. Theme and language are stored per user.</p>
+  </header>
+
+  @if (user(); as profile) {
+    <div class="settings__profile">
+      <div>
+        <span>Username</span>
+        <strong>{{ profile.username }}</strong>
+      </div>
+      <div>
+        <span>Role</span>
+        <strong>{{ profile.role }}</strong>
+      </div>
+      <div>
+        <span>Email</span>
+        <strong>{{ profile.email }}</strong>
+      </div>
+    </div>
+  }
+
+  <form class="settings__form" [formGroup]="form" (ngSubmit)="save()">
+    <label>
+      <span>Theme</span>
+      <select formControlName="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Language</span>
+      <select formControlName="language">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="de">German</option>
+        <option value="es">Spanish</option>
+      </select>
+    </label>
+
+    @if (message()) {
+      <p class="settings__ok" role="status">{{ message() }}</p>
+    }
+    @if (errorMessage()) {
+      <p class="settings__error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <button type="submit" [disabled]="loading()">
+      @if (loading()) {
+        <app-loading-spinner label="Saving…" />
+      } @else {
+        Save preferences
+      }
+    </button>
+  </form>
+</section>

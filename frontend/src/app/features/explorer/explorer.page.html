@@ -1,0 +1,102 @@
+<section class="explorer">
+  <header class="explorer__header">
+    <div>
+      <h2>Project Explorer</h2>
+      <p>
+        Primary analytical workspace — filter, sort, and group projects using local analytics. Open a row for project
+        detail.
+      </p>
+    </div>
+    <div class="explorer__toolbar">
+      @if (workspaces().length) {
+        <label class="explorer__scope">
+          Workspace
+          <select
+            [ngModel]="viewState().filters.workspaceId"
+            (ngModelChange)="onWorkspaceChange($event)"
+          >
+            @for (ws of workspaces(); track ws.id) {
+              <option [value]="ws.id">{{ ws.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      <label class="explorer__save">
+        <input
+          type="text"
+          placeholder="Saved view name"
+          [ngModel]="saveName()"
+          (ngModelChange)="saveName.set($event)"
+        />
+        <button type="button" (click)="saveCurrentView()" [disabled]="!saveName().trim()">Save view</button>
+      </label>
+      @if (savedViewList().length) {
+        <label class="explorer__scope">
+          Saved views
+          <select (change)="applySavedView($any($event.target).value)" [ngModel]="''">
+            <option value="" disabled selected>Apply…</option>
+            @for (v of savedViewList(); track v.id) {
+              <option [value]="v.id">{{ v.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      <button type="button" class="explorer__link" (click)="exportCsv()" [disabled]="matchCount() === 0">
+        Export CSV
+      </button>
+      <a routerLink="/" class="explorer__link">← Home triage</a>
+    </div>
+  </header>
+
+  @if (workspaces().length === 0 && !loading()) {
+    <app-empty-state
+      title="No workspace connected"
+      message="Connect and synchronize OpenProject to explore projects."
+    />
+    <a routerLink="/workspaces" class="explorer__link">Go to Connections →</a>
+  }
+
+  @if (errorMessage()) {
+    <p class="explorer__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading explorer…" />
+  } @else if (viewState().filters.workspaceId) {
+    <div class="explorer__body">
+      <app-explorer-filter-panel
+        [filters]="viewState().filters"
+        [groupBy]="viewState().groupBy"
+        [portfolios]="portfolios()"
+        [adminSuggestions]="adminSuggestions()"
+        (filtersChange)="patchFilters($event)"
+        (groupByChange)="setGroupBy($event)"
+        (reset)="resetFilters()"
+      />
+
+      <div class="explorer__results">
+        <p class="explorer__count">{{ matchCount() }} project(s) match</p>
+
+        <app-bar-chart
+          title="Health distribution (current result set)"
+          [data]="resultHealthChart()"
+          [interactive]="true"
+          (segmentClick)="onResultChartSegment($event)"
+        />
+
+        @for (group of pipeline().groups; track group.key) {
+          @if (viewState().groupBy !== 'none') {
+            <h3 class="explorer__group">{{ group.label }} · {{ group.rows.length }}</h3>
+          }
+          <app-project-table
+            [rows]="group.rows"
+            [columns]="viewState().columns"
+            [sort]="viewState().sort"
+            [density]="viewState().density"
+            (sortChange)="onSortChange($event)"
+          />
+        }
+      </div>
+    </div>
+  }
+</section>

@@ -1,0 +1,71 @@
+<section class="executive">
+  <header class="executive__header">
+    <div>
+      <h2>Executive dashboard</h2>
+      <p>Cross-workspace overview composed from the shared analytics engine. No live OpenProject calls.</p>
+    </div>
+    <div class="executive__actions">
+      <button type="button" (click)="reload()">Refresh</button>
+      <button type="button" class="secondary" (click)="exportCsv()">Export CSV</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading executive overview…" />
+  } @else if (errorMessage()) {
+    <app-empty-state title="Unavailable" [message]="errorMessage()!" />
+  } @else if (dashboard(); as board) {
+    <div class="kpi-row">
+      <app-kpi-card label="Workspaces" [value]="board.workspaceCount" [accent]="true" />
+      <app-kpi-card label="Portfolios" [value]="board.portfolioCount" />
+      <app-kpi-card label="Projects" [value]="board.totalProjects" />
+      <app-kpi-card label="Critical" [value]="board.criticalProjects" hint="Health &lt; 40" />
+      <app-kpi-card label="High attention" [value]="board.highAttentionProjects" hint="Attention ≥ 50" />
+    </div>
+
+    <div class="charts">
+      <app-bar-chart title="Average health by workspace" [data]="healthChart()" />
+      <app-bar-chart title="Average attention by workspace" [data]="attentionChart()" />
+    </div>
+
+    <section class="workspace-cards">
+      <h3>Workspaces</h3>
+      <div class="workspace-cards__grid">
+        @for (workspace of board.workspaces; track workspace.workspaceId) {
+          <a class="workspace-card" [routerLink]="['/']" [queryParams]="{ workspaceId: workspace.workspaceId }">
+            <h4>{{ workspace.workspaceName }}</h4>
+            <p>Sync: {{ workspace.synchronizationStatus }}</p>
+            <dl>
+              <div>
+                <dt>Projects</dt>
+                <dd>{{ workspace.totalProjects }}</dd>
+              </div>
+              <div>
+                <dt>Health</dt>
+                <dd>{{ workspace.averageHealthScore ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt>Risk</dt>
+                <dd>{{ workspace.averageRiskScore ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt>Attention</dt>
+                <dd>{{ workspace.averageAttentionScore ?? '—' }}</dd>
+              </div>
+            </dl>
+          </a>
+        }
+      </div>
+    </section>
+
+    <app-attention-table title="Top attention projects (all workspaces)" [projects]="board.topAttentionProjects" />
+    <app-insight-list title="Executive insights" [items]="board.insights" />
+    @if (recommendations(); as reco) {
+      <app-recommendation-list
+        title="Prioritized recommendations"
+        [summary]="reco.executiveSummary"
+        [items]="reco.recommendations"
+      />
+    }
+  }
+</section>

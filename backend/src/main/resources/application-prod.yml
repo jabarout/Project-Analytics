@@ -1,0 +1,42 @@
+# Production profile: no secrets committed. All credentials via environment.
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    baseline-on-migrate: false
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      group:
+        readiness:
+          include: readinessState,db,redis,diskSpace
+  endpoints:
+    web:
+      exposure:
+        # Network-restrict prometheus/info; never expose env/beans/configprops.
+        include: health,info,prometheus
+  info:
+    env:
+      enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    com.projectanalytics: INFO
+  config: classpath:logback-prod.xml
+
+projectanalytics:
+  redis:
+    enabled: true
+  security:
+    openapi-public: false
+  # JWT_SECRET and CORS_ALLOWED_ORIGINS are required — validated at startup.
+  # reporting / analytics retention defaults come from application.yml (override via env).

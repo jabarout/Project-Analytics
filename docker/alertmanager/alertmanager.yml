@@ -1,0 +1,18 @@
+# Pilot Alertmanager — logs alerts to console by default.
+# Wire Slack/email receivers via environment-specific overrides (do not commit secrets).
+
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: default
+  group_by: [alertname, severity]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: default
+    # Pilot: webhook can be added later. Alerts remain visible in Alertmanager UI.
+    # webhook_configs:
+    #   - url: 'http://example.local/hooks/alerts'

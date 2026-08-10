@@ -1,0 +1,69 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "id": null,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "sum by (status,type) (rate(pa_sync_runs_total[5m]))",
+          "legendFormat": "{{status}} / {{type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Sync runs rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "rate(pa_sync_duration_seconds_sum[5m]) / clamp_min(rate(pa_sync_duration_seconds_count[5m]), 0.001)",
+          "legendFormat": "avg duration",
+          "refId": "A"
+        }
+      ],
+      "title": "Sync duration (avg)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "rate(pa_analytics_projects_scored_total[5m])",
+          "legendFormat": "projects scored/s",
+          "refId": "A"
+        }
+      ],
+      "title": "Analytics projects scored",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum by (status,type,format) (rate(pa_report_generated_total[5m]))",
+          "legendFormat": "{{status}} {{type}} {{format}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Report generation rate",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["project-analytics", "m9", "sync"],
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "PA Sync · Analytics · Reports",
+  "uid": "pa-sync-analytics-reports",
+  "version": 1
+}

@@ -1,0 +1,52 @@
+flowchart TB
+
+    User([User])
+
+    subgraph Frontend["Angular Frontend"]
+        UI[Dashboard UI]
+        Router[Angular Router]
+        Components[Standalone Components]
+        Services[API Services]
+    end
+
+    subgraph Backend["Spring Boot Backend"]
+
+        API[REST API]
+
+        subgraph Application
+            Auth[Authentication]
+            Sync[Synchronization]
+            Analytics[Analytics Engine]
+            Recommendation[Recommendation Engine]
+            Reporting[Reporting]
+        end
+
+        Cache[(Redis)]
+        DB[(PostgreSQL)]
+    end
+
+    subgraph External
+        OP[OpenProject REST API]
+    end
+
+    User --> UI
+    UI --> Router
+    Router --> Components
+    Components --> Services
+    Services --> API
+
+    API --> Auth
+    API --> Sync
+    API --> Analytics
+    API --> Recommendation
+    API --> Reporting
+
+    Analytics --> DB
+    Recommendation --> DB
+    Reporting --> DB
+    Sync --> DB
+
+    Analytics --> Cache
+    Recommendation --> Cache
+
+    Sync <--> OP

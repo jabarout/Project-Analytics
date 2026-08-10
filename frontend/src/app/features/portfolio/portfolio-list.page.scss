@@ -1,0 +1,135 @@
+.portfolios {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 960px;
+}
+
+.portfolios header h2 {
+  margin: 0 0 0.4rem;
+}
+
+.portfolios header p {
+  margin: 0;
+  color: var(--pa-text-muted);
+}
+
+.portfolios__form {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--pa-border);
+  border-radius: 12px;
+  background: var(--pa-surface);
+}
+
+.portfolios__form h3 {
+  margin: 0;
+}
+
+.portfolios__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.portfolios__form input,
+.portfolios__form select,
+.portfolios__form button {
+  font: inherit;
+}
+
+.portfolios__form input,
+.portfolios__form select {
+  border: 1px solid var(--pa-border);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.portfolios__form > button[type='submit'] {
+  justify-self: start;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1rem;
+  background: #1d4ed8;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.portfolios__form > button[type='submit']:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.portfolios__picker h4 {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.portfolios__picker-hint {
+  margin: 0 0 0.65rem;
+  color: var(--pa-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.portfolios__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.portfolio-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.15rem;
+  border: 1px solid var(--pa-border);
+  border-radius: 12px;
+  background: var(--pa-surface);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.portfolio-card:hover {
+  border-color: #1d4ed8;
+}
+
+.portfolio-card h3 {
+  margin: 0 0 0.35rem;
+}
+
+.portfolio-card p {
+  margin: 0;
+  color: var(--pa-text-muted);
+  min-height: 2.5rem;
+}
+
+.portfolio-card dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.portfolio-card dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pa-text-muted);
+}
+
+.portfolio-card dd {
+  margin: 0.2rem 0 0;
+  font-weight: 650;
+}
+
+.portfolios__ok {
+  color: #0f766e;
+  margin: 0;
+}
+
+.portfolios__error {
+  color: #b91c1c;
+  margin: 0;
+}

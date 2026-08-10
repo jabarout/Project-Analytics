@@ -1,0 +1,191 @@
+<section class="project">
+  <div class="project__crumbs">
+    <a routerLink="/explorer">← Explorer</a>
+    <a routerLink="/">Home</a>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner label="Loading project analytics…" />
+  } @else if (errorMessage()) {
+    <app-empty-state title="Unavailable" [message]="errorMessage()!" />
+  } @else if (dashboard(); as board) {
+    <header>
+      <h2>{{ board.projectName }}</h2>
+      <p>
+        Status: {{ board.status || '—' }} · Progress:
+        {{ board.analytics.completionPercentage != null ? board.analytics.completionPercentage + '%' : '—' }}
+        · Analytical view only — execution stays in OpenProject.
+      </p>
+    </header>
+
+    <div class="kpi-row">
+      <app-kpi-card
+        label="Health"
+        [value]="board.analytics.health.score"
+        [hint]="board.analytics.health.label"
+        kind="score"
+        [accent]="true"
+        [infoTitle]="glossary.health.title"
+        [infoBody]="glossary.health.summary + ' ' + board.analytics.health.explanation"
+      />
+      <app-kpi-card
+        label="Risk"
+        [value]="board.analytics.risk.score"
+        [hint]="board.analytics.risk.label"
+        kind="score"
+        [infoTitle]="glossary.risk.title"
+        [infoBody]="glossary.risk.summary + ' ' + board.analytics.risk.explanation"
+      />
+      <app-kpi-card
+        label="Needs Attention"
+        [value]="board.analytics.attention.score"
+        [hint]="board.analytics.attention.label"
+        kind="score"
+        [infoTitle]="glossary.needsAttention.title"
+        [infoBody]="glossary.needsAttention.summary + ' ' + board.analytics.attention.explanation"
+      />
+      <app-kpi-card
+        label="Actual progress"
+        [value]="board.analytics.completionPercentage ?? '—'"
+        kind="score"
+        hint="WP completion when available"
+      />
+    </div>
+
+    <div class="kpi-row">
+      <app-kpi-card
+        label="Expected progress"
+        [value]="board.analytics.expectedProgress ?? '—'"
+        kind="score"
+        hint="From schedule elapsed"
+      />
+      <app-kpi-card
+        label="Progress gap"
+        [value]="board.analytics.progressGap ?? '—'"
+        kind="score"
+        [hint]="board.analytics.progressGap != null && board.analytics.progressGap < 0 ? 'Behind schedule' : 'Actual − expected'"
+      />
+      <app-kpi-card
+        label="Overdue ratio"
+        [value]="overdueRatioDisplay(board.analytics.overdueRatio)"
+        kind="score"
+        hint="Overdue WPs / total WPs"
+      />
+      <app-kpi-card
+        label="Schedule variance (days)"
+        [value]="board.analytics.scheduleVariance ?? '—'"
+        kind="count"
+        [hint]="board.analytics.scheduleVariance != null && board.analytics.scheduleVariance > 0 ? 'Days past project end' : 'Negative = days remaining'"
+      />
+    </div>
+
+    @if (wpAnalytics(); as wp) {
+      <h3 class="project__section">Work package summary</h3>
+      <div class="kpi-row">
+        <app-kpi-card label="Open" [value]="wp.openWorkPackages" kind="count" />
+        <app-kpi-card label="Overdue" [value]="wp.overdueWorkPackages" kind="count" severity="critical" />
+        <app-kpi-card label="High priority open" [value]="wp.highPriorityOpen" kind="count" severity="watch" />
+        <app-kpi-card
+          label="Completion %"
+          [value]="board.analytics.completionPercentage ?? '—'"
+          kind="score"
+        />
+        <app-kpi-card label="Blocked" [value]="wp.blockedWorkPackages" kind="count" />
+        <app-kpi-card label="Total WPs" [value]="wp.totalWorkPackages" kind="volume" [accent]="true" />
+      </div>
+
+      <div class="project__charts">
+        <app-bar-chart title="Work package status distribution" [data]="wpStatusChart()" />
+      </div>
+    }
+
+    <div class="score-grid">
+      <article>
+        <h3>Health</h3>
+        <p>{{ board.analytics.health.explanation }}</p>
+        <app-factor-bars title="Health factors" [factors]="board.analytics.health.factors" />
+      </article>
+      <article>
+        <h3>Risk</h3>
+        <p>{{ board.analytics.risk.explanation }}</p>
+        <app-factor-bars title="Risk factors" [factors]="board.analytics.risk.factors" />
+      </article>
+      <article>
+        <h3>Needs Attention</h3>
+        <p>{{ board.analytics.attention.explanation }}</p>
+        <app-factor-bars title="Needs Attention factors" [factors]="board.analytics.attention.factors" />
+      </article>
+    </div>
+
+    <app-trend-chart title="Score trends (historical snapshots)" [points]="board.trends" />
+
+    @if (wpAnalytics(); as wp) {
+      <section class="project__block">
+        <h3>Overdue work packages</h3>
+        @if (wp.overdueWorkPackagesList.length === 0) {
+          <p class="project__muted">No overdue open work packages in local data.</p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Assignee</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of wp.overdueWorkPackagesList; track item.id) {
+                <tr>
+                  <td>{{ item.subject }}</td>
+                  <td>{{ item.assignee || 'Unassigned' }}</td>
+                  <td>{{ item.priority || '—' }}</td>
+                  <td>{{ item.status || '—' }}</td>
+                  <td>{{ item.dueDate || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <section class="project__block">
+        <h3>Assignee bottlenecks</h3>
+        <p class="project__muted">Local open and overdue load by assignee — identify bottlenecks before opening OpenProject.</p>
+        @if (wp.assigneeBottlenecks.length === 0) {
+          <p class="project__muted">No work packages to aggregate.</p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Assignee</th>
+                <th>Open</th>
+                <th>Overdue</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of wp.assigneeBottlenecks; track row.assignee) {
+                <tr>
+                  <td>{{ row.assignee }}</td>
+                  <td>{{ row.openCount }}</td>
+                  <td>{{ row.overdueCount }}</td>
+                  <td>{{ row.totalCount }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
+
+    @if (recommendations(); as reco) {
+      <app-recommendation-list
+        title="Project recommendations"
+        [summary]="reco.executiveSummary"
+        [items]="reco.recommendations"
+      />
+    }
+  }
+</section>
