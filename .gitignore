@@ -81,13 +81,15 @@ junit.xml
 *.log
 logs/
 
-# Reports / local storage
-reports/
-generated-reports/
-data/reports/
+# Generated report artifacts / local storage (NOT the Angular feature under frontend/src/app/features/reports/)
+/reports/
+/generated-reports/
+/data/reports/
 backend/data/
+backend/data/reports/
 *.pdf
 !docs/**/*.pdf
+!frontend/src/app/features/reports/**
 
 # Docker local state
 docker/postgres/data/

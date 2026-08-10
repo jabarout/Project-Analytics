@@ -1,0 +1,138 @@
+<section class="reports">
+  <header class="reports__header">
+    <div>
+      <h2>Reports</h2>
+      <p>
+        Generate PDF and Excel reports from local analytics and dashboard outputs. No OpenProject calls and no new
+        scoring — formal export of existing decision intelligence.
+      </p>
+    </div>
+    <button type="button" class="secondary" (click)="reloadHistory()">Refresh history</button>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="reports__error" role="alert">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p class="reports__success" role="status">{{ successMessage() }}</p>
+  }
+
+  <form class="reports__form" [formGroup]="form" (ngSubmit)="generate()">
+    <h3>Generate report</h3>
+    <div class="reports__fields">
+      <label>
+        Report type
+        <select formControlName="reportType">
+          <option value="EXECUTIVE">Executive</option>
+          <option value="PORTFOLIO">Portfolio</option>
+          <option value="PROJECT">Project</option>
+          <option value="KPI">KPI</option>
+          <option value="RISK">Risk</option>
+        </select>
+      </label>
+
+      <label>
+        Format
+        <select formControlName="format">
+          <option value="PDF">PDF</option>
+          <option value="EXCEL">Excel</option>
+        </select>
+      </label>
+
+      @if (showScopeType()) {
+        <label>
+          Scope type
+          <select formControlName="scopeType">
+            <option value="WORKSPACE">Workspace</option>
+            <option value="PORTFOLIO">Portfolio</option>
+            @if (selectedReportType() === 'RISK') {
+              <option value="PROJECT">Project</option>
+            }
+          </select>
+        </label>
+      }
+
+      @if (needsScope()) {
+        <label class="reports__scope">
+          Scope
+          @if (
+            selectedReportType() === 'PORTFOLIO' ||
+            (showScopeType() && selectedScopeType() === 'PORTFOLIO')
+          ) {
+            <select formControlName="scopeId">
+              <option value="">Select portfolio…</option>
+              @for (portfolio of portfolios(); track portfolio.id) {
+                <option [value]="portfolio.id">{{ portfolio.name }}</option>
+              }
+            </select>
+          } @else if (
+            selectedReportType() === 'PROJECT' ||
+            (showScopeType() && selectedScopeType() === 'PROJECT')
+          ) {
+            <input type="text" formControlName="scopeId" placeholder="Project UUID" />
+          } @else {
+            <select formControlName="scopeId">
+              <option value="">Select workspace…</option>
+              @for (workspace of workspaces(); track workspace.id) {
+                <option [value]="workspace.id">{{ workspace.name }}</option>
+              }
+            </select>
+          }
+        </label>
+      }
+    </div>
+
+    <button type="submit" [disabled]="generating()">
+      {{ generating() ? 'Generating…' : 'Generate' }}
+    </button>
+  </form>
+
+  <section class="reports__history">
+    <h3>Report history</h3>
+    @if (loading()) {
+      <app-loading-spinner label="Loading report history…" />
+    } @else if (history().length === 0) {
+      <app-empty-state
+        title="No reports yet"
+        message="Generate an executive PDF or Excel report to populate history."
+      />
+    } @else {
+      <div class="reports__table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Format</th>
+              <th>Status</th>
+              <th>Size</th>
+              <th>Generated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (report of history(); track report.id) {
+              <tr>
+                <td>{{ report.title }}</td>
+                <td>{{ report.reportType }}</td>
+                <td>{{ report.format }}</td>
+                <td>
+                  <span [class.is-failed]="report.status === 'FAILED'">{{ report.status }}</span>
+                </td>
+                <td>{{ formatBytes(report.fileSizeBytes) }}</td>
+                <td>{{ report.generatedAt | date: 'medium' }}</td>
+                <td>
+                  @if (report.status === 'COMPLETED') {
+                    <button type="button" class="linkish" (click)="download(report)">Download</button>
+                  } @else if (report.errorMessage) {
+                    <span class="reports__hint" [title]="report.errorMessage">Failed</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>

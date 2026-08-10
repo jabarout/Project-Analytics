@@ -1,0 +1,141 @@
+.reports {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1100px;
+}
+
+.reports__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.reports__header h2 {
+  margin: 0 0 0.4rem;
+}
+
+.reports__header p {
+  margin: 0;
+  color: var(--pa-text-muted);
+  line-height: 1.5;
+}
+
+.reports__error {
+  margin: 0;
+  color: #b91c1c;
+}
+
+.reports__success {
+  margin: 0;
+  color: #0f766e;
+}
+
+.reports__form,
+.reports__history {
+  background: var(--pa-surface);
+  border: 1px solid var(--pa-border);
+  border-radius: var(--pa-radius);
+  padding: 1.1rem 1.2rem;
+}
+
+.reports__form h3,
+.reports__history h3 {
+  margin: 0 0 0.9rem;
+  font-size: 1rem;
+}
+
+.reports__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.reports__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--pa-text-muted);
+  font-weight: 600;
+}
+
+.reports__form select,
+.reports__form input {
+  font: inherit;
+  border: 1px solid var(--pa-border);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  background: #fff;
+  color: var(--pa-text);
+}
+
+.reports__form button,
+.reports__header button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 1rem;
+  background: #0f766e;
+  color: #fff;
+  font-weight: 600;
+}
+
+.reports__header button.secondary {
+  background: var(--pa-surface);
+  color: var(--pa-text);
+  border: 1px solid var(--pa-border);
+}
+
+.reports__form button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.reports__table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.45rem;
+  border-bottom: 1px solid var(--pa-border);
+  vertical-align: top;
+}
+
+th {
+  color: var(--pa-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.is-failed {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.linkish {
+  border: none;
+  background: none;
+  color: var(--pa-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.reports__hint {
+  color: var(--pa-text-muted);
+  font-size: 0.85rem;
+}
