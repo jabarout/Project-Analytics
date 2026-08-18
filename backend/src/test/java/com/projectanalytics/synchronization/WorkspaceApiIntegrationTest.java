@@ -3,6 +3,7 @@ package com.projectanalytics.synchronization;
 import com.projectanalytics.infrastructure.openproject.OpenProjectClient;
 import com.projectanalytics.infrastructure.openproject.OpenProjectConnectionProperties;
 import com.projectanalytics.infrastructure.openproject.dto.OpenProjectProjectDto;
+import com.projectanalytics.synchronization.application.OpenProjectEligibilityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,23 @@ class WorkspaceApiIntegrationTest {
     @MockBean
     private OpenProjectClient openProjectClient;
 
+    @MockBean
+    private OpenProjectEligibilityService eligibilityService;
+
     @Test
-    @DisplayName("authenticated user can create workspace and read sync status")
+    @DisplayName("authenticated user can connect via api-key and synchronize")
     void workspaceLifecycle() {
+        when(eligibilityService.evaluate(any())).thenReturn(
+                new OpenProjectEligibilityService.EligibilityResult(
+                        true,
+                        1L,
+                        "admin",
+                        "admin@example.test",
+                        true,
+                        List.of("Project admin"),
+                        "test eligible"
+                )
+        );
         when(openProjectClient.fetchServerVersion(any(OpenProjectConnectionProperties.class)))
                 .thenReturn("14.0.0");
         when(openProjectClient.fetchProjectAdminNamesByProjectId(any(OpenProjectConnectionProperties.class)))
@@ -53,10 +68,14 @@ class WorkspaceApiIntegrationTest {
         headers.setBearerAuth(token);
 
         ResponseEntity<Map> createResponse = restTemplate.exchange(
-                "/api/v1/workspaces",
+                "/api/v1/workspaces/connect/api-key",
                 HttpMethod.POST,
                 new HttpEntity<>(
-                        Map.of("name", "Primary OP", "baseUrl", "https://op-workspace-api.test"),
+                        Map.of(
+                                "name", "Primary OP",
+                                "baseUrl", "https://op-workspace-api.test",
+                                "apiKey", "test-workspace-key"
+                        ),
                         headers
                 ),
                 Map.class
@@ -87,6 +106,28 @@ class WorkspaceApiIntegrationTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> statusData = (Map<String, Object>) statusResponse.getBody().get("data");
         assertThat(statusData.get("synchronizedProjects")).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("legacy POST /workspaces is disabled")
+    void legacyCreateDisabled() {
+        String token = login();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "/api/v1/workspaces",
+                HttpMethod.POST,
+                new HttpEntity<>(
+                        Map.of("name", "Legacy", "baseUrl", "https://op-legacy-disabled.test"),
+                        headers
+                ),
+                Map.class
+        );
+        assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> error = (Map<String, Object>) response.getBody().get("error");
+        assertThat(error.get("message").toString()).contains("connect/api-key");
     }
 
     private String login() {

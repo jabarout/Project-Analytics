@@ -1,21 +1,24 @@
 package com.projectanalytics.portfolio.api;
 
+import com.projectanalytics.analytics.api.dto.ScopeAnalyticsKpiResponse;
+import com.projectanalytics.analytics.api.dto.ScopeDashboardResponse;
+import com.projectanalytics.authentication.security.AuthenticatedUser;
 import com.projectanalytics.common.api.ApiResponse;
 import com.projectanalytics.common.constants.ApplicationConstants;
 import com.projectanalytics.portfolio.api.dto.AssignProjectRequest;
 import com.projectanalytics.portfolio.api.dto.BulkAssignProjectsRequest;
 import com.projectanalytics.portfolio.api.dto.CreatePortfolioRequest;
-import com.projectanalytics.analytics.api.dto.ScopeAnalyticsKpiResponse;
-import com.projectanalytics.analytics.api.dto.ScopeDashboardResponse;
 import com.projectanalytics.portfolio.api.dto.PortfolioDetailResponse;
 import com.projectanalytics.portfolio.api.dto.PortfolioSummaryResponse;
 import com.projectanalytics.portfolio.api.dto.UpdatePortfolioRequest;
 import com.projectanalytics.portfolio.application.PortfolioService;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -40,41 +44,68 @@ import java.util.UUID;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
+    private final WorkspaceAccessService workspaceAccessService;
 
-    public PortfolioController(PortfolioService portfolioService) {
+    public PortfolioController(
+            PortfolioService portfolioService,
+            WorkspaceAccessService workspaceAccessService
+    ) {
         this.portfolioService = portfolioService;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @GetMapping
-    @Operation(summary = "List portfolios", description = "Optional workspaceId filter. Local database only.")
+    @Operation(summary = "List portfolios", description = "Only portfolios in workspaces the user can access.")
     public ApiResponse<List<PortfolioSummaryResponse>> list(
-            @RequestParam(required = false) UUID workspaceId
+            @RequestParam(required = false) UUID workspaceId,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        return ApiResponse.of(portfolioService.listPortfolios(workspaceId));
+        Set<UUID> allowed = workspaceAccessService.workspaceIdSetWithAnalyticsAccess(user.getId());
+        if (workspaceId != null) {
+            workspaceAccessService.requireAnalyticsAccess(workspaceId, user.getId());
+            return ApiResponse.of(portfolioService.listPortfolios(workspaceId));
+        }
+        return ApiResponse.of(portfolioService.listPortfoliosForWorkspaces(allowed));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Portfolio details")
-    public ApiResponse<PortfolioDetailResponse> get(@PathVariable UUID id) {
+    public ApiResponse<PortfolioDetailResponse> get(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.getPortfolio(id));
     }
 
     @GetMapping("/{id}/kpis")
     @Operation(summary = "Portfolio KPIs", description = "Analytics-engine aggregates for portfolio members (local data).")
-    public ApiResponse<ScopeAnalyticsKpiResponse> kpis(@PathVariable UUID id) {
+    public ApiResponse<ScopeAnalyticsKpiResponse> kpis(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.getKpis(id));
     }
 
     @GetMapping("/{id}/dashboard")
     @Operation(summary = "Portfolio dashboard", description = "Shared analytics engine scope dashboard for member projects.")
-    public ApiResponse<ScopeDashboardResponse> dashboard(@PathVariable UUID id) {
+    public ApiResponse<ScopeDashboardResponse> dashboard(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.getDashboard(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create portfolio")
-    public ApiResponse<PortfolioSummaryResponse> create(@Valid @RequestBody CreatePortfolioRequest request) {
+    public ApiResponse<PortfolioSummaryResponse> create(
+            @Valid @RequestBody CreatePortfolioRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccess(request.workspaceId(), user.getId());
         return ApiResponse.of(portfolioService.createPortfolio(request));
     }
 
@@ -82,15 +113,18 @@ public class PortfolioController {
     @Operation(summary = "Update portfolio")
     public ApiResponse<PortfolioSummaryResponse> update(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdatePortfolioRequest request
+            @Valid @RequestBody UpdatePortfolioRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.updatePortfolio(id, request));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete portfolio", description = "Deletes the analytical collection; projects remain owned by the workspace.")
-    public void delete(@PathVariable UUID id) {
+    public void delete(@PathVariable UUID id, @AuthenticationPrincipal AuthenticatedUser user) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         portfolioService.deletePortfolio(id);
     }
 
@@ -101,8 +135,10 @@ public class PortfolioController {
     )
     public ApiResponse<PortfolioDetailResponse> addProject(
             @PathVariable UUID id,
-            @Valid @RequestBody AssignProjectRequest request
+            @Valid @RequestBody AssignProjectRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.addProject(id, request));
     }
 
@@ -113,8 +149,10 @@ public class PortfolioController {
     )
     public ApiResponse<PortfolioDetailResponse> addProjectsBulk(
             @PathVariable UUID id,
-            @Valid @RequestBody BulkAssignProjectsRequest request
+            @Valid @RequestBody BulkAssignProjectsRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.addProjects(id, request.projectIds()));
     }
 
@@ -125,8 +163,10 @@ public class PortfolioController {
     )
     public ApiResponse<PortfolioDetailResponse> removeProject(
             @PathVariable UUID id,
-            @PathVariable UUID projectId
+            @PathVariable UUID projectId,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(portfolioService.removeProject(id, projectId));
     }
 }

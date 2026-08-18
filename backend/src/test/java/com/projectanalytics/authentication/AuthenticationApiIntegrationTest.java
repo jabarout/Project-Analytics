@@ -28,6 +28,85 @@ class AuthenticationApiIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Test
+    @DisplayName("register creates VIEWER account and returns token")
+    void registerSucceeds() {
+        String email = "newbie_" + System.nanoTime() + "@example.test";
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "/api/v1/auth/register",
+                Map.of(
+                        "email", email,
+                        "password", "Welcome123!",
+                        "username", "newbie_" + System.nanoTime()
+                ),
+                Map.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("success")).isEqualTo(true);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+        assertThat(data.get("token")).asString().isNotBlank();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth((String) data.get("token"));
+        ResponseEntity<Map> meResponse = restTemplate.exchange(
+                "/api/v1/auth/me",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                Map.class
+        );
+        assertThat(meResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> meData = (Map<String, Object>) meResponse.getBody().get("data");
+        assertThat(meData.get("email")).isEqualTo(email);
+        assertThat(meData.get("role")).isEqualTo("VIEWER");
+        assertThat(meData.get("role")).isNotEqualTo("ADMINISTRATOR");
+    }
+
+    @Test
+    @DisplayName("register rejects duplicate email")
+    void registerRejectsDuplicateEmail() {
+        String email = "dup_" + System.nanoTime() + "@example.test";
+        Map<String, Object> body = Map.of(
+                "email", email,
+                "password", "Welcome123!",
+                "username", "dupuser_" + System.nanoTime()
+        );
+        assertThat(restTemplate.postForEntity("/api/v1/auth/register", body, Map.class).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<Map> second = restTemplate.postForEntity(
+                "/api/v1/auth/register",
+                Map.of(
+                        "email", email,
+                        "password", "Welcome123!",
+                        "username", "other_" + System.nanoTime()
+                ),
+                Map.class
+        );
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> error = (Map<String, Object>) second.getBody().get("error");
+        assertThat(error.get("code")).isEqualTo("USER_002");
+    }
+
+    @Test
+    @DisplayName("login accepts email as well as username")
+    void loginWithEmail() {
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "/api/v1/auth/login",
+                Map.of("username", "admin@projectanalytics.local", "password", "Admin123!"),
+                Map.class
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+        assertThat(data.get("token")).asString().isNotBlank();
+    }
+
+    @Test
     @DisplayName("login succeeds for seed administrator")
     void loginSucceeds() {
         ResponseEntity<Map> response = restTemplate.postForEntity(

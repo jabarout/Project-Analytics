@@ -58,6 +58,83 @@
   cursor: pointer;
 }
 
+.workspaces__form button.secondary {
+  background: var(--pa-surface);
+  color: var(--pa-text);
+  border: 1px solid var(--pa-border);
+}
+
+.workspaces__alt {
+  margin: 0;
+}
+
+.workspaces__alt-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--pa-text-muted);
+}
+
+.workspaces__oauth-continue {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(29, 78, 216, 0.35);
+  border-radius: 0.65rem;
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.workspaces__oauth-continue p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--pa-text-muted);
+}
+
+.workspaces__setup {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--pa-border);
+  border-radius: 0.65rem;
+  background: var(--pa-bg, transparent);
+  font-size: 0.9rem;
+  color: var(--pa-text-muted);
+}
+
+.workspaces__setup h4 {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+  color: var(--pa-text);
+}
+
+.workspaces__setup ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.workspaces__setup li {
+  margin: 0.25rem 0;
+}
+
+.workspaces__redirect {
+  display: inline-block;
+  margin-top: 0.15rem;
+  word-break: break-all;
+}
+
+.optional {
+  font-weight: 500;
+  color: var(--pa-text-muted);
+}
+
+.workspaces__form button.linkish {
+  background: transparent;
+  color: #1d4ed8;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .workspace-card button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -183,4 +260,76 @@
 
 .workspaces__error {
   color: #b91c1c;
+}
+
+.workspace-card__role {
+  margin: 0.45rem 0 0;
+  font-size: 0.85rem;
+  color: var(--pa-text-muted);
+}
+
+.workspace-card__members {
+  width: 100%;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pa-border);
+}
+
+.workspace-card__members h4 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.workspace-card__members-hint,
+.workspace-card__members-empty {
+  margin: 0 0 0.75rem;
+  color: var(--pa-text-muted);
+  font-size: 0.9rem;
+}
+
+.workspace-card__grant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.workspace-card__grant input {
+  flex: 1 1 14rem;
+  border: 1px solid var(--pa-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.workspace-card__member-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.workspace-card__member-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--pa-border);
+  border-radius: 0.55rem;
+  background: var(--pa-bg, transparent);
+}
+
+.workspace-card__member-meta {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--pa-text-muted);
+  font-weight: 500;
+}
+
+.workspace-card__member-list button {
+  flex-shrink: 0;
 }

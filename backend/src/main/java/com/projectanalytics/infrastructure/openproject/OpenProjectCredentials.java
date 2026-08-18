@@ -17,7 +17,7 @@ public record OpenProjectCredentials(
     }
 
     /**
-     * Factory for future OAuth 2.0 access tokens. Not used by the current default resolver.
+     * Factory for OAuth 2.0 access tokens (M14 Phase 7).
      */
     public static OpenProjectCredentials ofBearerToken(String accessToken) {
         return new OpenProjectCredentials(OpenProjectAuthScheme.BEARER_TOKEN, null, accessToken);

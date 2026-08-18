@@ -105,20 +105,19 @@ Permissions are enforced on the backend.
 
 The frontend may hide unavailable actions for usability, but authorization decisions are never trusted to the client.
 
-## 5.1 Product access model (frozen)
-
-Analytics access is owned by **Project Analytics**, not inferred from OpenProject.
+## 5.1 Product access model (frozen) — Hybrid
 
 | Rule | Detail |
 |------|--------|
-| **No OpenProject role inference** | Do not map OpenProject roles/permissions to “manager,” “executive,” or analytics eligibility. An OpenProject administrator is not necessarily a multi-project decision-maker. |
-| **Workspace analytics access** | A **workspace administrator** grants (or revokes) which application users may access analytics for that workspace. |
-| **Independent hierarchy** | Organizational hierarchy is not imported from OpenProject for authorization. |
-| **Product focus** | Access answers whether the user may use the **management intelligence** layer for multi-project oversight—not their job title. |
+| **PA account ≠ OP access** | Sign-up/login creates a Project Analytics identity only. |
+| **OP eligibility for connect** | Establishing a workspace requires OpenProject auth (OAuth preferred; API key alt) **plus** an eligibility check (default: OP `admin` or Project admin role). Credentials stay server-side. |
+| **Connector = PA Workspace Admin** | Successful eligible connect grants that PA user Workspace Admin + analytics access for the workspace. |
+| **App-owned ongoing grants** | Additional PA users receive analytics access via Workspace Admin grants (M15); they need not OAuth separately. |
+| **Workspace isolation** | Backend must enforce membership on every workspace-scoped API. UI hiding is not sufficient. |
+| **Admin concepts** | PA Platform Admin ≠ PA Workspace Admin ≠ OpenProject Administrator. |
 
-See `00_Project_Vision.md` §10 and `01_Product_Requirements.md` §2.1.
-
-Implementation of workspace membership / grant UI may follow with M11 or a dedicated access milestone; the rule above is binding for design.
+See `00_Project_Vision.md` §10 and `01_Product_Requirements.md` §2.1.  
+Implemented across **M14a** (registration), **M14** (connection/eligibility), **M15** (grants + isolation).
 
 ## 5.2 Application roles (current / transitional)
 
@@ -130,9 +129,9 @@ The application currently uses RBAC with example roles such as:
 - Executive
 - Viewer
 
-**Product direction:** analytical UX is designed for a **single primary audience** (multi-project oversight), not job-title-specific product modes. Fine-grained title-based roles should not drive divergent analytical experiences. Workspace **analytics access** (granted/denied) is the primary gate; administration capabilities remain distinct for workspace admins.
+**Product direction:** analytical UX is designed for a **single primary audience** (multi-project oversight), not job-title-specific product modes. Self-registered users receive platform role `VIEWER` until they become a **Workspace Admin** via eligible OpenProject connect (M14) or receive analytics grants (M15). Platform `ADMINISTRATOR` remains deploy/seed/ops only — never auto-assigned on first signup.
 
-Future simplification of role catalogs must preserve: (1) workspace admin capabilities, (2) explicit analytics access, (3) backend enforcement.
+Future simplification of role catalogs must preserve: (1) platform admin, (2) workspace admin capabilities, (3) explicit analytics access, (4) backend enforcement.
 
 ---
 
@@ -281,25 +280,16 @@ Different environments must use different secrets.
 
 Project Analytics user authentication (JWT) is independent of OpenProject integration credentials.
 
-**Official long-term target**
+**Implemented (M14 Phase 7)**
 
-- OpenProject integration authentication is **OAuth 2.0**.
+- OpenProject integration authentication is **OAuth 2.0 authorization code + PKCE** (preferred) with **API key** as the supported alternative.
 - **One Workspace = one OpenProject instance.**
-- OAuth is introduced in a dedicated milestone.
-- `OpenProjectCredentialResolver` remains the migration seam: OAuth replaces only the credential provider and the OpenProject HTTP client’s Authorization header construction.
-- Synchronization engine, import pipeline, and analytics modules must not be redesigned for OAuth.
-
-**Current (temporary)**
-
-- OpenProject is accessed with a platform API key from environment configuration (`OPENPROJECT_API_KEY`).
-- Credentials are resolved via `OpenProjectCredentialResolver` and applied only in the OpenProject HTTP client.
-- The API key path remains valid until the OAuth milestone ships.
-
-**Out of scope until the OAuth milestone**
-
-- OAuth endpoints
-- Token storage
-- OAuth-related database schema
+- Per-workspace credentials (API key or OAuth access/refresh tokens) are encrypted at rest (`CREDENTIALS_ENCRYPTION_KEY`).
+- `CompositeOpenProjectCredentialResolver` prefers stored workspace credentials; env `OPENPROJECT_API_KEY` is local/dev fallback only (disabled in prod).
+- After OAuth token exchange **or** API-key connect, the **same** OpenProject eligibility check runs (global `admin` or allow-listed role title). OAuth success alone is not enough.
+- Eligible connector becomes PA Workspace Admin + analytics access. M15 grants are unchanged: additional PA users get analytics via Workspace Admin grants and do not OAuth separately.
+- OAuth access tokens near expiry are refreshed using the stored refresh token when the OAuth client is configured.
+- Synchronization engine, import pipeline, and analytics modules are not redesigned for OAuth.
 
 **Dashboard boundary**
 

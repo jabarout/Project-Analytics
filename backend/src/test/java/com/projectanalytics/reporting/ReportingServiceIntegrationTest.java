@@ -130,13 +130,13 @@ class ReportingServiceIntegrationTest {
                 reportRepository.findById(report.id()).orElseThrow().getFilePath()
         ))).isTrue();
 
-        List<ReportResponse> history = reportingService.listHistory();
+        List<ReportResponse> history = reportingService.listHistory(ADMIN_USER_ID);
         assertThat(history).extracting(ReportResponse::id).contains(report.id());
 
-        ReportResponse fetched = reportingService.getReport(report.id());
+        ReportResponse fetched = reportingService.getReport(report.id(), ADMIN_USER_ID);
         assertThat(fetched.title()).contains("Executive");
 
-        ReportFileDownload download = reportingService.download(report.id());
+        ReportFileDownload download = reportingService.download(report.id(), ADMIN_USER_ID);
         assertThat(download.contentType()).isEqualTo("application/pdf");
         assertThat(download.content().length).isGreaterThan(100);
         assertThat(download.content()[0]).isEqualTo((byte) '%');
@@ -154,7 +154,7 @@ class ReportingServiceIntegrationTest {
         assertThat(kpiExcel.status()).isEqualTo(ReportStatus.COMPLETED);
         assertThat(kpiExcel.fileName()).endsWith(".xlsx");
 
-        ReportFileDownload excel = reportingService.download(kpiExcel.id());
+        ReportFileDownload excel = reportingService.download(kpiExcel.id(), ADMIN_USER_ID);
         assertThat(excel.contentType()).contains("spreadsheet");
         assertThat(excel.content().length).isGreaterThan(50);
         // XLSX is a zip: PK header
@@ -186,7 +186,7 @@ class ReportingServiceIntegrationTest {
 
     @Test
     void unknownReportReturnsNotFound() {
-        assertThatThrownBy(() -> reportingService.getReport(UUID.randomUUID()))
+        assertThatThrownBy(() -> reportingService.getReport(UUID.randomUUID(), ADMIN_USER_ID))
                 .hasMessageContaining("Report not found");
     }
 }

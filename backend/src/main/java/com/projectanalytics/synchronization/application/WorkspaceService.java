@@ -21,7 +21,9 @@ import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -37,6 +39,7 @@ public class WorkspaceService {
     private final PortfolioProjectRepository portfolioProjectRepository;
     private final SynchronizationHistoryRepository synchronizationHistoryRepository;
     private final RecommendationRepository recommendationRepository;
+    private final WorkspaceAccessService workspaceAccessService;
 
     public WorkspaceService(
             WorkspaceRepository workspaceRepository,
@@ -48,7 +51,8 @@ public class WorkspaceService {
             PortfolioRepository portfolioRepository,
             PortfolioProjectRepository portfolioProjectRepository,
             SynchronizationHistoryRepository synchronizationHistoryRepository,
-            RecommendationRepository recommendationRepository
+            RecommendationRepository recommendationRepository,
+            WorkspaceAccessService workspaceAccessService
     ) {
         this.workspaceRepository = workspaceRepository;
         this.openProjectProperties = openProjectProperties;
@@ -60,18 +64,22 @@ public class WorkspaceService {
         this.portfolioProjectRepository = portfolioProjectRepository;
         this.synchronizationHistoryRepository = synchronizationHistoryRepository;
         this.recommendationRepository = recommendationRepository;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @Transactional(readOnly = true)
-    public List<WorkspaceResponse> listWorkspaces() {
+    public List<WorkspaceResponse> listWorkspaces(UUID userId) {
+        Set<UUID> allowed = new HashSet<>(workspaceAccessService.workspaceIdsWithAnalyticsAccess(userId));
         return workspaceRepository.findAll().stream()
-                .map(this::toResponse)
+                .filter(workspace -> allowed.contains(workspace.getId()))
+                .map(workspace -> toResponse(workspace, userId))
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public WorkspaceResponse getWorkspace(UUID id) {
-        return toResponse(requireWorkspace(id));
+    public WorkspaceResponse getWorkspace(UUID id, UUID userId) {
+        workspaceAccessService.requireAnalyticsAccess(id, userId);
+        return toResponse(requireWorkspace(id), userId);
     }
 
     @Transactional
@@ -81,14 +89,15 @@ public class WorkspaceService {
             throw new BusinessException(ErrorCode.WORKSPACE_002);
         }
         WorkspaceEntity workspace = new WorkspaceEntity(request.name().trim(), baseUrl);
-        return toResponse(workspaceRepository.save(workspace));
+        // Legacy path — no caller context; flags default false until membership exists.
+        return toResponse(workspaceRepository.save(workspace), null);
     }
 
     @Transactional
-    public WorkspaceResponse updateWorkspace(UUID id, UpdateWorkspaceRequest request) {
+    public WorkspaceResponse updateWorkspace(UUID id, UpdateWorkspaceRequest request, UUID userId) {
         WorkspaceEntity workspace = requireWorkspace(id);
         workspace.setName(request.name().trim());
-        return toResponse(workspaceRepository.save(workspace));
+        return toResponse(workspaceRepository.save(workspace), userId);
     }
 
     /**
@@ -133,7 +142,11 @@ public class WorkspaceService {
         return candidate;
     }
 
-    private WorkspaceResponse toResponse(WorkspaceEntity entity) {
+    private WorkspaceResponse toResponse(WorkspaceEntity entity, UUID userId) {
+        boolean workspaceAdmin = userId != null
+                && workspaceAccessService.isWorkspaceAdmin(entity.getId(), userId);
+        boolean analyticsAccess = userId != null
+                && workspaceAccessService.hasAnalyticsAccess(entity.getId(), userId);
         return new WorkspaceResponse(
                 entity.getId(),
                 entity.getName(),
@@ -141,7 +154,9 @@ public class WorkspaceService {
                 entity.getVersion(),
                 entity.getSynchronizationStatus().name(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                workspaceAdmin,
+                analyticsAccess
         );
     }
 }

@@ -1,3 +1,44 @@
+.auth {
+  max-width: 28rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth__header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.auth__header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.auth__tabs {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--pa-border, #e2e8f0);
+}
+
+.auth__tabs button {
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.auth__tabs button.is-active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+}
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -15,8 +56,13 @@
   font-weight: 600;
 }
 
+.field__optional {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
 .field input {
-  border: 1px solid var(--pa-border);
+  border: 1px solid var(--pa-border, #e2e8f0);
   border-radius: 0.65rem;
   padding: 0.7rem 0.85rem;
   background: #fff;
@@ -33,6 +79,14 @@
   margin: 0;
 }
 
+.field__hint,
+.auth__footnote {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .login-form__submit {
   margin-top: 0.5rem;
   border: none;
@@ -47,4 +101,20 @@
 .login-form__submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.auth__link {
+  border: none;
+  background: transparent;
+  color: #1d4ed8;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-align: left;
+}
+
+.auth__ok {
+  margin: 0;
+  color: #0f766e;
+  font-size: 0.9rem;
 }

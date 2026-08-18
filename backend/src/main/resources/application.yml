@@ -106,6 +106,29 @@ projectanalytics:
       require-lowercase: ${PASSWORD_REQUIRE_LOWERCASE:true}
       require-digit: ${PASSWORD_REQUIRE_DIGIT:true}
       require-special: ${PASSWORD_REQUIRE_SPECIAL:true}
+    registration:
+      # Open self-signup by default; set false for invite-only / locked deploys.
+      enabled: ${REGISTRATION_ENABLED:true}
+    password-reset:
+      ttl-minutes: ${PASSWORD_RESET_TTL_MINUTES:60}
+      frontend-base-url: ${PASSWORD_RESET_FRONTEND_BASE_URL:http://localhost:4200}
+      mail-from: ${PASSWORD_RESET_MAIL_FROM:noreply@projectanalytics.local}
+      # When true, requires spring.mail.host (and related) to send email.
+      mail-enabled: ${PASSWORD_RESET_MAIL_ENABLED:false}
+    rate-limit:
+      enabled: ${AUTH_RATE_LIMIT_ENABLED:true}
+      login-max-attempts: ${AUTH_RATE_LIMIT_LOGIN_MAX:10}
+      register-max-attempts: ${AUTH_RATE_LIMIT_REGISTER_MAX:5}
+      forgot-password-max-attempts: ${AUTH_RATE_LIMIT_FORGOT_MAX:5}
+      reset-password-max-attempts: ${AUTH_RATE_LIMIT_RESET_MAX:10}
+      window-seconds: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:300}
+    openproject:
+      # Comma-separated OP role titles that may connect a workspace (plus global admin).
+      eligible-role-titles: ${OP_ELIGIBLE_ROLE_TITLES:Project admin}
+      # When true, blank connect key / missing stored credential may use OPENPROJECT_API_KEY (local/dev/test only).
+      allow-env-api-key-fallback: ${OP_ALLOW_ENV_API_KEY_FALLBACK:true}
+    # Optional dedicated key for encrypting workspace credentials; falls back to JWT secret locally.
+    credentials-encryption-key: ${CREDENTIALS_ENCRYPTION_KEY:}
     # When false, OpenAPI/Swagger UI require authentication (recommended for prod).
     openapi-public: ${OPENAPI_PUBLIC:true}
   openproject:
@@ -113,6 +136,16 @@ projectanalytics:
     api-key: ${OPENPROJECT_API_KEY:}
     timeout-seconds: ${OPENPROJECT_TIMEOUT:30}
     verify-ssl: ${OPENPROJECT_VERIFY_SSL:true}
+    oauth:
+      # Optional local/single-tenant defaults only. Multi-OP: enter client id/secret per connect (stored per workspace).
+      client-id: ${OPENPROJECT_OAUTH_CLIENT_ID:}
+      client-secret: ${OPENPROJECT_OAUTH_CLIENT_SECRET:}
+      # Required for OAuth UI. Must match redirect URI on EVERY OpenProject OAuth application.
+      redirect-uri: ${OPENPROJECT_OAUTH_REDIRECT_URI:http://localhost:8080/api/v1/workspaces/oauth/callback}
+      scopes: ${OPENPROJECT_OAUTH_SCOPES:api_v3}
+      frontend-success-url: ${OPENPROJECT_OAUTH_FRONTEND_SUCCESS_URL:http://localhost:4200/workspaces?oauth=success}
+      frontend-error-url: ${OPENPROJECT_OAUTH_FRONTEND_ERROR_URL:http://localhost:4200/workspaces?oauth=error}
+      state-ttl-seconds: ${OPENPROJECT_OAUTH_STATE_TTL_SECONDS:600}
   sync:
     enabled: ${SYNC_ENABLED:true}
     interval-ms: ${SYNC_INTERVAL_MS:3600000}

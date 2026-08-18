@@ -1,6 +1,7 @@
 package com.projectanalytics.authentication.security;
 
 import org.springframework.beans.factory.annotation.Value;
+import com.projectanalytics.authentication.config.RegistrationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +29,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, RegistrationProperties.class})
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -58,6 +59,11 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         List<String> publicMatchers = new ArrayList<>();
         publicMatchers.add("/api/v1/auth/login");
+        publicMatchers.add("/api/v1/auth/register");
+        publicMatchers.add("/api/v1/auth/forgot-password");
+        publicMatchers.add("/api/v1/auth/reset-password");
+        // OpenProject OAuth browser redirect (state+PKCE bind the flow to the initiating PA user).
+        publicMatchers.add("/api/v1/workspaces/oauth/callback");
         // Probes + Prometheus scrape (network-restrict in prod; no secrets on these paths)
         publicMatchers.add("/actuator/health");
         publicMatchers.add("/actuator/health/**");
@@ -84,6 +90,7 @@ public class SecurityConfiguration {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())
+                // AuthRateLimitFilter is a servlet OncePerRequestFilter (@Component) for public auth routes.
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

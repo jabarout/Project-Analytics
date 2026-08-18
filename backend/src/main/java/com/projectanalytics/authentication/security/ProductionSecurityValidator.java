@@ -24,13 +24,16 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
     private final JwtProperties jwtProperties;
     private final String corsAllowedOrigins;
+    private final String credentialsEncryptionKey;
 
     public ProductionSecurityValidator(
             JwtProperties jwtProperties,
-            @Value("${projectanalytics.cors.allowed-origins:}") String corsAllowedOrigins
+            @Value("${projectanalytics.cors.allowed-origins:}") String corsAllowedOrigins,
+            @Value("${projectanalytics.security.credentials-encryption-key:}") String credentialsEncryptionKey
     ) {
         this.jwtProperties = jwtProperties;
         this.corsAllowedOrigins = corsAllowedOrigins == null ? "" : corsAllowedOrigins;
+        this.credentialsEncryptionKey = credentialsEncryptionKey == null ? "" : credentialsEncryptionKey;
     }
 
     @Override
@@ -59,6 +62,22 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         if (corsAllowedOrigins.contains("localhost") || corsAllowedOrigins.contains("127.0.0.1")) {
             log.warn(
                     "CORS allowed origins include localhost in prod — verify this is intentional for this environment."
+            );
+        }
+        if (credentialsEncryptionKey.isBlank()) {
+            throw new IllegalStateException(
+                    "CREDENTIALS_ENCRYPTION_KEY / projectanalytics.security.credentials-encryption-key "
+                            + "must be set in the prod profile (do not fall back to JWT_SECRET)."
+            );
+        }
+        if (credentialsEncryptionKey.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException(
+                    "CREDENTIALS_ENCRYPTION_KEY must be at least " + MIN_SECRET_LENGTH + " characters in prod."
+            );
+        }
+        if (credentialsEncryptionKey.equals(secret)) {
+            throw new IllegalStateException(
+                    "CREDENTIALS_ENCRYPTION_KEY must be distinct from JWT_SECRET in the prod profile."
             );
         }
         log.info("Production security startup checks passed.");

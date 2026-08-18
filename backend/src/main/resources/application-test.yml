@@ -24,6 +24,17 @@ projectanalytics:
     secret: test-jwt-secret-key-with-32-bytes-min
     expiration-seconds: 3600
     refresh-expiration-seconds: 86400
+  security:
+    rate-limit:
+      # High limits so normal integration tests are not flaky; dedicated rate-limit test overrides via properties if needed.
+      enabled: true
+      login-max-attempts: 1000
+      register-max-attempts: 1000
+      forgot-password-max-attempts: 1000
+      reset-password-max-attempts: 1000
+      window-seconds: 300
+    openproject:
+      allow-env-api-key-fallback: true
   openproject:
     url: https://openproject.example.test
     api-key: test-api-key

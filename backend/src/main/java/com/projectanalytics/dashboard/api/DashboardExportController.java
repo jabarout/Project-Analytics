@@ -3,16 +3,19 @@ package com.projectanalytics.dashboard.api;
 import com.projectanalytics.analytics.api.dto.ProjectAttentionSummaryResponse;
 import com.projectanalytics.analytics.api.dto.ScopeDashboardResponse;
 import com.projectanalytics.analytics.application.AnalyticsQueryService;
+import com.projectanalytics.authentication.security.AuthenticatedUser;
 import com.projectanalytics.common.constants.ApplicationConstants;
 import com.projectanalytics.dashboard.api.dto.ExecutiveDashboardResponse;
 import com.projectanalytics.dashboard.api.dto.WorkspaceDashboardCardResponse;
 import com.projectanalytics.dashboard.application.ExecutiveDashboardService;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,19 +35,22 @@ public class DashboardExportController {
 
     private final ExecutiveDashboardService executiveDashboardService;
     private final AnalyticsQueryService analyticsQueryService;
+    private final WorkspaceAccessService workspaceAccessService;
 
     public DashboardExportController(
             ExecutiveDashboardService executiveDashboardService,
-            AnalyticsQueryService analyticsQueryService
+            AnalyticsQueryService analyticsQueryService,
+            WorkspaceAccessService workspaceAccessService
     ) {
         this.executiveDashboardService = executiveDashboardService;
         this.analyticsQueryService = analyticsQueryService;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @GetMapping(value = "/executive/export.csv", produces = "text/csv")
     @Operation(summary = "Export executive dashboard as CSV")
-    public ResponseEntity<byte[]> exportExecutive() {
-        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard();
+    public ResponseEntity<byte[]> exportExecutive(@AuthenticationPrincipal AuthenticatedUser user) {
+        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard(user.getId());
         StringBuilder csv = new StringBuilder();
         csv.append("workspaceId,workspaceName,syncStatus,totalProjects,activeProjects,criticalProjects,highAttention,avgHealth,avgRisk,avgAttention\n");
         for (WorkspaceDashboardCardResponse card : dashboard.workspaces()) {
@@ -72,7 +78,11 @@ public class DashboardExportController {
 
     @GetMapping(value = "/workspace/{id}/export.csv", produces = "text/csv")
     @Operation(summary = "Export workspace dashboard attention list as CSV")
-    public ResponseEntity<byte[]> exportWorkspace(@PathVariable UUID id) {
+    public ResponseEntity<byte[]> exportWorkspace(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccess(id, user.getId());
         ScopeDashboardResponse dashboard = analyticsQueryService.getWorkspaceDashboard(id);
         StringBuilder csv = new StringBuilder();
         csv.append("projectId,projectName,status,healthScore,healthStatus,riskScore,riskLevel,attentionScore,attentionLabel\n");

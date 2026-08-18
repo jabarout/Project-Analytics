@@ -1,29 +1,98 @@
-<form class="login-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-  <label class="field">
-    <span>Username</span>
-    <input type="text" formControlName="username" autocomplete="username" />
-    @if (form.controls.username.touched && form.controls.username.invalid) {
-      <small class="field__error">Username is required.</small>
-    }
-  </label>
+<section class="auth">
+  <header class="auth__header">
+    <h1>Project Analytics</h1>
+    <p>Sign in, create an account, or reset your password. Connecting OpenProject comes after signup.</p>
+  </header>
 
-  <label class="field">
-    <span>Password</span>
-    <input type="password" formControlName="password" autocomplete="current-password" />
-    @if (form.controls.password.touched && form.controls.password.invalid) {
-      <small class="field__error">Password is required.</small>
-    }
-  </label>
-
-  @if (errorMessage()) {
-    <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
-  }
-
-  <button type="submit" class="login-form__submit" [disabled]="loading()">
-    @if (loading()) {
-      <app-loading-spinner label="Signing in…" />
-    } @else {
+  <div class="auth__tabs" role="tablist">
+    <button type="button" role="tab" [class.is-active]="mode() === 'login'" (click)="setMode('login')">
       Sign in
-    }
-  </button>
-</form>
+    </button>
+    <button type="button" role="tab" [class.is-active]="mode() === 'register'" (click)="setMode('register')">
+      Sign up
+    </button>
+  </div>
+
+  @if (mode() === 'login') {
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+      <label class="field">
+        <span>Username or email</span>
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
+      @if (errorMessage()) {
+        <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
+      }
+      @if (infoMessage()) {
+        <p class="auth__ok" role="status">{{ infoMessage() }}</p>
+      }
+      <button type="submit" class="login-form__submit" [disabled]="loading()">
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+      <button type="button" class="auth__link" (click)="setMode('forgot')">Forgot password?</button>
+    </form>
+  } @else if (mode() === 'register') {
+    <form class="login-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
+      <label class="field">
+        <span>Email</span>
+        <input type="email" formControlName="email" autocomplete="email" />
+      </label>
+      <label class="field">
+        <span>Username <span class="field__optional">(optional)</span></span>
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" formControlName="password" autocomplete="new-password" />
+        <small class="field__hint">Use upper, lower, number, and special character.</small>
+      </label>
+      @if (errorMessage()) {
+        <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
+      }
+      <button type="submit" class="login-form__submit" [disabled]="loading()">
+        {{ loading() ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+  } @else if (mode() === 'forgot') {
+    <form class="login-form" [formGroup]="forgotForm" (ngSubmit)="submitForgot()" novalidate>
+      <p class="field__hint">Enter your account email. We always show the same confirmation message.</p>
+      <label class="field">
+        <span>Email</span>
+        <input type="email" formControlName="email" autocomplete="email" />
+      </label>
+      @if (infoMessage()) {
+        <p class="auth__ok" role="status">{{ infoMessage() }}</p>
+      }
+      @if (errorMessage()) {
+        <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
+      }
+      <button type="submit" class="login-form__submit" [disabled]="loading()">
+        {{ loading() ? 'Sending…' : 'Send reset link' }}
+      </button>
+      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
+    </form>
+  } @else {
+    <form class="login-form" [formGroup]="resetForm" (ngSubmit)="submitReset()" novalidate>
+      <p class="field__hint">Paste your reset token if it is not already filled from the email link.</p>
+      <label class="field">
+        <span>Reset token</span>
+        <input type="text" formControlName="token" autocomplete="one-time-code" />
+      </label>
+      <label class="field">
+        <span>New password</span>
+        <input type="password" formControlName="newPassword" autocomplete="new-password" />
+        <small class="field__hint">Use upper, lower, number, and special character.</small>
+      </label>
+      @if (errorMessage()) {
+        <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
+      }
+      <button type="submit" class="login-form__submit" [disabled]="loading()">
+        {{ loading() ? 'Updating…' : 'Update password' }}
+      </button>
+      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
+    </form>
+  }
+</section>

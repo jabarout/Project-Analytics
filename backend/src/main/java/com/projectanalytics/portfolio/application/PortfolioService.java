@@ -64,6 +64,18 @@ public class PortfolioService {
         return portfolios.stream().map(this::toSummary).toList();
     }
 
+    /** Lists portfolios only in the given allowed workspace ids (membership-filtered). */
+    @Transactional(readOnly = true)
+    public List<PortfolioSummaryResponse> listPortfoliosForWorkspaces(java.util.Set<UUID> allowedWorkspaceIds) {
+        if (allowedWorkspaceIds == null || allowedWorkspaceIds.isEmpty()) {
+            return List.of();
+        }
+        return portfolioRepository.findAllByOrderByNameAsc().stream()
+                .filter(p -> allowedWorkspaceIds.contains(p.getWorkspace().getId()))
+                .map(this::toSummary)
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public PortfolioDetailResponse getPortfolio(UUID portfolioId) {
         PortfolioEntity portfolio = requirePortfolio(portfolioId);

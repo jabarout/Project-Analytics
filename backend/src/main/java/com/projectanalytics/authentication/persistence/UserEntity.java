@@ -31,6 +31,9 @@ public class UserEntity extends BaseEntity {
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "credentials_version", nullable = false)
+    private int credentialsVersion = 0;
+
     protected UserEntity() {
     }
 
@@ -40,6 +43,7 @@ public class UserEntity extends BaseEntity {
         this.passwordHash = passwordHash;
         this.role = role;
         this.enabled = true;
+        this.credentialsVersion = 0;
     }
 
     public String getUsername() {
@@ -64,5 +68,21 @@ public class UserEntity extends BaseEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public int getCredentialsVersion() {
+        return credentialsVersion;
+    }
+
+    public void setCredentialsVersion(int credentialsVersion) {
+        this.credentialsVersion = credentialsVersion;
+    }
+
+    public void incrementCredentialsVersion() {
+        this.credentialsVersion++;
     }
 }

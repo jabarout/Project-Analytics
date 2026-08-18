@@ -5,11 +5,14 @@ import com.projectanalytics.analytics.api.dto.ProjectAnalyticsResponse;
 import com.projectanalytics.analytics.api.dto.TrendPointResponse;
 import com.projectanalytics.analytics.application.AnalyticsQueryService;
 import com.projectanalytics.analytics.application.AnalyticsRecalculationService;
+import com.projectanalytics.authentication.security.AuthenticatedUser;
 import com.projectanalytics.common.api.ApiResponse;
 import com.projectanalytics.common.constants.ApplicationConstants;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,18 +32,25 @@ public class AnalyticsController {
 
     private final AnalyticsQueryService analyticsQueryService;
     private final AnalyticsRecalculationService recalculationService;
+    private final WorkspaceAccessService workspaceAccessService;
 
     public AnalyticsController(
             AnalyticsQueryService analyticsQueryService,
-            AnalyticsRecalculationService recalculationService
+            AnalyticsRecalculationService recalculationService,
+            WorkspaceAccessService workspaceAccessService
     ) {
         this.analyticsQueryService = analyticsQueryService;
         this.recalculationService = recalculationService;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @GetMapping("/projects/{id}/health")
     @Operation(summary = "Project health score")
-    public ApiResponse<Map<String, Object>> health(@PathVariable UUID id) {
+    public ApiResponse<Map<String, Object>> health(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         ProjectAnalyticsResponse analytics = analyticsQueryService.getOrComputeProjectAnalytics(id);
         return ApiResponse.of(Map.of(
                 "projectId", analytics.projectId(),
@@ -50,7 +60,11 @@ public class AnalyticsController {
 
     @GetMapping("/projects/{id}/risk")
     @Operation(summary = "Project risk score")
-    public ApiResponse<Map<String, Object>> risk(@PathVariable UUID id) {
+    public ApiResponse<Map<String, Object>> risk(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         ProjectAnalyticsResponse analytics = analyticsQueryService.getOrComputeProjectAnalytics(id);
         return ApiResponse.of(Map.of(
                 "projectId", analytics.projectId(),
@@ -60,7 +74,11 @@ public class AnalyticsController {
 
     @GetMapping("/projects/{id}/attention")
     @Operation(summary = "Project attention score")
-    public ApiResponse<Map<String, Object>> attention(@PathVariable UUID id) {
+    public ApiResponse<Map<String, Object>> attention(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         ProjectAnalyticsResponse analytics = analyticsQueryService.getOrComputeProjectAnalytics(id);
         return ApiResponse.of(Map.of(
                 "projectId", analytics.projectId(),
@@ -70,19 +88,31 @@ public class AnalyticsController {
 
     @GetMapping("/projects/{id}/kpis")
     @Operation(summary = "Project analytics KPI bundle")
-    public ApiResponse<ProjectAnalyticsResponse> kpis(@PathVariable UUID id) {
+    public ApiResponse<ProjectAnalyticsResponse> kpis(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         return ApiResponse.of(analyticsQueryService.getOrComputeProjectAnalytics(id));
     }
 
     @GetMapping("/projects/{id}/trends")
     @Operation(summary = "Project analytics trends")
-    public ApiResponse<List<TrendPointResponse>> trends(@PathVariable UUID id) {
+    public ApiResponse<List<TrendPointResponse>> trends(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         return ApiResponse.of(analyticsQueryService.getProjectTrends(id));
     }
 
     @PostMapping("/workspaces/{workspaceId}/recalculate")
     @Operation(summary = "Recalculate analytics for all projects in a workspace")
-    public ApiResponse<Map<String, Object>> recalculateWorkspace(@PathVariable UUID workspaceId) {
+    public ApiResponse<Map<String, Object>> recalculateWorkspace(
+            @PathVariable UUID workspaceId,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireWorkspaceAdmin(workspaceId, user.getId());
         int count = recalculationService.recalculateWorkspace(workspaceId);
         return ApiResponse.of(Map.of("workspaceId", workspaceId, "projectsScored", count));
     }
@@ -94,8 +124,13 @@ public class AnalyticsController {
     )
     public ApiResponse<List<ExplorerProjectRowResponse>> explorerProjects(
             @PathVariable UUID workspaceId,
-            @RequestParam(required = false) UUID portfolioId
+            @RequestParam(required = false) UUID portfolioId,
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
+        workspaceAccessService.requireAnalyticsAccess(workspaceId, user.getId());
+        if (portfolioId != null) {
+            workspaceAccessService.requireAnalyticsAccessForPortfolio(portfolioId, user.getId());
+        }
         return ApiResponse.of(analyticsQueryService.listExplorerProjects(workspaceId, portfolioId));
     }
 }

@@ -48,9 +48,11 @@ Every milestone should result in a working application.
 | M11 | Product Experience | Implement frozen PE architecture (`19_Product_Experience.md`) |
 | M12 | Decision metrics | Progress/schedule consistency (ProgressMetrics); portfolio depth |
 | M13 | Quality gate | Product freeze, happy path, handoff, bug bash |
-| M14 | OpenProject OAuth | Replace temporary API key via credential resolver seam |
-| M15 | Analytics access grants | App-owned who-can-see-analytics UI + enforcement |
-| M16 | UI polish | Visual/UX consistency (no IA redesign) |
+| M14a | PA Account Registration | Sign up / login; no OP access until connect/grant |
+| M14 | OpenProject Connection Security | OAuth preferred; API-key alt; encrypted credentials; OP eligibility; Connections UI |
+| M15 | Analytics Access & Isolation | Workspace memberships, grants, backend enforcement, isolation tests |
+| M16a | Visual polish & dark mode | Tokens, dark mode, spacing/empty states — no IA redesign |
+| M16b | Motion & transitions | Subtle route/loading/KPI/micro-interactions; non-blocking for M17 |
 | M17 | Deploy & customer package | One clean production deploy + ops package |
 | M18 | Soft intelligence (optional) | Trends / reco evidence only — not AI platform |
 
@@ -331,15 +333,131 @@ Mitigation strategies should be reviewed regularly throughout development.
 
 Target: finished OpenProject companion — trustworthy, deployable, not enterprise SaaS.
 
+**Frozen (do not reopen during N1–N5):** PE structure · M10 hardening · M12 ProgressMetrics ownership · Hybrid access model.
+
 | Milestone | Status | Goal |
 |-----------|--------|------|
 | **M12** Decision metrics | **Complete** | ProgressMetrics SoT; extended metrics; portfolio analytics depth; classic Home |
 | **M13** Quality gate | **Complete** | Happy path, handoff docs, known limits, tests green; local company testing ready |
-| **M14** OpenProject OAuth | Planned (hold until explicit go-ahead) | OAuth via `OpenProjectCredentialResolver`; API key optional/dev |
-| **M15** Analytics access grants | Planned | Workspace admin grants analytics access (frozen product rule) |
-| **M16** UI polish | Planned | Spacing, empty states, terminology, consistency — PE frozen |
-| **M17** Deploy & customer package | Planned | Compose/prod profile, env template, backup, demo walkthrough |
-| **M18** Soft intelligence | Optional | Snapshot trends, reco evidence; no LLM requirement |
+| **M14a** PA Account Registration | **Complete** | Email/password signup; password reset; rate limits; no first-user admin |
+| **M14** OpenProject Connection Security | **Complete** | OAuth + PKCE; per-workspace OAuth client credentials; API-key alt; eligibility; encryption |
+| **M15** Analytics Access & Isolation | **Complete** | Memberships; grant/revoke by email; isolation/grant-matrix tests |
+| **N1** Connect & auth soak | **Next** | Manual verification of connect/auth flows before visual work |
+| **N2** Regression gate | Planned | Full automated + smoke gate before UI work |
+| **M16a / N3** Visual polish & dark mode | Planned | Tokens, dark mode, consistency — PE frozen; **mandatory** |
+| **M16b / N4** Motion & transitions | Planned | Subtle dynamics; **non-blocking for M17** |
+| **M17 / N5** Deploy & customer package | Planned | Compose/prod, env template, backup, demo walkthrough |
+| **M18 / N6** Soft intelligence | Optional | Snapshot trends, reco evidence; no LLM requirement |
+
+### Execution order (approved)
+
+```text
+N1 → N2 → N3/M16a → N4/M16b → N5/M17
+N6/M18 optional after N5
+```
+
+- **N1 and N2 are mandatory** before any visual work.
+- **N3 is mandatory.**
+- **N4** must be professional and subtle; **must not block N5/M17** if N3 is complete and N4 adds unnecessary risk.
+
+---
+
+## 18.1 N1 — Connect & auth soak
+
+**Goal:** Hybrid connect is demo-reliable on local OpenProject.
+
+**Priority:** **Manual testing first**; document confirmed behavior and OP-specific quirks **afterward**.
+
+| ID | Task | Acceptance | Tests |
+|----|------|------------|-------|
+| N1.1 | Manual OAuth connect (popup flow, per-workspace client id/secret) | Connect succeeds; quirks noted | Manual + existing OAuth API tests |
+| N1.2 | API-key fallback | Connect + sync without OAuth | Manual + connect hardening tests |
+| N1.3 | Multi-OpenProject behavior | Distinct client credentials per workspace URL | Manual + multi-client OAuth test |
+| N1.4 | Already-connected / M15 | Second user denied cleanly; grants still work | Manual + grant/isolation tests |
+| N1.5 | Password-reset / SMTP readiness | Local path verified; SMTP checklist for real deploy | Manual + password-reset tests |
+| N1.6 | Document findings | Known-limitations / ops notes updated from **confirmed** results | Doc review |
+
+**Exit:** N1 checklist signed off; no open P0 connect bugs for local demo.
+
+---
+
+## 18.2 N2 — Regression gate
+
+**Depends on:** N1. **Blocks:** N3+.
+
+| ID | Task | Acceptance | Tests |
+|----|------|------------|-------|
+| N2.1 | Full backend suite | All green | `mvn test` |
+| N2.2 | Security matrix | Isolation, grants, OAuth, API-key overwrite, rate-limit, password-reset pass | Those integration classes |
+| N2.3 | Frontend build | Succeeds | `ng build` |
+| N2.4 | Smoke happy path | Login → connect/sync → Home/Explorer/Detail → report smoke | Manual demo script |
+| N2.5 | Docs sync | Project State / Roadmap reflect post-N2 Next = N3 | Doc review |
+
+**Exit:** Regression report green; go/no-go for N3.
+
+---
+
+## 18.3 N3 / M16a — Visual polish & dark mode (mandatory)
+
+**Depends on:** N2. **No IA redesign.**
+
+| ID | Task | Acceptance | Tests |
+|----|------|------------|-------|
+| N3.1 | Design tokens (light + dark) | Shared CSS variables for surfaces/text/borders/accents | Visual review |
+| N3.2 | Dark mode wiring | Settings theme + persistence; readable charts/cards | Manual theme switch on core routes |
+| N3.3 | Surface consistency | Spacing, cards, empty states, banners | UI guidelines checklist |
+| N3.4 | Terminology pass | PE language (Connections, Synchronize vs Recalculate, grants) | Copy review |
+| N3.5 | Static loading polish | Consistent spinners/skeletons (motion in N4) | Manual |
+| N3.6 | A11y baseline | Contrast/focus in both themes | Spot-check |
+
+**Exit:** Dark mode usable on primary routes; polish signed off.
+
+---
+
+## 18.4 N4 / M16b — Motion & transitions (non-blocking for M17)
+
+**Depends on:** N3. **May be deferred** without making N5 incomplete.
+
+**Mandatory priorities:**
+
+1. Route/page transitions  
+2. Loading/skeleton transitions  
+3. KPI/chart transitions  
+4. Subtle card/button micro-interactions  
+5. Accessibility + `prefers-reduced-motion`
+
+**Nice-to-have:** scroll-based reveals — include only if natural, performant, and professional; may be skipped without making N4 incomplete.
+
+| ID | Task | Acceptance | Tests |
+|----|------|------------|-------|
+| N4.1 | Motion principles + reduced-motion | Non-essential motion off when reduced | Manual OS toggle |
+| N4.2 | Route/page transitions | Subtle, short; no IA change | Manual navigation |
+| N4.3 | Loading/skeleton transitions | Skeleton → content fade; works in dark mode | Manual |
+| N4.4 | KPI/chart transitions | Soft updates; no jank on recalculate/filter | Manual |
+| N4.5 | Micro-interactions | Subtle hover/focus/press; keyboard OK | Manual + keyboard |
+| N4.6 | Scroll reveals *(optional)* | Only if performant/professional | Manual (if shipped) |
+| N4.7 | Perf gate | No jank → simplify or defer before M17 | DevTools spot-check |
+
+**Exit (ship):** checklist + reduced-motion pass. **Exit (defer):** Project State notes N4 deferred; N5 proceeds on N3.
+
+---
+
+## 18.5 N5 / M17 — Deploy & customer package
+
+**Depends on:** N3 (mandatory). N4 optional.
+
+| ID | Task | Acceptance | Tests |
+|----|------|------------|-------|
+| N5.1 | Prod compose / profile | Stack up from docs | Smoke on prod profile |
+| N5.2 | Env template | All required keys; no secrets | Review vs ProductionSecurityValidator |
+| N5.3 | Backup/restore | Scripts + runbook | Dry-run |
+| N5.4 | Security deploy checklist | Seed admin, encryption key, SMTP, CORS, rate limits | Ops checklist |
+| N5.5 | Demo walkthrough | Buyer path on polished UI | Manual script |
+| N5.6 | Handoff package | Versioned ops package / README | Package smoke |
+
+**Exit:** Deploy & demo in one sitting from docs alone.
+
+---
 
 ### Explicitly later / out of $2k scope
 

@@ -23,6 +23,7 @@ import com.projectanalytics.recommendation.application.rules.RecommendationCandi
 import com.projectanalytics.recommendation.config.RecommendationProperties;
 import com.projectanalytics.recommendation.persistence.RecommendationEntity;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,7 @@ public class RecommendationService {
     private final ProjectRepository projectRepository;
     private final PortfolioRepository portfolioRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceAccessService workspaceAccessService;
     private final RecommendationProperties properties;
     private final ObjectMapper objectMapper;
 
@@ -59,6 +61,7 @@ public class RecommendationService {
             ProjectRepository projectRepository,
             PortfolioRepository portfolioRepository,
             WorkspaceRepository workspaceRepository,
+            WorkspaceAccessService workspaceAccessService,
             RecommendationProperties properties,
             ObjectMapper objectMapper
     ) {
@@ -69,6 +72,7 @@ public class RecommendationService {
         this.projectRepository = projectRepository;
         this.portfolioRepository = portfolioRepository;
         this.workspaceRepository = workspaceRepository;
+        this.workspaceAccessService = workspaceAccessService;
         this.properties = properties;
         this.objectMapper = objectMapper;
     }
@@ -122,8 +126,11 @@ public class RecommendationService {
     }
 
     @Transactional
-    public RecommendationBundleResponse getExecutiveRecommendations() {
-        List<WorkspaceEntity> workspaces = workspaceRepository.findAll();
+    public RecommendationBundleResponse getExecutiveRecommendations(UUID userId) {
+        java.util.Set<UUID> allowed = workspaceAccessService.workspaceIdSetWithAnalyticsAccess(userId);
+        List<WorkspaceEntity> workspaces = workspaceRepository.findAll().stream()
+                .filter(w -> allowed.contains(w.getId()))
+                .toList();
         List<RecommendationResponse> all = new ArrayList<>();
         for (WorkspaceEntity workspace : workspaces) {
             List<ProjectEntity> projects = projectRepository.findByWorkspaceIdOrderByNameAsc(workspace.getId());
@@ -137,7 +144,7 @@ public class RecommendationService {
         return new RecommendationBundleResponse(
                 null,
                 "EXECUTIVE",
-                "All workspaces",
+                "Accessible workspaces",
                 summary,
                 all
         );

@@ -15,12 +15,15 @@ public enum ErrorCode {
     AUTH_004("AUTH_004", "Authentication required.", HttpStatus.UNAUTHORIZED),
     AUTH_005("AUTH_005", "Access denied.", HttpStatus.FORBIDDEN),
     AUTH_006("AUTH_006", "Insufficient permissions.", HttpStatus.FORBIDDEN),
+    AUTH_007("AUTH_007", "Too many requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
 
     USER_001("USER_001", "User not found.", HttpStatus.NOT_FOUND),
     USER_002("USER_002", "Email already exists.", HttpStatus.CONFLICT),
     USER_003("USER_003", "Username already exists.", HttpStatus.CONFLICT),
     USER_004("USER_004", "Invalid password.", HttpStatus.BAD_REQUEST),
     USER_005("USER_005", "Invalid user preferences.", HttpStatus.BAD_REQUEST),
+    USER_006("USER_006", "Registration is disabled.", HttpStatus.FORBIDDEN),
+    USER_007("USER_007", "Invalid email address.", HttpStatus.BAD_REQUEST),
 
     SYNC_001("SYNC_001", "Synchronization failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     SYNC_002("SYNC_002", "OpenProject timeout.", HttpStatus.REQUEST_TIMEOUT),

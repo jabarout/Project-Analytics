@@ -1,13 +1,16 @@
 package com.projectanalytics.recommendation.api;
 
+import com.projectanalytics.authentication.security.AuthenticatedUser;
 import com.projectanalytics.common.api.ApiResponse;
 import com.projectanalytics.common.constants.ApplicationConstants;
 import com.projectanalytics.recommendation.api.dto.RecommendationBundleResponse;
 import com.projectanalytics.recommendation.api.dto.RecommendationResponse;
 import com.projectanalytics.recommendation.application.RecommendationService;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,38 +29,62 @@ import java.util.UUID;
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
+    private final WorkspaceAccessService workspaceAccessService;
 
-    public RecommendationController(RecommendationService recommendationService) {
+    public RecommendationController(
+            RecommendationService recommendationService,
+            WorkspaceAccessService workspaceAccessService
+    ) {
         this.recommendationService = recommendationService;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @GetMapping("/projects/{id}/recommendations")
     @Operation(summary = "Project recommendations", description = "Rule-based recommendations for a project from current analytics.")
-    public ApiResponse<RecommendationBundleResponse> projectRecommendations(@PathVariable UUID id) {
+    public ApiResponse<RecommendationBundleResponse> projectRecommendations(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         return ApiResponse.of(recommendationService.getProjectRecommendations(id));
     }
 
     @GetMapping("/workspaces/{id}/recommendations")
     @Operation(summary = "Workspace recommendations", description = "Prioritized recommendations across all projects in a workspace.")
-    public ApiResponse<RecommendationBundleResponse> workspaceRecommendations(@PathVariable UUID id) {
+    public ApiResponse<RecommendationBundleResponse> workspaceRecommendations(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccess(id, user.getId());
         return ApiResponse.of(recommendationService.getWorkspaceRecommendations(id));
     }
 
     @GetMapping("/portfolios/{id}/recommendations")
     @Operation(summary = "Portfolio recommendations", description = "Prioritized recommendations for portfolio member projects.")
-    public ApiResponse<RecommendationBundleResponse> portfolioRecommendations(@PathVariable UUID id) {
+    public ApiResponse<RecommendationBundleResponse> portfolioRecommendations(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccessForPortfolio(id, user.getId());
         return ApiResponse.of(recommendationService.getPortfolioRecommendations(id));
     }
 
     @GetMapping("/recommendations/executive")
-    @Operation(summary = "Executive recommendations", description = "Cross-workspace prioritized recommendation list.")
-    public ApiResponse<RecommendationBundleResponse> executiveRecommendations() {
-        return ApiResponse.of(recommendationService.getExecutiveRecommendations());
+    @Operation(summary = "Executive recommendations", description = "Prioritized recommendations across workspaces the user can access.")
+    public ApiResponse<RecommendationBundleResponse> executiveRecommendations(
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        return ApiResponse.of(recommendationService.getExecutiveRecommendations(user.getId()));
     }
 
     @GetMapping("/recommendations/{id}")
     @Operation(summary = "Recommendation details", description = "Returns a previously generated recommendation by id.")
-    public ApiResponse<RecommendationResponse> getRecommendation(@PathVariable UUID id) {
-        return ApiResponse.of(recommendationService.getRecommendation(id));
+    public ApiResponse<RecommendationResponse> getRecommendation(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        RecommendationResponse response = recommendationService.getRecommendation(id);
+        workspaceAccessService.requireAnalyticsAccessForProject(response.projectId(), user.getId());
+        return ApiResponse.of(response);
     }
 }

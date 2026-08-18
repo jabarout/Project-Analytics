@@ -25,6 +25,7 @@ public class JwtService {
 
     private static final String CLAIM_USER_ID = "uid";
     private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_CREDENTIALS_VERSION = "cv";
 
     private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
@@ -48,6 +49,7 @@ public class JwtService {
                 .subject(user.getUsername())
                 .claim(CLAIM_USER_ID, user.getId().toString())
                 .claim(CLAIM_ROLE, user.getRole().name())
+                .claim(CLAIM_CREDENTIALS_VERSION, user.getCredentialsVersion())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(secretKey)
@@ -62,7 +64,9 @@ public class JwtService {
         Claims claims = parseClaims(token);
         UUID userId = UUID.fromString(claims.get(CLAIM_USER_ID, String.class));
         Role role = Role.valueOf(claims.get(CLAIM_ROLE, String.class));
-        return new AuthenticatedUser(userId, claims.getSubject(), "", role, true);
+        Integer cv = claims.get(CLAIM_CREDENTIALS_VERSION, Integer.class);
+        int credentialsVersion = cv == null ? 0 : cv;
+        return new AuthenticatedUser(userId, claims.getSubject(), "", role, true, credentialsVersion);
     }
 
     private Claims parseClaims(String token) {

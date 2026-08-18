@@ -4,8 +4,11 @@ import { Router } from '@angular/router';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import {
+  ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
+  RegisterRequest,
+  ResetPasswordRequest,
   UpdatePreferencesRequest,
   UserPreference,
   UserProfile,
@@ -40,6 +43,33 @@ export class AuthService {
       }),
       catchError((error) => throwError(() => error))
     );
+  }
+
+  /** Creates a PA account and stores the returned JWT (no analytics access yet). */
+  register(request: RegisterRequest): Observable<LoginResponse> {
+    const url = `${this.configuration.apiBaseUrl}/auth/register`;
+    return this.http.post<ApiResponse<LoginResponse>>(url, request).pipe(
+      map((response) => response.data),
+      tap((data) => {
+        this.persistToken(data.token);
+        this.tokenSignal.set(data.token);
+      }),
+      catchError((error) => throwError(() => error))
+    );
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<{ message: string }> {
+    const url = `${this.configuration.apiBaseUrl}/auth/forgot-password`;
+    return this.http
+      .post<ApiResponse<{ message: string }>>(url, request)
+      .pipe(map((response) => response.data));
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<{ message: string }> {
+    const url = `${this.configuration.apiBaseUrl}/auth/reset-password`;
+    return this.http
+      .post<ApiResponse<{ message: string }>>(url, request)
+      .pipe(map((response) => response.data));
   }
 
   loadCurrentUser(): Observable<UserProfile | null> {

@@ -70,9 +70,15 @@ class RecommendationServiceIntegrationTest {
     @Autowired
     private SynchronizationHistoryRepository synchronizationHistoryRepository;
 
+    private static final UUID ADMIN_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    @Autowired
+    private com.projectanalytics.synchronization.application.WorkspaceAccessService workspaceAccessService;
+
     private UUID workspaceId;
     private UUID portfolioId;
     private UUID projectId;
+    private UUID adminUserId = ADMIN_USER_ID;
 
     @BeforeEach
     void setUp() {
@@ -99,6 +105,7 @@ class RecommendationServiceIntegrationTest {
         workspaceId = workspace.getId();
         portfolioId = portfolio.getId();
         projectId = project.getId();
+        workspaceAccessService.grantConnectorAdmin(workspaceId, ADMIN_USER_ID);
         recalculationService.recalculateWorkspace(workspaceId);
     }
 
@@ -150,7 +157,7 @@ class RecommendationServiceIntegrationTest {
         assertThat(portfolio.scopeType()).isEqualTo("PORTFOLIO");
         assertThat(portfolio.recommendations()).isNotEmpty();
 
-        RecommendationBundleResponse executive = recommendationService.getExecutiveRecommendations();
+        RecommendationBundleResponse executive = recommendationService.getExecutiveRecommendations(adminUserId);
         assertThat(executive.scopeType()).isEqualTo("EXECUTIVE");
         assertThat(executive.recommendations()).isNotEmpty();
         assertThat(executive.recommendations().getFirst().priorityRank()).isGreaterThan(0);

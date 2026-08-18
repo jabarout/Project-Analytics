@@ -257,7 +257,8 @@ public class RestOpenProjectClient implements OpenProjectClient {
     /**
      * Single place that turns resolved credentials into an HTTP Authorization header.
      */
-    static String buildAuthorizationHeader(OpenProjectCredentials credentials) {
+    /** Public for eligibility probes and other trusted server-side callers (never expose secrets). */
+    public static String buildAuthorizationHeader(OpenProjectCredentials credentials) {
         if (credentials == null || credentials.scheme() == null) {
             throw new BusinessException(ErrorCode.SYNC_005, "OpenProject credentials are not configured.");
         }
@@ -272,7 +273,6 @@ public class RestOpenProjectClient implements OpenProjectClient {
                 yield "Basic " + basic;
             }
             case BEARER_TOKEN -> {
-                // Reserved for a future OAuth 2.0 access token. Not used by the default resolver.
                 if (credentials.accessToken() == null || credentials.accessToken().isBlank()) {
                     throw new BusinessException(ErrorCode.SYNC_005, "OpenProject access token is not configured.");
                 }

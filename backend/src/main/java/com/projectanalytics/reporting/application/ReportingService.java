@@ -68,7 +68,12 @@ public class ReportingService {
 
         ReportDocument document;
         try {
-            document = contentAssembler.assemble(request.reportType(), effectiveScopeType, request.scopeId());
+            document = contentAssembler.assemble(
+                    request.reportType(),
+                    effectiveScopeType,
+                    request.scopeId(),
+                    generatedBy
+            );
         } catch (BusinessException exception) {
             platformMetrics.recordReportGenerated(
                     request.reportType().name(),
@@ -178,20 +183,23 @@ public class ReportingService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReportResponse> listHistory() {
-        return reportRepository.findAllByOrderByGeneratedAtDesc().stream()
+    public List<ReportResponse> listHistory(UUID userId) {
+        return reportRepository.findByGeneratedByOrderByGeneratedAtDesc(userId).stream()
                 .map(ReportingService::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public ReportResponse getReport(UUID id) {
-        return toResponse(requireReport(id));
+    public ReportResponse getReport(UUID id, UUID userId) {
+        ReportEntity entity = requireReport(id);
+        requireOwnedBy(entity, userId);
+        return toResponse(entity);
     }
 
     @Transactional(readOnly = true)
-    public ReportFileDownload download(UUID id) {
+    public ReportFileDownload download(UUID id, UUID userId) {
         ReportEntity entity = requireReport(id);
+        requireOwnedBy(entity, userId);
         if (entity.getStatus() != ReportStatus.COMPLETED
                 || entity.getFilePath() == null
                 || entity.getFilePath().isBlank()) {
@@ -216,6 +224,12 @@ public class ReportingService {
     private ReportEntity requireReport(UUID id) {
         return reportRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REPORT_001));
+    }
+
+    private static void requireOwnedBy(ReportEntity entity, UUID userId) {
+        if (entity.getGeneratedBy() == null || !entity.getGeneratedBy().equals(userId)) {
+            throw new BusinessException(ErrorCode.AUTH_006, "You do not have access to this report.");
+        }
     }
 
     private static ReportScopeType resolveScopeType(GenerateReportRequest request) {

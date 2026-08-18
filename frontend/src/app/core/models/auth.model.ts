@@ -1,6 +1,22 @@
 export interface LoginRequest {
+  /** Username or email. */
   readonly username: string;
   readonly password: string;
+}
+
+export interface RegisterRequest {
+  readonly email: string;
+  readonly password: string;
+  readonly username?: string;
+}
+
+export interface ForgotPasswordRequest {
+  readonly email: string;
+}
+
+export interface ResetPasswordRequest {
+  readonly token: string;
+  readonly newPassword: string;
 }
 
 export interface LoginResponse {

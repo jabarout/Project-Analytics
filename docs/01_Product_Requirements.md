@@ -48,18 +48,22 @@ The following decisions are the official product architecture source of truth an
 - **Feature filter:** every feature must help someone **oversee and prioritize multiple projects**. Individual task / day-to-day execution belongs in OpenProject.
 - Full statement: `00_Project_Vision.md` §9–§10 and `19_Product_Experience.md`.
 
-## Analytics access (application-owned)
+## Analytics access (Hybrid)
 
-- Analytics access is a **Project Analytics concept**, not derived from OpenProject roles or permissions.
-- Do **not** infer “manager” (or any hierarchy) from OpenProject.
-- A **workspace administrator** decides which users can access the analytics workspace.
-- OpenProject remains sync source only; its RBAC does not define analytics eligibility.
+- **PA authentication** (email/password) is separate from OpenProject credentials.
+- **Connect/sync eligibility** is determined by an OpenProject authorization check after OAuth (preferred) or API-key connect. OAuth success alone is not enough. Default v1 policy: OpenProject global `admin` **or** at least one **Project admin** membership (configurable allow-list). Ordinary Member-only users are denied.
+- The PA user who successfully connects becomes the **Project Analytics Workspace Admin** for that workspace.
+- **Ongoing analytics access** for additional PA users is **app-owned**: Workspace Admins grant/revoke access inside Project Analytics (M15). Grantees do not need to OAuth separately to view analytics.
+- Do **not** bulk-create PA accounts for all OpenProject employees.
+- Do **not** auto-promote the first PA registrant to Platform Admin.
+- Keep separate: PA Platform Admin · PA Workspace Admin · OpenProject Administrator.
 
 ## Primary user journey
 
-1. **Connect Workspace** (API key now / OAuth later).
-2. **Synchronize** operational data into local PostgreSQL.
-3. **Immediate Dashboard & Analytics** on local data for users with analytics access.
+1. **Sign up / Sign in** to Project Analytics (no analytics until connected/granted).
+2. **Connect Workspace** (OAuth preferred; API key alternative) and pass OP eligibility.
+3. **Synchronize** operational data into local PostgreSQL.
+4. **Dashboard & Analytics** on local data for users with PA analytics access.
 
 Users must not interact with OpenProject while using dashboards. OpenProject is the **synchronization source only**.
 

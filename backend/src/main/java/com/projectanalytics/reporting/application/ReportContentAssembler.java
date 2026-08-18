@@ -47,11 +47,12 @@ public class ReportContentAssembler {
     public ReportDocument assemble(
             ReportType reportType,
             ReportScopeType scopeType,
-            UUID scopeId
+            UUID scopeId,
+            UUID userId
     ) {
         Instant now = Instant.now();
         return switch (reportType) {
-            case EXECUTIVE -> assembleExecutive(now);
+            case EXECUTIVE -> assembleExecutive(now, userId);
             case PORTFOLIO -> assemblePortfolio(requireScopeId(scopeId, "PORTFOLIO"), now);
             case PROJECT -> assembleProject(requireScopeId(scopeId, "PROJECT"), now);
             case KPI -> assembleKpi(resolveScopeType(scopeType, scopeId, reportType), requireScopeId(scopeId, "KPI"), now);
@@ -59,8 +60,8 @@ public class ReportContentAssembler {
         };
     }
 
-    private ReportDocument assembleExecutive(Instant generatedAt) {
-        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard();
+    private ReportDocument assembleExecutive(Instant generatedAt, UUID userId) {
+        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard(userId);
         List<ReportDocument.ReportSection> sections = new ArrayList<>();
 
         sections.add(new ReportDocument.ReportSection(
@@ -90,7 +91,7 @@ public class ReportContentAssembler {
                 attentionTable(dashboard.topAttentionProjects())
         ));
 
-        RecommendationBundleResponse recommendations = recommendationService.getExecutiveRecommendations();
+        RecommendationBundleResponse recommendations = recommendationService.getExecutiveRecommendations(userId);
         sections.add(recommendationSection(recommendations));
 
         return new ReportDocument(

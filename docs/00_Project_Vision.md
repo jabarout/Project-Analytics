@@ -171,18 +171,21 @@ Administration is a platform concern, not the primary product audience for analy
 
 ---
 
-# 10. Access model (frozen intent)
+# 10. Access model (frozen intent) — Hybrid
 
-Analytics access is a **concept of Project Analytics**, not a projection of OpenProject permissions.
+Project Analytics uses a **Hybrid** model: OpenProject authorization gates who may **establish** a workspace connection; Project Analytics owns ongoing analytics access grants.
 
 | Rule | Detail |
 |------|--------|
-| **No OP role inference** | Do not decide who is a “manager” from OpenProject roles or permissions. An OpenProject administrator is not necessarily a business decision-maker; a project lead may or may not need cross-project analytics. |
-| **App-owned access** | A **workspace administrator** decides which users can access the analytics workspace. |
-| **Independent of OP hierarchy** | Organizational hierarchy is not imported or interpreted from OpenProject for access control. |
-| **Focused product** | Access answers “may this person use multi-project intelligence here?”—not “what is their job title?” |
+| **PA accounts are separate** | Users sign up / sign in to Project Analytics with email/password. A PA account alone grants **no** OpenProject data access. |
+| **OP eligibility for connect/sync** | To **connect and synchronize** a workspace, the user must authenticate to OpenProject (OAuth preferred; API key alternative) and pass an **eligibility check** based on OpenProject identity (e.g. global admin **or** Project admin — configurable; not Member-only; not Admin-only). OAuth success alone is not enough. |
+| **Connector becomes Workspace Admin** | The PA user who successfully connects an eligible OP identity becomes the **Project Analytics Workspace Admin** for that workspace (distinct from PA Platform Admin and from OpenProject Administrator). |
+| **App-owned analytics grants** | After a workspace exists, **analytics access** for additional PA users is granted/revoked inside Project Analytics by a Workspace Admin. Those users do **not** need to OAuth separately just to view analytics. |
+| **No bulk import of OP employees** | Do not create PA accounts for every OpenProject user. |
+| **No first-registrant platform admin** | The first signup is never auto-promoted to PA Platform Admin. Platform admin remains deploy/seed/ops. |
+| **Workspace isolation** | A PA user may only access workspaces (and their projects/analytics/reports) for which they have a PA membership/grant. Backend enforces this. |
 
-Implementation of grant UI and membership model may land with M11 (or a dedicated access milestone); the **product rule** is frozen now.
+Three admin concepts stay separate: **PA Platform Admin** (ops) · **PA Workspace Admin** (connection/grants) · **OpenProject Administrator** (inside OP).
 
 ---
 
@@ -197,7 +200,7 @@ The platform is considered successful when users who oversee multiple projects c
 - Generate reports for communication quickly.
 - Trust every metric because it is explainable.
 - Scale the platform without architectural redesign.
-- Receive access based on explicit analytics grants—not OpenProject role guessing.
+- Connect via eligible OpenProject authorization, then receive ongoing analytics access via Project Analytics grants (Hybrid).
 
 ---
 
@@ -211,7 +214,7 @@ Project Analytics follows these principles:
 - Every metric must be explainable.
 - Every surface answers one business question for the primary persona.
 - **Feature filter:** multi-project oversee/prioritize → in; individual task execution → OpenProject.
-- Analytics access is granted in this application; it is not inferred from OpenProject.
+- Hybrid access: OpenProject eligibility for connect/sync; Project Analytics grants for ongoing analytics access.
 - Business logic belongs in the backend.
 - The frontend is responsible for presentation and user interaction.
 - Architecture must prioritize maintainability, scalability, and clarity.

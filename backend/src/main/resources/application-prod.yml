@@ -38,5 +38,8 @@ projectanalytics:
     enabled: true
   security:
     openapi-public: false
+    openproject:
+      # Production must use per-workspace stored credentials (API key connect or OAuth).
+      allow-env-api-key-fallback: false
   # JWT_SECRET and CORS_ALLOWED_ORIGINS are required — validated at startup.
   # reporting / analytics retention defaults come from application.yml (override via env).

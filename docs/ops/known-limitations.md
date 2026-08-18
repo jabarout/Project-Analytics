@@ -11,8 +11,11 @@ Fix targets are noted when planned.
 
 | Limitation | Detail | Target |
 |------------|--------|--------|
-| OpenProject auth is API key | Env `OPENPROJECT_API_KEY`; not re-read without process restart | **M14 OAuth** |
+| OpenProject auth | OAuth preferred: per-workspace OAuth client id/secret (entered at connect) + encrypted access/refresh tokens. Global `OPENPROJECT_OAUTH_CLIENT_*` optional local default only. API-key alt remains. | Each OP admin still creates an OAuth app manually (no DCR) |
 | One credential style | UI stores workspace URL only; key is process env | M14 |
+| No PA self-signup | Seed admin only until M14a | **M14a** |
+| Workspace membership isolation | Phases 1+6: analytics APIs gated by membership; Workspace Admin grant/revoke by PA email on Connections. Promote-to-admin not in v1. | OAuth (Phase 7); optional admin promote later |
+| Connect / credentials | Workspace Admin may rotate credentials; legacy URL-only create disabled; env API-key fallback off in **prod**; OAuth + API-key connect paths share eligibility. | Multi-instance sticky not required (OAuth state in DB) |
 | **Synchronize vs Recalculate** | **Synchronize** (Connections) pulls from OpenProject and **removes** local projects/WPs deleted remotely. **Recalculate** (Home) only recomputes scores from **local** data — it does not contact OpenProject. | By design |
 | Full catalog sync | Sync fetches the full project/WP catalog (not incremental-only) so deletions are detected | Performance note; correctness first |
 | **No project start/end dates (Community API)** | Expected progress, progress gap, schedule variance, and “delayed by project end date” are **not shown** on Home/Project/Portfolio (or KPI reports). Dashboards use WP completion, overdue WP dues, priorities, and Health/Risk/Attention instead. | Product adaptation for Community |
@@ -36,8 +39,8 @@ Fix targets are noted when planned.
 
 | Limitation | Detail | Target |
 |------------|--------|--------|
-| Analytics access grants incomplete | Rule frozen; full grant UI not finished | **M15** |
-| Dev seed admin | `admin` / `Admin123!` — change for any real deploy | M17 / ops |
+| Analytics access grants | Grant/revoke by email on Connections (Workspace Admin only). No promote-to-admin in v1. | Optional admin promote; OAuth |
+| Dev seed admin | `admin` / documented demo password — **must change/disable for real deploy** (see security-checklist) | M17 / ops |
 
 ---
 

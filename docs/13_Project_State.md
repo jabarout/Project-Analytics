@@ -4,12 +4,15 @@ Version: 1.0
 
 Status: Active
 
-Last updated: 2026-08-10
+Last updated: 2026-08-18
 
-**Active milestone:** None — **M13 complete**. Next planned when approved: **M14 OAuth** (do not start without explicit go-ahead).  
-**Just closed:** **M13 — Product freeze & quality gate**  
-**Recent:** M12 decision metrics; M11B PE largely delivered; classic Home retained  
-**Frozen / do not reopen:** M10 hardening, product vision, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership.
+**Active phase:** **N1 — Connect & auth soak** (approved ladder; not started in code).  
+**Just completed (product):** **M14a / M14 / M15** — registration, OAuth (per-workspace client credentials), grants & isolation.  
+**Next (approved order):** **N1 → N2 → N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
+**Gates:** N1+N2 mandatory before visual work; N3 mandatory; **N4 non-blocking for M17**.  
+**Recent:** Multi-OP OAuth client credentials; Hybrid connect UX soak pending; Community KPI adaptation  
+**Frozen / do not reopen:** M10 hardening, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership, **Hybrid access model**.  
+**Access model:** Hybrid (OP eligibility for connect; PA grants for ongoing analytics).
 
 ---
 
@@ -42,10 +45,15 @@ It must be updated after every completed milestone.
 | Milestone 11B — PE Implementation | **Largely complete** — E1–E6; UI polish deferred to **M16** |
 | Milestone 12 — Decision metrics | **Complete** — ProgressMetrics SoT, extended metrics, portfolio depth, Home classic triage |
 | Milestone 13 — Product freeze & quality gate | **Complete** — happy path docs, known limitations, tests green, local handoff ready |
-| Milestone 14 — OpenProject OAuth | **Planned** |
-| Milestone 15 — Analytics access grants | **Planned** |
-| Milestone 16 — UI polish | **Planned** |
-| Milestone 17 — Deployment & customer package | **Planned** |
+| Milestone 14a — PA Account Registration | **Complete** — signup, password reset, rate limits |
+| Milestone 14 — OpenProject Connection Security | **Complete** — OAuth+PKCE, per-workspace OAuth clients, API-key alt, eligibility, encryption |
+| Milestone 15 — Analytics Access & Isolation | **Complete** — memberships, grant/revoke UI+API, isolation tests |
+| **N1** Connect & auth soak | **Next** — manual connect/auth verification (docs after) |
+| **N2** Regression gate | **Planned** — full suite + smoke before UI |
+| **N3 / M16a** Visual polish & dark mode | **Planned** — mandatory |
+| **N4 / M16b** Motion & transitions | **Planned** — subtle; non-blocking for M17 |
+| **N5 / M17** Deploy & customer package | **Planned** — after N3 (N4 optional) |
+| **N6 / M18** Soft intelligence | **Optional** |
 
 ---
 
@@ -653,8 +661,9 @@ Additive ops stack only. No domain redesign. Product architecture remains frozen
 | Reco evidence expansion / P8 | Optional M18 |
 | Assignee load / P9 | Later (vision filter) |
 | Chart dataset overhaul / P10 | M16 polish if needed |
-| UI visual polish | **M16** |
-| OAuth | **M14** |
+| UI visual polish / dark mode | **N3 / M16a** |
+| Motion & transitions | **N4 / M16b** (optional vs M17) |
+| OAuth | **M14** (complete; N1 soak remaining) |
 
 ---
 
@@ -675,10 +684,9 @@ Additive ops stack only. No domain redesign. Product architecture remains frozen
    - Run artifacts present: `.env.example`, `scripts/run-backend.sh`, `docker/docker-compose.yml`
 6. No known P0 on automated critical paths (auth, sync, analytics, portfolio, reports integration tests)
 
-## Out of scope (unchanged)
+## Out of scope at M13 close (historical)
 
-- OAuth (**M14** — only when explicitly approved)
-- Access grants UI (M15), UI polish (M16), customer deploy package (M17)
+- OAuth / grants / polish / deploy were deferred then; **M14–M15 are now complete**. Remaining ladder: **N1–N5** (see §15).
 
 ## Local testing capability after M13
 
@@ -694,17 +702,24 @@ Limitations (API key, polish, grants) are documented, not hidden.
 
 ---
 
-# 15. Post-M11 product ladder (planned)
+# 15. Post-M11 product ladder (approved N1–N5)
 
-| Order | Milestone | Goal |
-|-------|-----------|------|
-| Done | M12 Decision metrics | Analytics consistency |
-| **Done** | **M13 Quality gate** | Freeze + handoff trust |
-| Next (when approved) | M14 OpenProject OAuth | Real credential path |
-| Then | M15 Analytics access grants | App-owned access UI |
-| Then | M16 UI polish | Finished look/feel |
-| Then | M17 Deploy & customer package | One clean deploy story |
-| Optional | M18 Soft intelligence | Trends/reco evidence only |
+Full task breakdown, acceptance criteria, and tests: **`docs/11_Development_Roadmap.md` §18**.
+
+| Order | Phase | Goal | Gate |
+|-------|--------|------|------|
+| Done | M12–M13 | Metrics + quality gate | — |
+| Done | M14a / M14 / M15 | Registration, OAuth (multi-OP clients), grants/isolation | — |
+| **Next** | **N1 Connect & auth soak** | **Manual** verify OAuth, API-key, multi-OP, M15 deny, password-reset/SMTP; document quirks after | Mandatory before UI |
+| Then | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
+| Then | **N3 / M16a** | Visual polish + **dark mode** | Mandatory |
+| Then | **N4 / M16b** | Route/loading/KPI/micro-interactions; reduced-motion; scroll reveals **nice-to-have** | **Non-blocking for M17** |
+| Then | **N5 / M17** | Deploy & customer package | After N3 |
+| Optional | **N6 / M18** | Soft intelligence | After N5 |
+
+**N1 note:** Prioritize real manual testing of connection/authentication flows over documentation. Document confirmed behavior and remaining OpenProject-specific quirks afterward.
+
+**N4 note:** Prioritize route transitions, loading/skeleton, KPI/chart, card/button micro-interactions, a11y/reduced-motion. Scroll reveals optional if natural and performant.
 
 **Not in $2k scope:** multi-tenancy SaaS, mobile, plugin ecosystem, multi-PM integrations, advanced predictive AI.
 

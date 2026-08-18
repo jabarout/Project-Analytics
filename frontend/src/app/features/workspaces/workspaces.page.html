@@ -2,14 +2,14 @@
   <header>
     <h2>Connections</h2>
     <p>
-      Connect OpenProject and synchronize operational data. The <strong>base URL</strong> is set here; the
-      <strong>API key</strong> is platform configuration (<code>OPENPROJECT_API_KEY</code> in
-      <code>.env</code>) and is loaded only when the backend starts. After changing the key or URL in
-      <code>.env</code>, restart with <code>./scripts/run-backend.sh</code>. Analytics use local data only after sync.
+      Connect your OpenProject instance. Each independent OpenProject needs its own OAuth application
+      (or API key). Project Analytics stores credentials <strong>server-side only</strong>, verifies
+      eligibility (global admin or Project admin), and grants you Workspace Admin. Additional PA users
+      receive analytics via grants below — they do not need to connect OpenProject themselves.
     </p>
   </header>
 
-  <form class="workspaces__form" [formGroup]="form" (ngSubmit)="create()">
+  <form class="workspaces__form" [formGroup]="form" (ngSubmit)="oauthEnabled() ? connectWithOAuth() : createWithApiKey()">
     <h3>Connect OpenProject</h3>
     <label>
       <span>Display name</span>
@@ -19,7 +19,82 @@
       <span>Base URL</span>
       <input type="url" formControlName="baseUrl" placeholder="https://openproject.example.com" />
     </label>
-    <button type="submit">Connect</button>
+
+    @if (oauthEnabled()) {
+      <aside class="workspaces__setup" aria-label="OAuth application setup">
+        <h4>OpenProject administrator setup (once per OpenProject)</h4>
+        <ol>
+          <li>
+            In OpenProject go to
+            <strong>Administration → Authentication → OAuth applications</strong>.
+          </li>
+          <li>
+            Create a confidential application with scope <code>api_v3</code> and redirect URI:
+            <code class="workspaces__redirect">{{ oauthRedirectUri() || '…' }}</code>
+          </li>
+          <li>Paste the Client ID and Client secret below (secret is never shown again).</li>
+        </ol>
+      </aside>
+      <label>
+        <span>
+          OAuth Client ID
+          @if (globalClientDefaultsAvailable()) {
+            <span class="optional">(optional if local .env default)</span>
+          }
+        </span>
+        <input type="text" formControlName="clientId" placeholder="From OpenProject OAuth application" autocomplete="off" />
+      </label>
+      <label>
+        <span>
+          OAuth Client secret
+          @if (globalClientDefaultsAvailable()) {
+            <span class="optional">(optional if local .env default)</span>
+          }
+        </span>
+        <input
+          type="password"
+          formControlName="clientSecret"
+          placeholder="From OpenProject OAuth application"
+          autocomplete="new-password"
+        />
+      </label>
+      <button type="button" (click)="connectWithOAuth()" [disabled]="oauthConnecting()">
+        {{ oauthConnecting() ? 'Preparing OAuth…' : 'Connect with OpenProject OAuth' }}
+      </button>
+
+      @if (pendingAuthorizationUrl()) {
+        <div class="workspaces__oauth-continue" role="status">
+          <button type="button" (click)="openOpenProjectSignIn()">Open OpenProject sign-in</button>
+          <button type="button" class="linkish" (click)="cancelPendingOAuth()">Cancel</button>
+          <p class="workspaces__alt-hint">
+            If OpenProject shows a 422/CSRF error, refresh this page — the connection should appear.
+          </p>
+        </div>
+      } @else {
+        <p class="workspaces__alt-hint">
+          OpenProject opens in a separate window. If you see a 422/CSRF error, refresh this page.
+        </p>
+      }
+      <p class="workspaces__alt">
+        <button type="button" class="linkish" (click)="toggleApiKeyForm()">
+          {{ showApiKeyForm() ? 'Hide API key option' : 'Use API key instead' }}
+        </button>
+      </p>
+    }
+
+    @if (showApiKeyForm()) {
+      <label>
+        <span>API key <span class="optional">(optional if .env fallback)</span></span>
+        <input type="password" formControlName="apiKey" placeholder="OpenProject API token" autocomplete="off" />
+      </label>
+      <button type="button" class="secondary" (click)="createWithApiKey()" [disabled]="connecting()">
+        {{ connecting() ? 'Connecting…' : 'Connect with API key' }}
+      </button>
+    } @else if (!oauthEnabled()) {
+      <button type="submit" [disabled]="connecting()">
+        {{ connecting() ? 'Connecting…' : 'Connect & verify eligibility' }}
+      </button>
+    }
   </form>
 
   @if (message()) {
@@ -53,9 +128,17 @@
                   type="text"
                   [value]="editName()[workspace.id] ?? workspace.name"
                   (input)="setEditName(workspace.id, $any($event.target).value)"
+                  [disabled]="!workspace.workspaceAdmin"
                 />
               </label>
               <p class="workspace-card__url">{{ workspace.baseUrl }}</p>
+              <p class="workspace-card__role">
+                @if (workspace.workspaceAdmin) {
+                  Your role: <strong>Workspace Admin</strong>
+                } @else {
+                  Your role: <strong>Analytics access</strong>
+                }
+              </p>
               <dl>
                 <div>
                   <dt>Sync status</dt>
@@ -91,25 +174,87 @@
                 }
               </dl>
             </div>
-            <div class="workspace-card__actions">
-              <button
-                type="button"
-                class="secondary"
-                (click)="rename(workspace.id)"
-                [disabled]="renamingId() === workspace.id"
-              >
-                {{ renamingId() === workspace.id ? 'Saving…' : 'Save name' }}
-              </button>
-              <button type="button" (click)="synchronize(workspace.id)" [disabled]="syncingId() === workspace.id">
-                @if (syncingId() === workspace.id) {
-                  Synchronizing…
-                } @else {
-                  Synchronize
-                }
-              </button>
-              <button type="button" class="danger" (click)="disconnect(workspace)">Disconnect</button>
-            </div>
+            @if (workspace.workspaceAdmin) {
+              <div class="workspace-card__actions">
+                <button
+                  type="button"
+                  class="secondary"
+                  (click)="rename(workspace.id)"
+                  [disabled]="renamingId() === workspace.id"
+                >
+                  {{ renamingId() === workspace.id ? 'Saving…' : 'Save name' }}
+                </button>
+                <button type="button" (click)="synchronize(workspace.id)" [disabled]="syncingId() === workspace.id">
+                  @if (syncingId() === workspace.id) {
+                    Synchronizing…
+                  } @else {
+                    Synchronize
+                  }
+                </button>
+                <button type="button" class="danger" (click)="disconnect(workspace)">Disconnect</button>
+              </div>
+            }
           </div>
+
+          @if (workspace.workspaceAdmin) {
+            <section class="workspace-card__members" aria-label="Access grants">
+              <h4>Analytics access</h4>
+              <p class="workspace-card__members-hint">
+                Grant other Project Analytics users access to this workspace’s analytics. They must already have a
+                PA account. This does not make them Workspace Admin.
+              </p>
+              <div class="workspace-card__grant">
+                <input
+                  type="email"
+                  [value]="grantEmail()[workspace.id] ?? ''"
+                  (input)="setGrantEmail(workspace.id, $any($event.target).value)"
+                  placeholder="colleague@example.com"
+                  autocomplete="off"
+                />
+                <button
+                  type="button"
+                  (click)="grantAccess(workspace.id)"
+                  [disabled]="grantingId() === workspace.id || !(grantEmail()[workspace.id] ?? '').trim()"
+                >
+                  {{ grantingId() === workspace.id ? 'Granting…' : 'Grant access' }}
+                </button>
+              </div>
+              @if (members()[workspace.id]; as memberList) {
+                @if (memberList.length === 0) {
+                  <p class="workspace-card__members-empty">No members loaded.</p>
+                } @else {
+                  <ul class="workspace-card__member-list">
+                    @for (member of memberList; track member.userId) {
+                      <li>
+                        <div>
+                          <strong>{{ member.email }}</strong>
+                          <span class="workspace-card__member-meta">
+                            {{ member.username }}
+                            ·
+                            @if (member.workspaceAdmin) {
+                              Workspace Admin
+                            } @else {
+                              Analytics
+                            }
+                          </span>
+                        </div>
+                        @if (!member.workspaceAdmin) {
+                          <button
+                            type="button"
+                            class="danger secondary"
+                            (click)="revokeAccess(workspace.id, member)"
+                            [disabled]="revokingUserId() === member.userId"
+                          >
+                            {{ revokingUserId() === member.userId ? 'Revoking…' : 'Revoke' }}
+                          </button>
+                        }
+                      </li>
+                    }
+                  </ul>
+                }
+              }
+            </section>
+          }
         </article>
       }
     </div>

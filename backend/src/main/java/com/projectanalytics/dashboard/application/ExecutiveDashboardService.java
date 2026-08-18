@@ -7,6 +7,7 @@ import com.projectanalytics.analytics.application.AnalyticsQueryService;
 import com.projectanalytics.dashboard.api.dto.ExecutiveDashboardResponse;
 import com.projectanalytics.dashboard.api.dto.WorkspaceDashboardCardResponse;
 import com.projectanalytics.portfolio.persistence.PortfolioRepository;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Composes executive dashboard views from existing analytics outputs.
@@ -26,20 +29,26 @@ public class ExecutiveDashboardService {
     private final WorkspaceRepository workspaceRepository;
     private final PortfolioRepository portfolioRepository;
     private final AnalyticsQueryService analyticsQueryService;
+    private final WorkspaceAccessService workspaceAccessService;
 
     public ExecutiveDashboardService(
             WorkspaceRepository workspaceRepository,
             PortfolioRepository portfolioRepository,
-            AnalyticsQueryService analyticsQueryService
+            AnalyticsQueryService analyticsQueryService,
+            WorkspaceAccessService workspaceAccessService
     ) {
         this.workspaceRepository = workspaceRepository;
         this.portfolioRepository = portfolioRepository;
         this.analyticsQueryService = analyticsQueryService;
+        this.workspaceAccessService = workspaceAccessService;
     }
 
     @Transactional
-    public ExecutiveDashboardResponse getExecutiveDashboard() {
-        List<WorkspaceEntity> workspaces = workspaceRepository.findAll();
+    public ExecutiveDashboardResponse getExecutiveDashboard(UUID userId) {
+        Set<UUID> allowed = workspaceAccessService.workspaceIdSetWithAnalyticsAccess(userId);
+        List<WorkspaceEntity> workspaces = workspaceRepository.findAll().stream()
+                .filter(w -> allowed.contains(w.getId()))
+                .toList();
         List<WorkspaceDashboardCardResponse> cards = new ArrayList<>();
         List<ScopeAnalyticsKpiResponse> workspaceKpis = new ArrayList<>();
         List<ProjectAttentionSummaryResponse> attentionPool = new ArrayList<>();
@@ -86,7 +95,9 @@ public class ExecutiveDashboardService {
             insights = List.of("No elevated risks detected across connected workspaces.");
         }
 
-        long portfolioCount = portfolioRepository.count();
+        long portfolioCount = portfolioRepository.findAllByOrderByNameAsc().stream()
+                .filter(p -> allowed.contains(p.getWorkspace().getId()))
+                .count();
 
         return new ExecutiveDashboardResponse(
                 workspaces.size(),

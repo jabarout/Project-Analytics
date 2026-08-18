@@ -13,6 +13,7 @@ import com.projectanalytics.project.persistence.WorkPackageRepository;
 import com.projectanalytics.analytics.persistence.AnalyticsRepository;
 import com.projectanalytics.recommendation.persistence.RecommendationRepository;
 import com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
@@ -24,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,9 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class ExecutiveDashboardServiceIntegrationTest {
 
+    private static final UUID ADMIN_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     @Autowired
     private RecommendationRepository recommendationRepository;
 
+    @Autowired
+    private WorkspaceAccessService workspaceAccessService;
 
     @Autowired
     private ExecutiveDashboardService executiveDashboardService;
@@ -85,12 +91,14 @@ class ExecutiveDashboardServiceIntegrationTest {
         project.setStartDate(LocalDate.now().minusDays(20));
         project.setEndDate(LocalDate.now().plusDays(20));
         projectRepository.save(project);
+        // Seed admin membership required for executive scoping.
+        workspaceAccessService.grantConnectorAdmin(workspace.getId(), ADMIN_USER_ID);
         recalculationService.recalculateWorkspace(workspace.getId());
     }
 
     @Test
     void executiveDashboardComposesWorkspaceAnalyticsWithoutNewScoring() {
-        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard();
+        ExecutiveDashboardResponse dashboard = executiveDashboardService.getExecutiveDashboard(ADMIN_USER_ID);
 
         assertThat(dashboard.workspaceCount()).isEqualTo(1);
         assertThat(dashboard.totalProjects()).isEqualTo(1);

@@ -10,5 +10,7 @@ public interface ReportRepository extends JpaRepository<ReportEntity, UUID> {
 
     List<ReportEntity> findAllByOrderByGeneratedAtDesc();
 
+    List<ReportEntity> findByGeneratedByOrderByGeneratedAtDesc(UUID generatedBy);
+
     List<ReportEntity> findByGeneratedAtBefore(Instant cutoff);
 }

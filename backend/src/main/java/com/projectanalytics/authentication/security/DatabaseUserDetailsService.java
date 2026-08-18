@@ -20,15 +20,18 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String usernameOrEmail) {
+        // Login accepts username or email (M14a).
+        UserEntity user = userRepository.findByUsername(usernameOrEmail)
+                .or(() -> userRepository.findByEmailIgnoreCase(usernameOrEmail))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail));
         return new AuthenticatedUser(
                 user.getId(),
                 user.getUsername(),
                 user.getPasswordHash(),
                 user.getRole(),
-                user.isEnabled()
+                user.isEnabled(),
+                user.getCredentialsVersion()
         );
     }
 }

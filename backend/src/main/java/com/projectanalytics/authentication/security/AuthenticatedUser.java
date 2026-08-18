@@ -19,13 +19,26 @@ public class AuthenticatedUser implements UserDetails {
     private final String passwordHash;
     private final Role role;
     private final boolean enabled;
+    private final int credentialsVersion;
 
     public AuthenticatedUser(UUID id, String username, String passwordHash, Role role, boolean enabled) {
+        this(id, username, passwordHash, role, enabled, 0);
+    }
+
+    public AuthenticatedUser(
+            UUID id,
+            String username,
+            String passwordHash,
+            Role role,
+            boolean enabled,
+            int credentialsVersion
+    ) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
         this.enabled = enabled;
+        this.credentialsVersion = credentialsVersion;
     }
 
     public UUID getId() {
@@ -34,6 +47,10 @@ public class AuthenticatedUser implements UserDetails {
 
     public Role getRole() {
         return role;
+    }
+
+    public int getCredentialsVersion() {
+        return credentialsVersion;
     }
 
     @Override

@@ -2,8 +2,11 @@ package com.projectanalytics.authentication.application;
 
 import com.projectanalytics.authentication.api.dto.LoginRequest;
 import com.projectanalytics.authentication.api.dto.LoginResponse;
+import com.projectanalytics.authentication.api.dto.RegisterRequest;
 import com.projectanalytics.authentication.api.dto.UserPreferenceResponse;
 import com.projectanalytics.authentication.api.dto.UserResponse;
+import com.projectanalytics.authentication.config.RegistrationProperties;
+import com.projectanalytics.authentication.domain.Role;
 import com.projectanalytics.authentication.persistence.UserEntity;
 import com.projectanalytics.authentication.persistence.UserPreferenceEntity;
 import com.projectanalytics.authentication.persistence.UserPreferenceRepository;
@@ -19,35 +22,89 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
- * Authentication use cases: login, logout, current user.
+ * Authentication use cases: register, login, logout, current user.
  */
 @Service
 public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]{3,100}$");
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordPolicy passwordPolicy;
+    private final RegistrationProperties registrationProperties;
 
     public AuthenticationService(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UserRepository userRepository,
-            UserPreferenceRepository userPreferenceRepository
+            UserPreferenceRepository userPreferenceRepository,
+            PasswordEncoder passwordEncoder,
+            PasswordPolicy passwordPolicy,
+            RegistrationProperties registrationProperties
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.userPreferenceRepository = userPreferenceRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.passwordPolicy = passwordPolicy;
+        this.registrationProperties = registrationProperties;
+    }
+
+    /**
+     * Creates a Project Analytics account (VIEWER). Never promotes to platform admin.
+     * Does not grant OpenProject connection or analytics access.
+     */
+    @Transactional
+    public LoginResponse register(RegisterRequest request) {
+        if (!registrationProperties.isEnabled()) {
+            throw new BusinessException(ErrorCode.USER_006);
+        }
+
+        String email = normalizeEmail(request.email());
+        if (email == null) {
+            throw new BusinessException(ErrorCode.USER_007);
+        }
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new BusinessException(ErrorCode.USER_002);
+        }
+
+        String username = resolveUsername(request.username(), email);
+
+        passwordPolicy.validate(request.password());
+
+        UserEntity user = new UserEntity(
+                username,
+                email,
+                passwordEncoder.encode(request.password()),
+                Role.VIEWER
+        );
+        user = userRepository.save(user);
+        userPreferenceRepository.save(new UserPreferenceEntity(user));
+        log.info("Registered Project Analytics user id={} username={} (no analytics access yet)", user.getId(), username);
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, request.password())
+        );
+        AuthenticatedUser principal = (AuthenticatedUser) authentication.getPrincipal();
+        String token = jwtService.generateToken(principal);
+        Instant expiresAt = jwtService.extractExpiration(token);
+        return new LoginResponse(token, expiresAt);
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +122,50 @@ public class AuthenticationService {
             log.warn("Authentication failed for username={}", request.username());
             throw new BusinessException(ErrorCode.AUTH_001);
         }
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String resolveUsername(String requested, String email) {
+        boolean explicit = requested != null && !requested.isBlank();
+        String username;
+        if (explicit) {
+            username = requested.trim();
+        } else {
+            String local = email.substring(0, email.indexOf('@'));
+            username = local.replaceAll("[^a-zA-Z0-9._-]", "");
+            if (username.length() < 3) {
+                username = "user" + UUID.randomUUID().toString().substring(0, 8);
+            }
+        }
+        if (!USERNAME_PATTERN.matcher(username).matches()) {
+            throw new BusinessException(
+                    ErrorCode.VALIDATION_003,
+                    "Username must be 3–100 characters and use only letters, digits, dot, underscore, or hyphen."
+            );
+        }
+        if (explicit) {
+            if (userRepository.existsByUsernameIgnoreCase(username)) {
+                throw new BusinessException(ErrorCode.USER_003);
+            }
+            return username;
+        }
+        // Derived from email: suffix on collision.
+        String candidate = username;
+        int suffix = 1;
+        while (userRepository.existsByUsernameIgnoreCase(candidate)) {
+            candidate = username + suffix;
+            suffix++;
+            if (suffix > 1000) {
+                throw new BusinessException(ErrorCode.USER_003);
+            }
+        }
+        return candidate;
     }
 
     public void logout(AuthenticatedUser user) {
