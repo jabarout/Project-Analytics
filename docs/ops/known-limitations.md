@@ -13,7 +13,8 @@ Fix targets are noted when planned.
 |------------|--------|--------|
 | OpenProject auth is API key | Env `OPENPROJECT_API_KEY`; not re-read without process restart | **M14 OAuth** |
 | One credential style | UI stores workspace URL only; key is process env | M14 |
-| Full-workspace rescore after sync | Correctness over partial rescore | Later optimization |
+| **Synchronize vs Recalculate** | **Synchronize** (Connections) pulls from OpenProject and **removes** local projects/WPs deleted remotely. **Recalculate** (Home) only recomputes scores from **local** data — it does not contact OpenProject. | By design |
+| Full catalog sync | Sync fetches the full project/WP catalog (not incremental-only) so deletions are detected | Performance note; correctness first |
 
 ---
 

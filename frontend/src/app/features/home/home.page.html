@@ -15,6 +15,7 @@
           class="secondary"
           (click)="recalculate()"
           [disabled]="recalculating() || loading()"
+          title="Recomputes Health/Risk/Attention from local data. Does not pull deletions from OpenProject — use Connections → Synchronize for that."
         >
           {{ recalculating() ? 'Recalculating…' : 'Recalculate' }}
         </button>

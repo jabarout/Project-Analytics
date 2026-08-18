@@ -118,10 +118,12 @@ When it is ready, open a browser:
 1. Go to **Connections** in the menu.
 2. Connect a workspace.
 3. Set the **Base URL** to your OpenProject address (same as in the browser, e.g. `https://….openproject.eu`).
-4. Click **Synchronize**.
+4. Click **Synchronize** (this copies OpenProject into local data and **drops** projects/work packages that were deleted in OpenProject).
 5. When sync succeeds, open **Home** or **Explorer**.
 
 The **API key is not typed in the UI**. It only comes from the `.env` file (Step 1 + Step 3).
+
+**Home → Recalculate** only refreshes scores from data already stored locally. After deleting something in OpenProject, run **Synchronize** again — Recalculate alone will not remove it.
 
 ---
 

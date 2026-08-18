@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -93,6 +94,8 @@ class SynchronizationServiceIntegrationTest {
 
         when(openProjectClient.fetchServerVersion(any(OpenProjectConnectionProperties.class)))
                 .thenReturn("14.0.0");
+        when(openProjectClient.fetchProjectAdminNamesByProjectId(any(OpenProjectConnectionProperties.class)))
+                .thenReturn(Map.of(10L, List.of("Alice Admin")));
         when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), isNull()))
                 .thenReturn(List.of(
                         new OpenProjectProjectDto(
@@ -145,11 +148,11 @@ class SynchronizationServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("second concurrent-style run after success is incremental and updates existing rows")
-    void secondRunIsIncremental() {
+    @DisplayName("second sync fully reconciles updates to existing rows")
+    void secondRunUpdatesExistingRows() {
         synchronizationService.synchronizeWorkspace(workspace.getId(), SynchronizationType.MANUAL);
 
-        when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), any(Instant.class)))
+        when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), isNull()))
                 .thenReturn(List.of(
                         new OpenProjectProjectDto(
                                 10L,
@@ -162,7 +165,7 @@ class SynchronizationServiceIntegrationTest {
                                 "Alice Admin"
                         )
                 ));
-        when(openProjectClient.fetchWorkPackages(any(OpenProjectConnectionProperties.class), eq(10L), any(Instant.class)))
+        when(openProjectClient.fetchWorkPackages(any(OpenProjectConnectionProperties.class), eq(10L), isNull()))
                 .thenReturn(List.of(
                         new OpenProjectWorkPackageDto(
                                 100L,
@@ -189,6 +192,77 @@ class SynchronizationServiceIntegrationTest {
         assertThat(projectRepository.count()).isEqualTo(1);
         assertThat(projectRepository.findAll().getFirst().getName()).isEqualTo("Bridge Replacement Updated");
         assertThat(workPackageRepository.findAll().getFirst().getSubject()).isEqualTo("Design foundations revised");
+    }
+
+    @Test
+    @DisplayName("sync removes local projects and work packages deleted from OpenProject")
+    void syncRemovesDeletedRemoteData() {
+        synchronizationService.synchronizeWorkspace(workspace.getId(), SynchronizationType.MANUAL);
+        assertThat(projectRepository.count()).isEqualTo(1);
+        assertThat(workPackageRepository.count()).isEqualTo(1);
+
+        // Remote now has a different project and no work packages for the old one.
+        when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), isNull()))
+                .thenReturn(List.of(
+                        new OpenProjectProjectDto(
+                                20L,
+                                "New Only Project",
+                                null,
+                                "ACTIVE",
+                                null,
+                                null,
+                                Instant.parse("2026-07-20T10:00:00Z"),
+                                null
+                        )
+                ));
+        when(openProjectClient.fetchWorkPackages(any(OpenProjectConnectionProperties.class), eq(20L), isNull()))
+                .thenReturn(List.of());
+        when(openProjectClient.fetchProjectAdminNamesByProjectId(any(OpenProjectConnectionProperties.class)))
+                .thenReturn(Map.of());
+
+        SynchronizationResult result = synchronizationService.synchronizeWorkspace(
+                workspace.getId(),
+                SynchronizationType.MANUAL
+        );
+
+        assertThat(result.status()).isEqualTo(SynchronizationStatus.SUCCESS);
+        assertThat(projectRepository.count()).isEqualTo(1);
+        assertThat(projectRepository.findAll().getFirst().getOpenProjectId()).isEqualTo(20L);
+        assertThat(projectRepository.findAll().getFirst().getName()).isEqualTo("New Only Project");
+        assertThat(workPackageRepository.count()).isEqualTo(0);
+        assertThat(portfolioProjectRepository.count()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("sync removes a work package deleted remotely while keeping the project")
+    void syncRemovesDeletedWorkPackageOnly() {
+        synchronizationService.synchronizeWorkspace(workspace.getId(), SynchronizationType.MANUAL);
+        assertThat(workPackageRepository.count()).isEqualTo(1);
+
+        when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), isNull()))
+                .thenReturn(List.of(
+                        new OpenProjectProjectDto(
+                                10L,
+                                "Bridge Replacement",
+                                "Primary project",
+                                "ACTIVE",
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 12, 31),
+                                Instant.parse("2026-07-01T10:00:00Z"),
+                                "Alice Admin"
+                        )
+                ));
+        when(openProjectClient.fetchWorkPackages(any(OpenProjectConnectionProperties.class), eq(10L), isNull()))
+                .thenReturn(List.of()); // WP 100 gone from OP
+
+        SynchronizationResult result = synchronizationService.synchronizeWorkspace(
+                workspace.getId(),
+                SynchronizationType.MANUAL
+        );
+
+        assertThat(result.status()).isEqualTo(SynchronizationStatus.SUCCESS);
+        assertThat(projectRepository.count()).isEqualTo(1);
+        assertThat(workPackageRepository.count()).isEqualTo(0);
     }
 
     @Test

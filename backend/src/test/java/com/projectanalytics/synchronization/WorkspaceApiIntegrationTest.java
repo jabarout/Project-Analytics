@@ -39,6 +39,8 @@ class WorkspaceApiIntegrationTest {
     void workspaceLifecycle() {
         when(openProjectClient.fetchServerVersion(any(OpenProjectConnectionProperties.class)))
                 .thenReturn("14.0.0");
+        when(openProjectClient.fetchProjectAdminNamesByProjectId(any(OpenProjectConnectionProperties.class)))
+                .thenReturn(java.util.Map.of());
         when(openProjectClient.fetchProjects(any(OpenProjectConnectionProperties.class), isNull()))
                 .thenReturn(List.of(
                         new OpenProjectProjectDto(1L, "P1", null, "ACTIVE", null, null, null, null)

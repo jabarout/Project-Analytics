@@ -22,4 +22,7 @@ public interface PortfolioProjectRepository extends JpaRepository<
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     void deleteByPortfolioId(UUID portfolioId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    void deleteByProjectId(UUID projectId);
 }

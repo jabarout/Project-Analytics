@@ -20,4 +20,8 @@ public interface AnalyticsSnapshotRepository extends JpaRepository<AnalyticsSnap
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from AnalyticsSnapshotEntity s where s.project.workspace.id = :workspaceId")
     void deleteByWorkspaceId(@Param("workspaceId") UUID workspaceId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from AnalyticsSnapshotEntity s where s.project.id = :projectId")
+    void deleteByProjectId(@Param("projectId") UUID projectId);
 }

@@ -1,5 +1,7 @@
 package com.projectanalytics.synchronization.application;
 
+import com.projectanalytics.analytics.persistence.AnalyticsRepository;
+import com.projectanalytics.analytics.persistence.AnalyticsSnapshotRepository;
 import com.projectanalytics.common.exception.BusinessException;
 import com.projectanalytics.common.exception.ErrorCode;
 import com.projectanalytics.infrastructure.openproject.OpenProjectClient;
@@ -7,14 +9,13 @@ import com.projectanalytics.infrastructure.openproject.OpenProjectConnectionProp
 import com.projectanalytics.infrastructure.openproject.OpenProjectCredentialResolver;
 import com.projectanalytics.infrastructure.openproject.dto.OpenProjectProjectDto;
 import com.projectanalytics.infrastructure.openproject.dto.OpenProjectWorkPackageDto;
+import com.projectanalytics.portfolio.persistence.PortfolioProjectRepository;
 import com.projectanalytics.project.persistence.ProjectEntity;
 import com.projectanalytics.project.persistence.ProjectRepository;
 import com.projectanalytics.project.persistence.WorkPackageEntity;
 import com.projectanalytics.project.persistence.WorkPackageRepository;
-import com.projectanalytics.synchronization.domain.SynchronizationStatus;
+import com.projectanalytics.recommendation.persistence.RecommendationRepository;
 import com.projectanalytics.synchronization.domain.SynchronizationType;
-import com.projectanalytics.synchronization.persistence.SynchronizationHistoryEntity;
-import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
 import org.slf4j.Logger;
@@ -23,13 +24,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Transactional persistence of synchronized operational data.
  * Projects are owned by the workspace. Portfolio membership is optional and managed separately.
+ * <p>
+ * Each sync performs a <strong>full reconcile</strong> against OpenProject:
+ * upsert current remote projects/work packages, then delete local rows that no longer exist remotely.
+ * Incremental {@code modifiedSince} filtering alone cannot detect deletions.
  */
 @Service
 public class OperationalDataImportService {
@@ -39,7 +46,10 @@ public class OperationalDataImportService {
     private final WorkspaceRepository workspaceRepository;
     private final ProjectRepository projectRepository;
     private final WorkPackageRepository workPackageRepository;
-    private final SynchronizationHistoryRepository historyRepository;
+    private final PortfolioProjectRepository portfolioProjectRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final AnalyticsRepository analyticsRepository;
+    private final AnalyticsSnapshotRepository analyticsSnapshotRepository;
     private final OpenProjectClient openProjectClient;
     private final OpenProjectCredentialResolver credentialResolver;
 
@@ -47,14 +57,20 @@ public class OperationalDataImportService {
             WorkspaceRepository workspaceRepository,
             ProjectRepository projectRepository,
             WorkPackageRepository workPackageRepository,
-            SynchronizationHistoryRepository historyRepository,
+            PortfolioProjectRepository portfolioProjectRepository,
+            RecommendationRepository recommendationRepository,
+            AnalyticsRepository analyticsRepository,
+            AnalyticsSnapshotRepository analyticsSnapshotRepository,
             OpenProjectClient openProjectClient,
             OpenProjectCredentialResolver credentialResolver
     ) {
         this.workspaceRepository = workspaceRepository;
         this.projectRepository = projectRepository;
         this.workPackageRepository = workPackageRepository;
-        this.historyRepository = historyRepository;
+        this.portfolioProjectRepository = portfolioProjectRepository;
+        this.recommendationRepository = recommendationRepository;
+        this.analyticsRepository = analyticsRepository;
+        this.analyticsSnapshotRepository = analyticsSnapshotRepository;
         this.openProjectClient = openProjectClient;
         this.credentialResolver = credentialResolver;
     }
@@ -66,43 +82,104 @@ public class OperationalDataImportService {
 
         OpenProjectConnectionProperties connection =
                 credentialResolver.resolve(workspaceId, workspace.getBaseUrl());
-        Instant modifiedSince = resolveModifiedSince(workspaceId, storedType);
 
+        // Full catalog fetch — required to detect remote deletions (modifiedSince cannot).
         String version = openProjectClient.fetchServerVersion(connection);
-        List<OpenProjectProjectDto> remoteProjects =
-                openProjectClient.fetchProjects(connection, modifiedSince);
+        List<OpenProjectProjectDto> remoteProjects = openProjectClient.fetchProjects(connection, null);
 
         int projectCount = 0;
         int workPackageCount = 0;
+        int deletedWorkPackages = 0;
         Instant synchronizedAt = Instant.now();
+        Set<Long> remoteProjectIds = new HashSet<>();
 
         for (OpenProjectProjectDto remoteProject : remoteProjects) {
+            remoteProjectIds.add(remoteProject.id());
             ProjectEntity project = upsertProject(workspace, remoteProject, synchronizedAt);
             projectCount++;
 
             List<OpenProjectWorkPackageDto> remoteWorkPackages = openProjectClient.fetchWorkPackages(
                     connection,
                     remoteProject.id(),
-                    modifiedSince
+                    null
             );
+            Set<Long> remoteWpIds = new HashSet<>();
             for (OpenProjectWorkPackageDto remoteWorkPackage : remoteWorkPackages) {
+                remoteWpIds.add(remoteWorkPackage.id());
                 upsertWorkPackage(project, remoteWorkPackage, synchronizedAt);
                 workPackageCount++;
             }
+            deletedWorkPackages += reconcileWorkPackages(project, remoteWpIds);
         }
 
-        // Always refresh project admins for *all* local projects (not only incrementally returned ones).
-        // Memberships are the source of "Project admin"; this must not depend on project modifiedSince.
+        int deletedProjects = reconcileProjects(workspace.getId(), remoteProjectIds);
+
         int adminsApplied = applyProjectAdmins(workspace, connection);
         log.info(
-                "Sync workspace={} projectsUpserted={} workPackages={} projectAdminsApplied={}",
+                "Sync workspace={} type={} projectsUpserted={} workPackagesUpserted={} "
+                        + "projectsDeleted={} workPackagesDeleted={} projectAdminsApplied={}",
                 workspaceId,
+                storedType,
                 projectCount,
                 workPackageCount,
+                deletedProjects,
+                deletedWorkPackages,
                 adminsApplied
         );
 
-        return new ImportCounts(projectCount, workPackageCount, version);
+        return new ImportCounts(projectCount, workPackageCount, version, deletedProjects, deletedWorkPackages);
+    }
+
+    /**
+     * Removes local work packages for a project that are no longer present in OpenProject.
+     */
+    private int reconcileWorkPackages(ProjectEntity project, Set<Long> remoteOpenProjectIds) {
+        List<WorkPackageEntity> local = workPackageRepository.findByProjectId(project.getId());
+        if (local.isEmpty()) {
+            return 0;
+        }
+        if (remoteOpenProjectIds.isEmpty()) {
+            workPackageRepository.deleteByProjectId(project.getId());
+            return local.size();
+        }
+        List<WorkPackageEntity> stale = local.stream()
+                .filter(wp -> !remoteOpenProjectIds.contains(wp.getOpenProjectId()))
+                .toList();
+        if (stale.isEmpty()) {
+            return 0;
+        }
+        workPackageRepository.deleteAll(stale);
+        return stale.size();
+    }
+
+    /**
+     * Removes local projects (and dependent analytics/membership/recommendations) absent from OpenProject.
+     */
+    private int reconcileProjects(UUID workspaceId, Set<Long> remoteOpenProjectIds) {
+        List<ProjectEntity> localProjects = projectRepository.findByWorkspaceIdOrderByNameAsc(workspaceId);
+        List<ProjectEntity> stale = localProjects.stream()
+                .filter(p -> !remoteOpenProjectIds.contains(p.getOpenProjectId()))
+                .toList();
+        for (ProjectEntity project : stale) {
+            deleteLocalProjectCascade(project);
+        }
+        return stale.size();
+    }
+
+    private void deleteLocalProjectCascade(ProjectEntity project) {
+        UUID projectId = project.getId();
+        recommendationRepository.deleteByProjectId(projectId);
+        analyticsSnapshotRepository.deleteByProjectId(projectId);
+        analyticsRepository.deleteByProjectId(projectId);
+        workPackageRepository.deleteByProjectId(projectId);
+        portfolioProjectRepository.deleteByProjectId(projectId);
+        projectRepository.delete(project);
+        log.info(
+                "Removed local project id={} openProjectId={} name={} (no longer in OpenProject)",
+                projectId,
+                project.getOpenProjectId(),
+                project.getName()
+        );
     }
 
     /**
@@ -111,21 +188,17 @@ public class OperationalDataImportService {
     private int applyProjectAdmins(WorkspaceEntity workspace, OpenProjectConnectionProperties connection) {
         Map<Long, List<String>> adminsByOpenProjectId =
                 openProjectClient.fetchProjectAdminNamesByProjectId(connection);
+        if (adminsByOpenProjectId == null) {
+            adminsByOpenProjectId = Map.of();
+        }
         int updated = 0;
         for (ProjectEntity project : projectRepository.findByWorkspaceIdOrderByNameAsc(workspace.getId())) {
             List<String> admins = adminsByOpenProjectId.get(project.getOpenProjectId());
             String adminName = (admins == null || admins.isEmpty()) ? null : String.join(", ", admins);
-            // Always write so stale admins clear when memberships change.
             if (adminName == null && project.getAdminName() == null) {
                 continue;
             }
             if (adminName != null && adminName.equals(project.getAdminName())) {
-                continue;
-            }
-            if (adminName == null && project.getAdminName() != null) {
-                project.setAdminName(null);
-                projectRepository.save(project);
-                updated++;
                 continue;
             }
             project.setAdminName(adminName);
@@ -173,16 +246,12 @@ public class OperationalDataImportService {
         workPackageRepository.save(workPackage);
     }
 
-    private Instant resolveModifiedSince(UUID workspaceId, SynchronizationType type) {
-        if (type == SynchronizationType.INITIAL) {
-            return null;
-        }
-        return historyRepository
-                .findFirstByWorkspaceIdAndStatusOrderByFinishedAtDesc(workspaceId, SynchronizationStatus.SUCCESS)
-                .map(SynchronizationHistoryEntity::getFinishedAt)
-                .orElse(null);
-    }
-
-    public record ImportCounts(int projects, int workPackages, String openProjectVersion) {
+    public record ImportCounts(
+            int projects,
+            int workPackages,
+            String openProjectVersion,
+            int deletedProjects,
+            int deletedWorkPackages
+    ) {
     }
 }
