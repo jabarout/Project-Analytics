@@ -118,33 +118,55 @@
 
       <h3 class="detail__section-title">Progress & schedule quality</h3>
       <p class="detail__hint">
-        Actual progress is the same canonical metric as Explorer and Project Detail (WP completion when available).
-        Expected progress and gap come from stored ProgressMetrics values.
+        Actual progress uses work-package completion. Expected progress and gap need project start/end dates in
+        OpenProject — if a card shows <strong>—</strong>, those dates are missing for members (set dates, then Synchronize).
       </p>
       <div class="kpi-row">
         <app-kpi-card
           label="Avg actual progress"
-          [value]="board.kpis.averageCompletion ?? '—'"
+          [value]="formatPercent(board.kpis.averageCompletion)"
           kind="score"
-          hint="Completion %"
+          [hint]="glossary.actualProgress.thresholds"
+          [infoTitle]="glossary.actualProgress.title"
+          [infoBody]="glossary.actualProgress.summary + ' ' + glossary.actualProgress.detail"
         />
         <app-kpi-card
           label="Avg expected progress"
-          [value]="board.kpis.averageExpectedProgress ?? '—'"
+          [value]="formatPercent(board.kpis.averageExpectedProgress)"
           kind="score"
-          hint="From schedule elapsed"
+          [hint]="
+            board.kpis.averageExpectedProgress != null
+              ? 'Average of members with start & end dates'
+              : 'Unavailable — no members have usable start & end dates'
+          "
+          [infoTitle]="glossary.expectedProgress.title"
+          [infoBody]="glossary.expectedProgress.summary + ' ' + glossary.expectedProgress.detail"
         />
         <app-kpi-card
           label="Avg progress gap"
           [value]="formatGap(board.kpis.averageProgressGap)"
           kind="score"
-          [hint]="board.kpis.averageProgressGap != null && board.kpis.averageProgressGap < 0 ? 'Behind on average' : 'Actual − expected'"
+          [hint]="
+            board.kpis.averageProgressGap != null
+              ? board.kpis.averageProgressGap < 0
+                ? 'Behind on average'
+                : 'Actual − expected (member average)'
+              : 'Unavailable until Expected progress can be calculated'
+          "
+          [infoTitle]="glossary.progressGap.title"
+          [infoBody]="glossary.progressGap.summary + ' ' + glossary.progressGap.detail"
         />
         <app-kpi-card
           label="Avg overdue ratio"
           [value]="formatOverdueRatio(board.kpis.averageOverdueRatio)"
           kind="score"
-          hint="Overdue WPs / total WPs"
+          [hint]="
+            board.kpis.averageOverdueRatio != null
+              ? 'Average overdue WPs ÷ total WPs'
+              : 'Unavailable — members have no work packages'
+          "
+          [infoTitle]="glossary.overdueRatio.title"
+          [infoBody]="glossary.overdueRatio.summary + ' ' + glossary.overdueRatio.detail"
         />
         <app-kpi-card
           label="Avg health"
@@ -166,7 +188,12 @@
       <div class="charts">
         <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
         <app-bar-chart title="Risk distribution" [data]="riskChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Progress vs schedule" [data]="progressGapChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        @if (progressCompareChart().length) {
+          <app-bar-chart title="Avg actual vs expected progress" [data]="progressCompareChart()" />
+        }
+        @if (progressGapChart().length && hasScheduleSignal()) {
+          <app-bar-chart title="Progress vs schedule (members)" [data]="progressGapChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        }
         <app-bar-chart title="Actual progress bands" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
         <app-bar-chart title="Past end date" [data]="delayedChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
         <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />

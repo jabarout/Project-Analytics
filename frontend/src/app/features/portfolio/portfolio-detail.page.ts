@@ -108,6 +108,23 @@ export class PortfolioDetailPage implements OnInit {
   readonly delayedChart = computed(() => delayedVsOnTrack(this.explorerRows()));
   readonly needsChart = computed(() => needsAttentionSplit(this.explorerRows()));
 
+  /** True when at least one member has a computable progress gap (has schedule dates). */
+  readonly hasScheduleSignal = computed(() =>
+    this.explorerRows().some((r) => r.progressGap != null)
+  );
+
+  /** Portfolio-level actual vs expected — only when both averages exist. */
+  readonly progressCompareChart = computed(() => {
+    const k = this.dashboard()?.kpis;
+    if (!k || k.averageCompletion == null || k.averageExpectedProgress == null) {
+      return [];
+    }
+    return [
+      { label: 'Avg actual', value: k.averageCompletion, color: '#0f766e' },
+      { label: 'Avg expected', value: k.averageExpectedProgress, color: '#1d4ed8' },
+    ];
+  });
+
   readonly availableProjects = computed(() => {
     const members = new Set((this.detail()?.projects ?? []).map((p) => p.id));
     return this.workspaceProjects().filter((p) => !members.has(p.id));
@@ -138,6 +155,13 @@ export class PortfolioDetailPage implements OnInit {
     }
     const sign = value > 0 ? '+' : '';
     return `${sign}${value}`;
+  }
+
+  formatPercent(value: number | null | undefined): string {
+    if (value == null) {
+      return '—';
+    }
+    return `${value}%`;
   }
 
   formatOverdueRatio(ratio: number | null | undefined): string {

@@ -56,12 +56,39 @@ export class ProjectDetailPage implements OnInit {
     ];
   });
 
+  /** Only when both actual and expected exist — avoids empty/misleading charts. */
+  readonly progressCompareChart = computed(() => {
+    const a = this.dashboard()?.analytics;
+    if (!a || a.completionPercentage == null || a.expectedProgress == null) {
+      return [];
+    }
+    return [
+      { label: 'Actual', value: a.completionPercentage, color: '#0f766e' },
+      { label: 'Expected', value: a.expectedProgress, color: '#1d4ed8' },
+    ];
+  });
+
   /** Display overdue ratio as a percentage string, or em dash when unknown. */
   overdueRatioDisplay(ratio: number | null | undefined): string {
     if (ratio == null) {
       return '—';
     }
     return `${(ratio * 100).toFixed(0)}%`;
+  }
+
+  formatPercent(value: number | null | undefined): string {
+    if (value == null) {
+      return '—';
+    }
+    return `${value}%`;
+  }
+
+  formatGap(value: number | null | undefined): string {
+    if (value == null) {
+      return '—';
+    }
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value}`;
   }
 
   ngOnInit(): void {
