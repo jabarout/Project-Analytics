@@ -50,8 +50,18 @@
   @if (loading()) {
     <app-loading-spinner label="Loading workspace triage…" />
   } @else if (dashboard(); as board) {
-    <h3 class="home__section-title">Exceptions</h3>
+    <h3 class="home__section-title">Overview</h3>
     <div class="kpi-row">
+      <app-kpi-card
+        label="Total projects"
+        [value]="board.kpis.totalProjects"
+        kind="volume"
+        [accent]="true"
+        hint="All synchronized projects in this workspace"
+        actionLabel="Explore all →"
+        [clickable]="true"
+        (activated)="openExplorer('clearExceptions')"
+      />
       <app-kpi-card
         label="Projects needing attention"
         [value]="needsAttentionDisplay()"

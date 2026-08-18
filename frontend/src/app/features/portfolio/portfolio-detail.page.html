@@ -60,8 +60,18 @@
         <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
       </section>
 
-      <h3 class="detail__section-title">Exceptions</h3>
+      <h3 class="detail__section-title">Overview</h3>
       <div class="kpi-row">
+        <app-kpi-card
+          label="Total projects"
+          [value]="board.kpis.totalProjects"
+          kind="volume"
+          [accent]="true"
+          hint="Members in this portfolio"
+          actionLabel="Explore all →"
+          [clickable]="true"
+          (activated)="openExplorer('clearExceptions')"
+        />
         <app-kpi-card
           label="Projects needing attention"
           [value]="needsAttentionDisplay()"
