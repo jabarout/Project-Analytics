@@ -149,12 +149,13 @@ export class PortfolioDetailPage implements OnInit {
     this.load(id);
   }
 
+  /** Difference in percentage points (not a % of a whole) — no % suffix. */
   formatGap(value: number | null | undefined): string {
     if (value == null) {
       return '—';
     }
     const sign = value > 0 ? '+' : '';
-    return `${sign}${value}`;
+    return `${sign}${value} pts`;
   }
 
   formatPercent(value: number | null | undefined): string {

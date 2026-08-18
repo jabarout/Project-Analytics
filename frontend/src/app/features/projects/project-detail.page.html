@@ -128,8 +128,9 @@
         <app-kpi-card label="High priority open" [value]="wp.highPriorityOpen" kind="count" severity="watch" />
         <app-kpi-card
           label="Completion %"
-          [value]="board.analytics.completionPercentage ?? '—'"
+          [value]="formatPercent(board.analytics.completionPercentage)"
           kind="score"
+          hint="Same as actual progress"
         />
         <app-kpi-card label="Blocked" [value]="wp.blockedWorkPackages" kind="count" />
         <app-kpi-card label="Total WPs" [value]="wp.totalWorkPackages" kind="volume" [accent]="true" />

@@ -135,8 +135,9 @@
     <div class="kpi-row">
       <app-kpi-card
         label="Average progress"
-        [value]="board.kpis.averageCompletion ?? '—'"
+        [value]="formatPercent(board.kpis.averageCompletion)"
         kind="score"
+        hint="WP completion average (0–100%)"
         [clickable]="true"
         actionLabel="Explore →"
         (activated)="openExplorer('clearExceptions')"
@@ -146,6 +147,7 @@
         [value]="board.kpis.averageHealthScore ?? '—'"
         kind="score"
         severity="positive"
+        hint="Score 0–100 (not a %)"
         [infoTitle]="glossary.health.title"
         [infoBody]="glossary.health.summary + ' ' + glossary.health.thresholds"
         [clickable]="true"
@@ -157,19 +159,11 @@
         [value]="board.kpis.averageRiskScore ?? '—'"
         kind="score"
         severity="watch"
+        hint="Score 0–100 (not a %)"
         [infoTitle]="glossary.risk.title"
         [infoBody]="glossary.risk.summary + ' ' + glossary.risk.thresholds"
         [clickable]="true"
         actionLabel="Explore →"
-        (activated)="openExplorer('clearExceptions')"
-      />
-      <app-kpi-card
-        label="Total projects"
-        [value]="board.kpis.totalProjects"
-        kind="volume"
-        [accent]="true"
-        [clickable]="true"
-        actionLabel="Explore all →"
         (activated)="openExplorer('clearExceptions')"
       />
       <app-kpi-card

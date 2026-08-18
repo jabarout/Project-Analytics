@@ -213,6 +213,14 @@ export class HomePage implements OnInit {
     void this.router.navigate(['/explorer'], { queryParams: params });
   }
 
+  /** Percent metrics only (progress ratios), not Health/Risk scores. */
+  formatPercent(value: number | null | undefined): string {
+    if (value == null) {
+      return '—';
+    }
+    return `${value}%`;
+  }
+
   generateReport(): void {
     const workspaceId = this.selectedWorkspaceId();
     void this.router.navigate(['/reports'], {

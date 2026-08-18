@@ -182,6 +182,7 @@
           label="Avg health"
           [value]="board.kpis.averageHealthScore ?? '—'"
           kind="score"
+          hint="Score 0–100 (not a %)"
           [infoTitle]="glossary.health.title"
           [infoBody]="glossary.health.summary"
         />
@@ -189,6 +190,7 @@
           label="Avg risk"
           [value]="board.kpis.averageRiskScore ?? '—'"
           kind="score"
+          hint="Score 0–100 (not a %)"
           [infoTitle]="glossary.risk.title"
           [infoBody]="glossary.risk.summary"
         />
