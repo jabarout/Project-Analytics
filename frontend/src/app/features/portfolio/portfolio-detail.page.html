@@ -9,7 +9,7 @@
     <header class="detail__header">
       <div>
         <h2>{{ portfolio.name }}</h2>
-        <p>Analytical collection — dig into schedule, progress quality, and exceptions for these members only.</p>
+        <p>Analytical collection — dig into progress, delivery quality, and exceptions for these members only.</p>
       </div>
       <div class="detail__header-actions">
         <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
@@ -73,6 +73,12 @@
           (activated)="openExplorer('clearExceptions')"
         />
         <app-kpi-card
+          label="Active projects"
+          [value]="board.kpis.activeProjects"
+          kind="volume"
+          hint="Not archived in OpenProject (On track / At risk / … still count as active)"
+        />
+        <app-kpi-card
           label="Projects needing attention"
           [value]="needsAttentionDisplay()"
           kind="count"
@@ -95,76 +101,36 @@
           (activated)="openExplorer('critical')"
         />
         <app-kpi-card
-          label="Past end date"
-          [value]="board.kpis.overdueProjects"
-          kind="count"
-          severity="watch"
-          hint="Project finish date in the past"
-          actionLabel="View all →"
-          [clickable]="true"
-          (activated)="openExplorer('delayed')"
-        />
-        <app-kpi-card
-          label="Behind schedule"
-          [value]="board.kpis.projectsBehindSchedule"
-          kind="count"
-          severity="watch"
-          hint="Actual progress below expected"
-          actionLabel="Explore →"
-          [clickable]="true"
-          (activated)="openExplorer('clearExceptions')"
-        />
-        <app-kpi-card
           label="With overdue WPs"
           [value]="board.kpis.projectsWithOverdueWorkPackages"
           kind="count"
           severity="watch"
-          hint="At least one open WP past due"
+          hint="At least one open work package past due"
           actionLabel="View all →"
           [clickable]="true"
           (activated)="openExplorer('hasOverdueWp')"
         />
+        <app-kpi-card
+          label="Total work packages"
+          [value]="board.kpis.totalWorkPackages"
+          kind="volume"
+          hint="All WPs across portfolio members"
+        />
       </div>
 
-      <h3 class="detail__section-title">Progress & schedule quality</h3>
+      <h3 class="detail__section-title">Progress & delivery quality</h3>
       <p class="detail__hint">
-        Actual progress uses work-package completion. Expected progress and gap need project start/end dates in
-        OpenProject — if a card shows <strong>—</strong>, those dates are missing for members (set dates, then Synchronize).
+        Based on synchronized work packages (completion status and due dates). Project-level calendar schedule KPIs are
+        omitted because Community OpenProject does not expose usable project start/end dates to our sync.
       </p>
       <div class="kpi-row">
         <app-kpi-card
-          label="Avg actual progress"
+          label="Avg progress"
           [value]="formatPercent(board.kpis.averageCompletion)"
           kind="score"
           [hint]="glossary.actualProgress.thresholds"
           [infoTitle]="glossary.actualProgress.title"
           [infoBody]="glossary.actualProgress.summary + ' ' + glossary.actualProgress.detail"
-        />
-        <app-kpi-card
-          label="Avg expected progress"
-          [value]="formatPercent(board.kpis.averageExpectedProgress)"
-          kind="score"
-          [hint]="
-            board.kpis.averageExpectedProgress != null
-              ? 'Average of members with start & end dates'
-              : 'Unavailable — no members have usable start & end dates'
-          "
-          [infoTitle]="glossary.expectedProgress.title"
-          [infoBody]="glossary.expectedProgress.summary + ' ' + glossary.expectedProgress.detail"
-        />
-        <app-kpi-card
-          label="Avg progress gap"
-          [value]="formatGap(board.kpis.averageProgressGap)"
-          kind="score"
-          [hint]="
-            board.kpis.averageProgressGap != null
-              ? board.kpis.averageProgressGap < 0
-                ? 'Behind on average'
-                : 'Actual − expected (member average)'
-              : 'Unavailable until Expected progress can be calculated'
-          "
-          [infoTitle]="glossary.progressGap.title"
-          [infoBody]="glossary.progressGap.summary + ' ' + glossary.progressGap.detail"
         />
         <app-kpi-card
           label="Avg overdue ratio"
@@ -200,14 +166,8 @@
       <div class="charts">
         <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
         <app-bar-chart title="Risk distribution" [data]="riskChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        @if (progressCompareChart().length) {
-          <app-bar-chart title="Avg actual vs expected progress" [data]="progressCompareChart()" />
-        }
-        @if (progressGapChart().length && hasScheduleSignal()) {
-          <app-bar-chart title="Progress vs schedule (members)" [data]="progressGapChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        }
         <app-bar-chart title="Actual progress bands" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Past end date" [data]="delayedChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+        <app-bar-chart title="Overdue work packages" [data]="overdueWpChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
         <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
       </div>
 
@@ -288,11 +248,10 @@
               <tr>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Actual progress</th>
-                <th>Progress gap</th>
+                <th>Progress</th>
+                <th>Overdue WPs</th>
                 <th>Health</th>
                 <th>Risk</th>
-                <th>End date</th>
                 <th></th>
               </tr>
             </thead>
@@ -304,10 +263,9 @@
                   </td>
                   <td>{{ project.status || '—' }}</td>
                   <td>{{ memberMetric(project.id, 'progress') }}</td>
-                  <td>{{ memberMetric(project.id, 'gap') }}</td>
+                  <td>{{ memberMetric(project.id, 'overdue') }}</td>
                   <td>{{ memberMetric(project.id, 'health') }}</td>
                   <td>{{ memberMetric(project.id, 'risk') }}</td>
-                  <td>{{ project.endDate || '—' }}</td>
                   <td>
                     <button type="button" class="linkish" (click)="removeProject(project.id)">Remove</button>
                   </td>

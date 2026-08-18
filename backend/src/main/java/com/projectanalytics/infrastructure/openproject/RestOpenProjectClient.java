@@ -286,14 +286,18 @@ public class RestOpenProjectClient implements OpenProjectClient {
             long id = node.path("id").asLong();
             String name = textOrDefault(node, "name", "Unnamed project");
             String description = extractDescription(node.path("description"));
+            // OP has two concepts: `active` (not archived) and status title (On track / At risk / …).
+            // Archived always wins; otherwise prefer the human status title for display.
             boolean active = !node.path("active").isBoolean() || node.path("active").asBoolean(true);
-            String status = active ? "ACTIVE" : "ARCHIVED";
-            // Prefer OP status explanation if present (e.g. On track / At risk); fall back to active flag.
-            String statusExplanation = node.path("statusExplanation").path("raw").asText(null);
-            if (statusExplanation == null || statusExplanation.isBlank()) {
+            String status;
+            if (!active) {
+                status = "ARCHIVED";
+            } else {
                 String statusTitle = node.path("_links").path("status").path("title").asText(null);
                 if (statusTitle != null && !statusTitle.isBlank()) {
                     status = statusTitle.trim();
+                } else {
+                    status = "ACTIVE";
                 }
             }
             return new OpenProjectProjectDto(

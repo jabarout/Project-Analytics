@@ -68,8 +68,10 @@ public class PortfolioService {
     public PortfolioDetailResponse getPortfolio(UUID portfolioId) {
         PortfolioEntity portfolio = requirePortfolio(portfolioId);
         List<PortfolioProjectSummaryResponse> projects = metricsService.listProjectSummaries(portfolioId);
+        // Active = not archived (status may be On track / At risk / ACTIVE, etc.).
         long active = projects.stream()
-                .filter(project -> "ACTIVE".equalsIgnoreCase(nullToEmpty(project.status())))
+                .filter(project -> project.status() == null
+                        || !"ARCHIVED".equalsIgnoreCase(project.status().trim()))
                 .count();
         return new PortfolioDetailResponse(
                 portfolio.getId(),
@@ -203,10 +205,7 @@ public class PortfolioService {
 
     private PortfolioSummaryResponse toSummary(PortfolioEntity portfolio) {
         long total = projectRepository.countMembersByPortfolioId(portfolio.getId());
-        long active = projectRepository.countMembersByPortfolioIdAndStatusIgnoreCase(
-                portfolio.getId(),
-                "ACTIVE"
-        );
+        long active = projectRepository.countActiveMembersByPortfolioId(portfolio.getId());
         return new PortfolioSummaryResponse(
                 portfolio.getId(),
                 portfolio.getWorkspace().getId(),
@@ -231,7 +230,5 @@ public class PortfolioService {
         return value.trim();
     }
 
-    private static String nullToEmpty(String value) {
-        return value == null ? "" : value;
-    }
+
 }

@@ -40,6 +40,15 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
             @Param("status") String status
     );
 
+    /** Non-archived members (status null or anything other than ARCHIVED). */
+    @Query("""
+            select count(p) from ProjectEntity p
+            join PortfolioProjectEntity pp on pp.projectId = p.id
+            where pp.portfolioId = :portfolioId
+              and (p.status is null or upper(p.status) <> 'ARCHIVED')
+            """)
+    long countActiveMembersByPortfolioId(@Param("portfolioId") UUID portfolioId);
+
     @Query("""
             select coalesce(sum(p.budget), 0) from ProjectEntity p
             join PortfolioProjectEntity pp on pp.projectId = p.id

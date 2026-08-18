@@ -75,6 +75,23 @@ export function delayedVsOnTrack(rows: readonly ExplorerProjectRow[]): Interacti
   ];
 }
 
+/** Community-friendly split: projects with overdue open WPs vs none (uses WP due dates). */
+export function overdueWpProjectsSplit(rows: readonly ExplorerProjectRow[]): InteractiveChartSegment[] {
+  let withOverdue = 0;
+  let clean = 0;
+  for (const r of rows) {
+    if ((r.overdueWorkPackageCount ?? 0) > 0) {
+      withOverdue++;
+    } else {
+      clean++;
+    }
+  }
+  return [
+    { label: 'Has overdue WPs', value: withOverdue, color: '#b91c1c', drill: 'hasOverdueWp' },
+    { label: 'No overdue WPs', value: clean, color: '#0f766e' },
+  ];
+}
+
 export function needsAttentionSplit(rows: readonly ExplorerProjectRow[]): InteractiveChartSegment[] {
   let needs = 0;
   let stable = 0;

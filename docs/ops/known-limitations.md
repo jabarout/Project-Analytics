@@ -1,6 +1,6 @@
 # Known limitations (buyer-honest)
 
-Last updated: 2026-08-10 (M13)
+Last updated: 2026-08-18 (Community KPI adaptation)
 
 These are **accepted** constraints of the current product — not secret bugs.  
 Fix targets are noted when planned.
@@ -15,6 +15,8 @@ Fix targets are noted when planned.
 | One credential style | UI stores workspace URL only; key is process env | M14 |
 | **Synchronize vs Recalculate** | **Synchronize** (Connections) pulls from OpenProject and **removes** local projects/WPs deleted remotely. **Recalculate** (Home) only recomputes scores from **local** data — it does not contact OpenProject. | By design |
 | Full catalog sync | Sync fetches the full project/WP catalog (not incremental-only) so deletions are detected | Performance note; correctness first |
+| **No project start/end dates (Community API)** | Expected progress, progress gap, schedule variance, and “delayed by project end date” are **not shown** on Home/Project/Portfolio (or KPI reports). Dashboards use WP completion, overdue WP dues, priorities, and Health/Risk/Attention instead. | Product adaptation for Community |
+| **Active ≠ status title** | OpenProject `active` means not archived. Local status may be “On track” / “At risk” / etc. **Active projects** counts non-archived members — not only the literal string `ACTIVE`. | By design |
 
 ---
 
@@ -23,9 +25,9 @@ Fix targets are noted when planned.
 | Limitation | Detail | Target |
 |------------|--------|--------|
 | Budget variance usually null | No spent-budget field in local model | When OP spend is modeled |
-| Expected progress / gap null | Requires usable project start **and** end dates | Data quality in OP |
+| Expected progress / gap null | Requires usable project start **and** end dates — **not shown** on Community dashboards | Data quality in OP / Enterprise dates |
 | Progress prefers WP completion | OP project progress field ignored when WPs exist (by design) | Documented M12 |
-| Schedule variance only | No separate “days to deadline” field | Use schedule variance |
+| Schedule variance (project end) | Backend may compute when end date exists; Community UI uses WP overdue instead | Prefer overdue WPs |
 | Trends are snapshot history | Limited soft intelligence | Optional M18 |
 
 ---

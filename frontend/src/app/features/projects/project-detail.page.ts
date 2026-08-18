@@ -56,15 +56,15 @@ export class ProjectDetailPage implements OnInit {
     ];
   });
 
-  /** Only when both actual and expected exist — avoids empty/misleading charts. */
-  readonly progressCompareChart = computed(() => {
-    const a = this.dashboard()?.analytics;
-    if (!a || a.completionPercentage == null || a.expectedProgress == null) {
+  /** Completed vs remaining — based on WP status counts (Community-reliable). */
+  readonly completionRemainChart = computed(() => {
+    const wp = this.wpAnalytics();
+    if (!wp || wp.totalWorkPackages <= 0) {
       return [];
     }
     return [
-      { label: 'Actual', value: a.completionPercentage, color: '#0f766e' },
-      { label: 'Expected', value: a.expectedProgress, color: '#1d4ed8' },
+      { label: 'Completed', value: wp.completedWorkPackages, color: '#0f766e' },
+      { label: 'Remaining', value: wp.openWorkPackages, color: '#b45309' },
     ];
   });
 
@@ -74,22 +74,6 @@ export class ProjectDetailPage implements OnInit {
       return '—';
     }
     return `${(ratio * 100).toFixed(0)}%`;
-  }
-
-  formatPercent(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
-    return `${value}%`;
-  }
-
-  /** Difference in percentage points (not a % of a whole) — no % suffix. */
-  formatGap(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
-    const sign = value > 0 ? '+' : '';
-    return `${sign}${value} pts`;
   }
 
   ngOnInit(): void {

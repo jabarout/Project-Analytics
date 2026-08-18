@@ -101,6 +101,14 @@ public class ProjectEntity extends BaseEntity {
         this.status = status;
     }
 
+    /**
+     * OpenProject lifecycle: archived vs not. Status display may be {@code ACTIVE},
+     * {@code On track}, {@code At risk}, etc. — only {@code ARCHIVED} is inactive.
+     */
+    public boolean isActiveLifecycle() {
+        return status == null || !"ARCHIVED".equalsIgnoreCase(status.trim());
+    }
+
     public BigDecimal getBudget() {
         return budget;
     }

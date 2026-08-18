@@ -16,9 +16,9 @@ import { ProjectTableComponent } from '../../shared/components/explorer/project-
 import { BarChartComponent, BarChartDatum } from '../../shared/components/dashboard/bar-chart.component';
 import { drillDownQuery } from '../../shared/analytics/explorer-query';
 import {
-  delayedVsOnTrack,
   healthDistribution,
   needsAttentionSplit,
+  overdueWpProjectsSplit,
   progressDistribution,
   recommendationSeverityBars,
 } from '../../shared/analytics/distribution';
@@ -73,7 +73,9 @@ export class HomePage implements OnInit {
   readonly exceptionQueue = computed(() => {
     const rows = this.explorerRows();
     return [...rows]
-      .filter((r) => r.needsAttention || r.critical || r.delayed)
+      .filter(
+        (r) => r.needsAttention || r.critical || (r.overdueWorkPackageCount ?? 0) > 0
+      )
       .sort((a, b) => (b.attentionScore ?? 0) - (a.attentionScore ?? 0))
       .slice(0, 8);
   });
@@ -85,13 +87,12 @@ export class HomePage implements OnInit {
     const limit = new Date(today);
     limit.setDate(limit.getDate() + days);
     return this.explorerRows().filter((r) => {
-      if (r.delayed) {
-        return false;
-      }
-      const deadline = r.nextDeadline || r.endDate;
+      // Prefer next open WP due (Community has no reliable project finish date).
+      const deadline = r.nextDeadline;
       if (!deadline) {
         return false;
       }
+      // Skip if already past (those show under overdue WPs).
       const end = new Date(deadline + 'T00:00:00');
       if (Number.isNaN(end.getTime())) {
         return false;
@@ -106,7 +107,7 @@ export class HomePage implements OnInit {
 
   readonly healthChart = computed(() => healthDistribution(this.explorerRows()));
   readonly progressChart = computed(() => progressDistribution(this.explorerRows()));
-  readonly delayedChart = computed(() => delayedVsOnTrack(this.explorerRows()));
+  readonly overdueWpChart = computed(() => overdueWpProjectsSplit(this.explorerRows()));
   readonly needsChart = computed(() => needsAttentionSplit(this.explorerRows()));
   readonly recoChart = computed(() =>
     recommendationSeverityBars(this.recommendations()?.recommendations ?? [])
@@ -118,7 +119,7 @@ export class HomePage implements OnInit {
     'riskScore',
     'attentionScore',
     'progress',
-    'delayed',
+    'overdueWorkPackageCount',
   ] as const;
 
   ngOnInit(): void {
@@ -189,7 +190,12 @@ export class HomePage implements OnInit {
     if (!workspaceId) {
       return;
     }
-    if (segment.drill === 'critical' || segment.drill === 'delayed' || segment.drill === 'needsAttention') {
+    if (
+      segment.drill === 'critical' ||
+      segment.drill === 'delayed' ||
+      segment.drill === 'needsAttention' ||
+      segment.drill === 'hasOverdueWp'
+    ) {
       this.openExplorer(segment.drill);
       return;
     }

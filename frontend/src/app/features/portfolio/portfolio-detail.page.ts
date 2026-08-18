@@ -22,11 +22,10 @@ import {
 } from '../../shared/analytics/analytics-thresholds';
 import { BarChartComponent, BarChartDatum } from '../../shared/components/dashboard/bar-chart.component';
 import {
-  delayedVsOnTrack,
   healthDistribution,
   needsAttentionSplit,
+  overdueWpProjectsSplit,
   progressDistribution,
-  progressGapSplit,
   riskDistribution,
 } from '../../shared/analytics/distribution';
 import {
@@ -37,7 +36,7 @@ import { SCORE_GLOSSARY } from '../../shared/analytics/score-glossary';
 
 /**
  * Portfolio analytical deep-dive + membership management.
- * Home stays lean triage; this page carries schedule/progress quality detail.
+ * Home stays lean triage; this page carries progress and delivery-quality detail.
  */
 @Component({
   selector: 'app-portfolio-detail-page',
@@ -103,27 +102,9 @@ export class PortfolioDetailPage implements OnInit {
 
   readonly healthChart = computed(() => healthDistribution(this.explorerRows()));
   readonly riskChart = computed(() => riskDistribution(this.explorerRows()));
-  readonly progressGapChart = computed(() => progressGapSplit(this.explorerRows()));
   readonly progressChart = computed(() => progressDistribution(this.explorerRows()));
-  readonly delayedChart = computed(() => delayedVsOnTrack(this.explorerRows()));
+  readonly overdueWpChart = computed(() => overdueWpProjectsSplit(this.explorerRows()));
   readonly needsChart = computed(() => needsAttentionSplit(this.explorerRows()));
-
-  /** True when at least one member has a computable progress gap (has schedule dates). */
-  readonly hasScheduleSignal = computed(() =>
-    this.explorerRows().some((r) => r.progressGap != null)
-  );
-
-  /** Portfolio-level actual vs expected — only when both averages exist. */
-  readonly progressCompareChart = computed(() => {
-    const k = this.dashboard()?.kpis;
-    if (!k || k.averageCompletion == null || k.averageExpectedProgress == null) {
-      return [];
-    }
-    return [
-      { label: 'Avg actual', value: k.averageCompletion, color: '#0f766e' },
-      { label: 'Avg expected', value: k.averageExpectedProgress, color: '#1d4ed8' },
-    ];
-  });
 
   readonly availableProjects = computed(() => {
     const members = new Set((this.detail()?.projects ?? []).map((p) => p.id));
@@ -149,15 +130,6 @@ export class PortfolioDetailPage implements OnInit {
     this.load(id);
   }
 
-  /** Difference in percentage points (not a % of a whole) — no % suffix. */
-  formatGap(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
-    const sign = value > 0 ? '+' : '';
-    return `${sign}${value} pts`;
-  }
-
   formatPercent(value: number | null | undefined): string {
     if (value == null) {
       return '—';
@@ -172,7 +144,10 @@ export class PortfolioDetailPage implements OnInit {
     return `${(ratio * 100).toFixed(0)}%`;
   }
 
-  memberMetric(projectId: string, field: 'progress' | 'gap' | 'health' | 'risk'): string {
+  memberMetric(
+    projectId: string,
+    field: 'progress' | 'overdue' | 'health' | 'risk'
+  ): string {
     const row = this.rowById().get(projectId);
     if (!row) {
       return '—';
@@ -180,8 +155,8 @@ export class PortfolioDetailPage implements OnInit {
     switch (field) {
       case 'progress':
         return row.progress != null ? `${row.progress}%` : '—';
-      case 'gap':
-        return this.formatGap(row.progressGap);
+      case 'overdue':
+        return String(row.overdueWorkPackageCount ?? 0);
       case 'health':
         return row.healthScore != null ? String(row.healthScore) : '—';
       case 'risk':
@@ -262,7 +237,12 @@ export class PortfolioDetailPage implements OnInit {
     if (!detail || !portfolioId) {
       return;
     }
-    if (segment.drill === 'critical' || segment.drill === 'delayed' || segment.drill === 'needsAttention') {
+    if (
+      segment.drill === 'critical' ||
+      segment.drill === 'delayed' ||
+      segment.drill === 'needsAttention' ||
+      segment.drill === 'hasOverdueWp'
+    ) {
       this.openExplorer(segment.drill);
       return;
     }

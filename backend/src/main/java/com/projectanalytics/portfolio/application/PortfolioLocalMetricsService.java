@@ -24,7 +24,6 @@ import java.util.UUID;
 @Service
 public class PortfolioLocalMetricsService {
 
-    private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_ARCHIVED = "ARCHIVED";
 
     private final ProjectRepository projectRepository;
@@ -42,7 +41,7 @@ public class PortfolioLocalMetricsService {
     public PortfolioKpiResponse computeKpis(PortfolioEntity portfolio) {
         UUID portfolioId = portfolio.getId();
         long totalProjects = projectRepository.countMembersByPortfolioId(portfolioId);
-        long activeProjects = projectRepository.countMembersByPortfolioIdAndStatusIgnoreCase(portfolioId, STATUS_ACTIVE);
+        long activeProjects = projectRepository.countActiveMembersByPortfolioId(portfolioId);
         long archivedProjects = projectRepository.countMembersByPortfolioIdAndStatusIgnoreCase(portfolioId, STATUS_ARCHIVED);
         long overdueProjects = projectRepository.countOverdueMembersByPortfolioId(portfolioId);
         long totalWorkPackages = workPackageRepository.countByPortfolioId(portfolioId);
@@ -76,7 +75,7 @@ public class PortfolioLocalMetricsService {
     @Transactional(readOnly = true)
     public List<PortfolioProjectSummaryResponse> listActiveProjects(UUID portfolioId) {
         return projectRepository.findMembersByPortfolioIdOrderByNameAsc(portfolioId).stream()
-                .filter(project -> STATUS_ACTIVE.equalsIgnoreCase(nullToEmpty(project.getStatus())))
+                .filter(ProjectEntity::isActiveLifecycle)
                 .map(this::toProjectSummary)
                 .toList();
     }
@@ -115,7 +114,7 @@ public class PortfolioLocalMetricsService {
             insights.add(kpis.overdueWorkPackages() + " open work package(s) are past their due date.");
         }
         if (kpis.activeProjects() == 0 && kpis.totalProjects() > 0) {
-            insights.add("No projects are marked ACTIVE in the local synchronized copy.");
+            insights.add("All member projects are archived in the local synchronized copy.");
         }
         if (kpis.lastSynchronizedAt() == null) {
             insights.add("Projects have no synchronization timestamp; run OpenProject sync from Workspaces.");

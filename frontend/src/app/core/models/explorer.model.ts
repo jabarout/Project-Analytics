@@ -77,18 +77,15 @@ export type ExplorerColumnId =
   | 'portfolioNames'
   | 'recommendations';
 
-/** Portfolio overview member table — decision-oriented, not full Explorer. */
+/** Portfolio overview member table — Community-reliable columns only. */
 export const PORTFOLIO_MEMBER_ANALYTICS_COLUMNS: readonly ExplorerColumnId[] = [
   'name',
   'healthScore',
   'riskScore',
   'attentionScore',
   'progress',
-  'expectedProgress',
-  'progressGap',
   'overdueWorkPackageCount',
-  'delayed',
-  'endDate',
+  'projectAdmin',
 ];
 
 export interface ExplorerSortSpec {
@@ -135,6 +132,7 @@ export interface SavedExplorerView {
 
 export const DEFAULT_UPCOMING_DEADLINE_DAYS = 14;
 
+/** Default columns use Community-reliable fields (WP progress/overdue; not project end dates). */
 export const DEFAULT_EXPLORER_COLUMNS: readonly ExplorerColumnId[] = [
   'name',
   'status',
@@ -142,9 +140,7 @@ export const DEFAULT_EXPLORER_COLUMNS: readonly ExplorerColumnId[] = [
   'healthScore',
   'riskScore',
   'attentionScore',
-  'delayed',
   'overdueWorkPackageCount',
-  'endDate',
   'nextDeadline',
   'projectAdmin',
   'portfolioNames',

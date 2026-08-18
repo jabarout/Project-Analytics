@@ -113,8 +113,13 @@ public class ReportContentAssembler {
         metrics.add(metric("Status", dashboard.status()));
         metrics.add(metric("Progress", formatDecimal(dashboard.progress())));
         metrics.add(metric("Budget", formatDecimal(dashboard.budget())));
-        metrics.add(metric("Start date", String.valueOf(dashboard.startDate())));
-        metrics.add(metric("End date", String.valueOf(dashboard.endDate())));
+        // Only include project calendar dates when present (often absent on Community).
+        if (dashboard.startDate() != null) {
+            metrics.add(metric("Start date", String.valueOf(dashboard.startDate())));
+        }
+        if (dashboard.endDate() != null) {
+            metrics.add(metric("End date", String.valueOf(dashboard.endDate())));
+        }
         if (dashboard.analytics() != null) {
             metrics.add(metric("Health score", formatDecimal(dashboard.analytics().health().score())));
             metrics.add(metric("Health status", dashboard.analytics().health().label()));
@@ -122,6 +127,8 @@ public class ReportContentAssembler {
             metrics.add(metric("Risk level", dashboard.analytics().risk().label()));
             metrics.add(metric("Attention score", formatDecimal(dashboard.analytics().attention().score())));
             metrics.add(metric("Attention label", dashboard.analytics().attention().label()));
+            metrics.add(metric("Actual progress %", formatDecimal(dashboard.analytics().completionPercentage())));
+            metrics.add(metric("Overdue ratio", formatDecimal(dashboard.analytics().overdueRatio())));
         }
 
         List<String> explanations = new ArrayList<>();
@@ -147,6 +154,7 @@ public class ReportContentAssembler {
     private ReportDocument assembleKpi(ReportScopeType scopeType, UUID scopeId, Instant generatedAt) {
         ScopeDashboardResponse dashboard = loadScopeDashboard(scopeType, scopeId);
         ScopeAnalyticsKpiResponse kpis = dashboard.kpis();
+        // Community-reliable KPIs only — omit expected progress / gap / project-end schedule fields.
         List<ReportDocument.MetricLine> metrics = List.of(
                 metric("Scope", dashboard.scopeName()),
                 metric("Scope type", dashboard.scopeType()),
@@ -154,16 +162,12 @@ public class ReportContentAssembler {
                 metric("Active projects", kpis.activeProjects()),
                 metric("Critical projects", kpis.criticalProjects()),
                 metric("High attention", kpis.highAttentionProjects()),
-                metric("Overdue projects", kpis.overdueProjects()),
+                metric("Projects with overdue WPs", kpis.projectsWithOverdueWorkPackages()),
                 metric("Total work packages", kpis.totalWorkPackages()),
                 metric("Average health", formatDecimal(kpis.averageHealthScore())),
                 metric("Average risk", formatDecimal(kpis.averageRiskScore())),
                 metric("Average attention", formatDecimal(kpis.averageAttentionScore())),
                 metric("Average actual progress", formatDecimal(kpis.averageCompletion())),
-                metric("Average expected progress", formatDecimal(kpis.averageExpectedProgress())),
-                metric("Average progress gap", formatDecimal(kpis.averageProgressGap())),
-                metric("Projects behind schedule", kpis.projectsBehindSchedule()),
-                metric("Projects with overdue WPs", kpis.projectsWithOverdueWorkPackages()),
                 metric("Average overdue ratio", formatDecimal(kpis.averageOverdueRatio())),
                 metric("Total budget", formatDecimal(kpis.totalBudget())),
                 metric("Last calculated", String.valueOf(kpis.lastCalculatedAt()))
@@ -241,9 +245,11 @@ public class ReportContentAssembler {
                 metric("Active projects", kpis.activeProjects()),
                 metric("Critical projects", kpis.criticalProjects()),
                 metric("High attention", kpis.highAttentionProjects()),
+                metric("Projects with overdue WPs", kpis.projectsWithOverdueWorkPackages()),
                 metric("Average health", formatDecimal(kpis.averageHealthScore())),
                 metric("Average risk", formatDecimal(kpis.averageRiskScore())),
-                metric("Average attention", formatDecimal(kpis.averageAttentionScore()))
+                metric("Average attention", formatDecimal(kpis.averageAttentionScore())),
+                metric("Average actual progress", formatDecimal(kpis.averageCompletion()))
         );
 
         List<ReportDocument.ReportSection> sections = new ArrayList<>();

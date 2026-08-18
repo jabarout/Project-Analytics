@@ -576,7 +576,8 @@ public class AnalyticsQueryService {
             List<AnalyticsEntity> analytics
     ) {
         long total = projects.size();
-        long active = projects.stream().filter(p -> "ACTIVE".equalsIgnoreCase(nullSafe(p.getStatus()))).count();
+        // Active = not archived. Status may be "ACTIVE", "On track", "At risk", etc.
+        long active = projects.stream().filter(ProjectEntity::isActiveLifecycle).count();
         long overdueProjects = projects.stream().filter(this::isProjectOverdue).count();
         long totalWp = projects.stream()
                 .mapToLong(p -> workPackageRepository.findByProjectId(p.getId()).size())

@@ -54,89 +54,32 @@
       />
     </div>
 
-    <h3 class="project__section">Schedule metrics</h3>
-    <p class="project__muted">
-      Expected progress, gap, and schedule variance need project dates from OpenProject.
-      If a card shows <strong>—</strong>, the required date is missing — set it in OpenProject, then Synchronize.
-    </p>
-    <div class="kpi-row">
-      <app-kpi-card
-        label="Expected progress"
-        [value]="formatPercent(board.analytics.expectedProgress)"
-        kind="score"
-        [hint]="
-          board.analytics.expectedProgress != null
-            ? 'Calendar schedule elapsed'
-            : 'Unavailable — needs start & end dates in OpenProject'
-        "
-        [infoTitle]="glossary.expectedProgress.title"
-        [infoBody]="glossary.expectedProgress.summary + ' ' + glossary.expectedProgress.detail"
-      />
-      <app-kpi-card
-        label="Progress gap"
-        [value]="formatGap(board.analytics.progressGap)"
-        kind="score"
-        [hint]="
-          board.analytics.progressGap != null
-            ? board.analytics.progressGap < 0
-              ? 'Behind calendar schedule'
-              : 'Actual − expected'
-            : 'Unavailable until Expected progress can be calculated'
-        "
-        [infoTitle]="glossary.progressGap.title"
-        [infoBody]="glossary.progressGap.summary + ' ' + glossary.progressGap.detail"
-      />
-      <app-kpi-card
-        label="Overdue ratio"
-        [value]="overdueRatioDisplay(board.analytics.overdueRatio)"
-        kind="score"
-        [hint]="
-          board.analytics.overdueRatio != null
-            ? 'Overdue open WPs ÷ total WPs'
-            : 'Unavailable — no work packages synced'
-        "
-        [infoTitle]="glossary.overdueRatio.title"
-        [infoBody]="glossary.overdueRatio.summary + ' ' + glossary.overdueRatio.detail"
-      />
-      <app-kpi-card
-        label="Schedule variance (days)"
-        [value]="board.analytics.scheduleVariance ?? '—'"
-        kind="count"
-        [hint]="
-          board.analytics.scheduleVariance != null
-            ? board.analytics.scheduleVariance > 0
-              ? 'Days past project end'
-              : 'Negative = days remaining to end date'
-            : 'Unavailable — needs project end date in OpenProject'
-        "
-        [infoTitle]="glossary.scheduleVariance.title"
-        [infoBody]="glossary.scheduleVariance.summary + ' ' + glossary.scheduleVariance.detail"
-      />
-    </div>
-
-    @if (progressCompareChart().length) {
-      <div class="project__charts">
-        <app-bar-chart title="Actual vs expected progress" [data]="progressCompareChart()" />
-      </div>
-    }
-
     @if (wpAnalytics(); as wp) {
-      <h3 class="project__section">Work package summary</h3>
+      <h3 class="project__section">Work package delivery</h3>
+      <p class="project__muted">
+        Metrics below use synchronized work packages (status, due dates, priority) — not project start/end dates.
+      </p>
       <div class="kpi-row">
-        <app-kpi-card label="Open" [value]="wp.openWorkPackages" kind="count" />
+        <app-kpi-card label="Total WPs" [value]="wp.totalWorkPackages" kind="volume" [accent]="true" />
+        <app-kpi-card label="Completed" [value]="wp.completedWorkPackages" kind="count" severity="positive" />
+        <app-kpi-card label="Open / remaining" [value]="wp.openWorkPackages" kind="count" />
         <app-kpi-card label="Overdue" [value]="wp.overdueWorkPackages" kind="count" severity="critical" />
         <app-kpi-card label="High priority open" [value]="wp.highPriorityOpen" kind="count" severity="watch" />
         <app-kpi-card
-          label="Completion %"
-          [value]="formatPercent(board.analytics.completionPercentage)"
+          label="Overdue ratio"
+          [value]="overdueRatioDisplay(board.analytics.overdueRatio)"
           kind="score"
-          hint="Same as actual progress"
+          [hint]="glossary.overdueRatio.thresholds"
+          [infoTitle]="glossary.overdueRatio.title"
+          [infoBody]="glossary.overdueRatio.summary + ' ' + glossary.overdueRatio.detail"
         />
         <app-kpi-card label="Blocked" [value]="wp.blockedWorkPackages" kind="count" />
-        <app-kpi-card label="Total WPs" [value]="wp.totalWorkPackages" kind="volume" [accent]="true" />
       </div>
 
       <div class="project__charts">
+        @if (completionRemainChart().length) {
+          <app-bar-chart title="Completed vs remaining work packages" [data]="completionRemainChart()" />
+        }
         <app-bar-chart title="Work package status distribution" [data]="wpStatusChart()" />
       </div>
     }
