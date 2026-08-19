@@ -6,11 +6,11 @@ Status: Active
 
 Last updated: 2026-08-19
 
-**Active phase:** **N1 — Connect & auth soak** (**complete — awaiting approval to start N2**).  
-**Just completed (product):** **M14a / M14 / M15** + **N1 manual soak** + **signup email confirmation** (must confirm before login).  
-**Next (approved order):** **N2 → N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
-**Gates:** N2 mandatory before visual work; N3 mandatory; **N4 non-blocking for M17**.  
-**Recent:** Email confirmation on register (V17, `AUTH_008`); N1 soak confirmed on local OP `:8090`; OP OAuth CSRF/2FA quirks in known-limitations  
+**Active phase:** **N2 — Regression gate** (**complete — awaiting approval to start N3**).  
+**Just completed (product):** **N2 regression gate** (full suite + security matrix + frontend build + smoke) after **N1** + signup email confirmation.  
+**Next (approved order):** **N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
+**Gates:** N3 mandatory before deploy packaging; **N4 non-blocking for M17**.  
+**Recent:** N2 green (2026-08-19): 73 backend tests, security matrix, `ng build`, API+UI smoke; email confirmation (V17, `AUTH_008`).  
  
 **Frozen / do not reopen:** M10 hardening, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership, **Hybrid access model**.  
 **Access model:** Hybrid (OP eligibility for connect; PA grants for ongoing analytics).
@@ -50,8 +50,8 @@ It must be updated after every completed milestone.
 | Milestone 14 — OpenProject Connection Security | **Complete** — OAuth+PKCE, per-workspace OAuth clients, API-key alt, eligibility, encryption |
 | Milestone 15 — Analytics Access & Isolation | **Complete** — memberships, grant/revoke UI+API, isolation tests |
 | **N1** Connect & auth soak | **Complete** (2026-08-19) — see `docs/ops/known-limitations.md` N1 table |
-| **N2** Regression gate | **Planned** — full suite + smoke before UI |
-| **N3 / M16a** Visual polish & dark mode | **Planned** — mandatory |
+| **N2** Regression gate | **Complete** (2026-08-19) — 73 tests, security matrix, build, smoke |
+| **N3 / M16a** Visual polish & dark mode | **Next** — mandatory |
 | **N4 / M16b** Motion & transitions | **Planned** — subtle; non-blocking for M17 |
 | **N5 / M17** Deploy & customer package | **Planned** — after N3 (N4 optional) |
 | **N6 / M18** Soft intelligence | **Optional** |
@@ -712,8 +712,8 @@ Full task breakdown, acceptance criteria, and tests: **`docs/11_Development_Road
 | Done | M12–M13 | Metrics + quality gate | — |
 | Done | M14a / M14 / M15 | Registration, OAuth (multi-OP clients), grants/isolation | — |
 | **Done** | **N1 Connect & auth soak** | Manual OAuth/API-key/M15/password-reset verified; quirks documented | — |
-| **Next** | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
-| Then | **N3 / M16a** | Visual polish + **dark mode** | Mandatory |
+| **Done** | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
+| **Next** | **N3 / M16a** | Visual polish + **dark mode** | Mandatory |
 | Then | **N4 / M16b** | Route/loading/KPI/micro-interactions; reduced-motion; scroll reveals **nice-to-have** | **Non-blocking for M17** |
 | Then | **N5 / M17** | Deploy & customer package | After N3 |
 | Optional | **N6 / M18** | Soft intelligence | After N5 |

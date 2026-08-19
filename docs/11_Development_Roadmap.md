@@ -343,8 +343,8 @@ Target: finished OpenProject companion — trustworthy, deployable, not enterpri
 | **M14** OpenProject Connection Security | **Complete** | OAuth + PKCE; per-workspace OAuth client credentials; API-key alt; eligibility; encryption |
 | **M15** Analytics Access & Isolation | **Complete** | Memberships; grant/revoke by email; isolation/grant-matrix tests |
 | **N1** Connect & auth soak | **Complete** | Manual verification of connect/auth flows; quirks documented |
-| **N2** Regression gate | Planned | Full automated + smoke gate before UI work |
-| **M16a / N3** Visual polish & dark mode | Planned | Tokens, dark mode, consistency — PE frozen; **mandatory** |
+| **N2** Regression gate | **Complete** | Full automated + smoke gate before UI work |
+| **M16a / N3** Visual polish & dark mode | **Next** | Tokens, dark mode, consistency — PE frozen; **mandatory** |
 | **M16b / N4** Motion & transitions | Planned | Subtle dynamics; **non-blocking for M17** |
 | **M17 / N5** Deploy & customer package | Planned | Compose/prod, env template, backup, demo walkthrough |
 | **M18 / N6** Soft intelligence | Optional | Snapshot trends, reco evidence; no LLM requirement |
@@ -384,23 +384,24 @@ N6/M18 optional after N5
 
 ## 18.2 N2 — Regression gate
 
-**Depends on:** N1. **Blocks:** N3+. **Status:** **Next** (awaiting approval to start).
+**Depends on:** N1. **Blocks:** N3+. **Status:** **Complete** (2026-08-19).
 
 | ID | Task | Acceptance | Tests |
 |----|------|------------|-------|
-| N2.1 | Full backend suite | All green | `mvn test` |
-| N2.2 | Security matrix | Isolation, grants, OAuth, API-key overwrite, rate-limit, password-reset pass | Those integration classes |
-| N2.3 | Frontend build | Succeeds | `ng build` |
-| N2.4 | Smoke happy path | Login → connect/sync → Home/Explorer/Detail → report smoke | Manual demo script |
-| N2.5 | Docs sync | Project State / Roadmap reflect post-N2 Next = N3 | Doc review |
+| N2.1 | Full backend suite | All green | `mvn test` — **73 tests, 0 failures** |
+| N2.2 | Security matrix | Isolation, grants, OAuth, API-key overwrite, rate-limit, password-reset pass | Those integration classes — **PASS** |
+| N2.3 | Frontend build | Succeeds | `ng build` — **PASS** (budget warnings only on workspaces/portfolio SCSS) |
+| N2.4 | Smoke happy path | Login → connect/sync → Home/Explorer/Detail → report smoke | API smoke + Playwright UI smoke — **PASS** |
+| N2.5 | Docs sync | Project State / Roadmap reflect post-N2 Next = N3 | Doc review — **this update** |
 
-**Exit:** Regression report green; go/no-go for N3.
+**Exit:** Regression report green; go/no-go for N3.  
+**Result:** **GO for N3** (awaiting explicit approval to start visual polish).
 
 ---
 
 ## 18.3 N3 / M16a — Visual polish & dark mode (mandatory)
 
-**Depends on:** N2. **No IA redesign.**
+**Depends on:** N2. **No IA redesign.** **Status:** **Next** (awaiting approval to start).
 
 | ID | Task | Acceptance | Tests |
 |----|------|------------|-------|
