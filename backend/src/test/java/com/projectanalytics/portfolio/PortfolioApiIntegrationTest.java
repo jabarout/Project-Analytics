@@ -7,6 +7,7 @@ import com.projectanalytics.portfolio.persistence.PortfolioProjectRepository;
 import com.projectanalytics.project.persistence.ProjectEntity;
 import com.projectanalytics.project.persistence.ProjectRepository;
 import com.projectanalytics.project.persistence.WorkPackageRepository;
+import com.projectanalytics.synchronization.application.WorkspaceAccessService;
 import com.projectanalytics.synchronization.persistence.SynchronizationHistoryRepository;
 import com.projectanalytics.synchronization.persistence.WorkspaceEntity;
 import com.projectanalytics.synchronization.persistence.WorkspaceRepository;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,9 +34,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class PortfolioApiIntegrationTest {
 
+    private static final UUID ADMIN_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     @Autowired
     private RecommendationRepository recommendationRepository;
 
+    @Autowired
+    private WorkspaceAccessService workspaceAccessService;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -80,6 +86,8 @@ class PortfolioApiIntegrationTest {
         WorkspaceEntity workspace = workspaceRepository.save(
                 new WorkspaceEntity("API WS", "https://op-api-portfolio.test")
         );
+        // Hybrid M15: analytics APIs require workspace membership (seed admin UUID).
+        workspaceAccessService.grantConnectorAdmin(workspace.getId(), ADMIN_USER_ID);
         portfolio = portfolioRepository.save(new PortfolioEntity(workspace, "Core", null));
         ProjectEntity project = new ProjectEntity(workspace, 99L, "P99");
         project.setStatus("ACTIVE");
