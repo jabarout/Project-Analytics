@@ -47,6 +47,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
     private final RegistrationProperties registrationProperties;
+    private final EmailConfirmationService emailConfirmationService;
 
     public AuthenticationService(
             AuthenticationManager authenticationManager,
@@ -55,7 +56,8 @@ public class AuthenticationService {
             UserPreferenceRepository userPreferenceRepository,
             PasswordEncoder passwordEncoder,
             PasswordPolicy passwordPolicy,
-            RegistrationProperties registrationProperties
+            RegistrationProperties registrationProperties,
+            EmailConfirmationService emailConfirmationService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -64,14 +66,16 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
         this.registrationProperties = registrationProperties;
+        this.emailConfirmationService = emailConfirmationService;
     }
 
     /**
      * Creates a Project Analytics account (VIEWER). Never promotes to platform admin.
      * Does not grant OpenProject connection or analytics access.
+     * Does not return a JWT — email must be confirmed before login.
      */
     @Transactional
-    public LoginResponse register(RegisterRequest request) {
+    public java.util.Map<String, String> register(RegisterRequest request) {
         if (!registrationProperties.isEnabled()) {
             throw new BusinessException(ErrorCode.USER_006);
         }
@@ -94,17 +98,23 @@ public class AuthenticationService {
                 passwordEncoder.encode(request.password()),
                 Role.VIEWER
         );
-        user = userRepository.save(user);
+        user.setEmailVerified(false);
+        // Flush before confirmation token insert — token row FKs users(id).
+        user = userRepository.saveAndFlush(user);
         userPreferenceRepository.save(new UserPreferenceEntity(user));
-        log.info("Registered Project Analytics user id={} username={} (no analytics access yet)", user.getId(), username);
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, request.password())
+        emailConfirmationService.issueConfirmation(user);
+        log.info(
+                "Registered Project Analytics user id={} username={} (awaiting email confirmation; no analytics access yet)",
+                user.getId(),
+                username
         );
-        AuthenticatedUser principal = (AuthenticatedUser) authentication.getPrincipal();
-        String token = jwtService.generateToken(principal);
-        Instant expiresAt = jwtService.extractExpiration(token);
-        return new LoginResponse(token, expiresAt);
+
+        return java.util.Map.of(
+                "message",
+                "Account created. Please confirm your email before signing in.",
+                "email",
+                email
+        );
     }
 
     @Transactional(readOnly = true)
@@ -114,6 +124,14 @@ public class AuthenticationService {
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
             AuthenticatedUser principal = (AuthenticatedUser) authentication.getPrincipal();
+            UserEntity user = userRepository.findById(principal.getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_001));
+            if (!user.isEmailVerified()) {
+                throw new BusinessException(
+                        ErrorCode.AUTH_008,
+                        "Please confirm your email before signing in. Check your inbox for the confirmation link."
+                );
+            }
             String token = jwtService.generateToken(principal);
             Instant expiresAt = jwtService.extractExpiration(token);
             log.info("User {} authenticated successfully", principal.getUsername());

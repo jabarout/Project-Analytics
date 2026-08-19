@@ -1,5 +1,7 @@
 package com.projectanalytics.security;
 
+import com.projectanalytics.authentication.AuthTestSupport;
+import com.projectanalytics.authentication.support.TestMailLinkCaptor;
 import com.projectanalytics.synchronization.application.OpenProjectEligibilityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,9 @@ class WorkspaceGrantApiIntegrationTest {
     @MockBean
     private OpenProjectEligibilityService eligibilityService;
 
+    @Autowired
+    private TestMailLinkCaptor mailLinkCaptor;
+
     @Test
     @DisplayName("grant matrix: admin grants → viewer sees workspace; revoke → isolated; admin protected")
     void grantRevokeMatrix() {
@@ -69,15 +74,9 @@ class WorkspaceGrantApiIntegrationTest {
 
         String email = "grant_" + System.nanoTime() + "@example.test";
         String username = "grant_" + System.nanoTime();
-        ResponseEntity<Map> register = restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", username),
-                Map.class
+        String viewerToken = AuthTestSupport.registerConfirmAndLogin(
+                restTemplate, mailLinkCaptor, email, "Welcome123!", username
         );
-        assertThat(register.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> regData = (Map<String, Object>) register.getBody().get("data");
-        String viewerToken = (String) regData.get("token");
         HttpHeaders viewerHeaders = bearer(viewerToken);
 
         // Before grant: isolated

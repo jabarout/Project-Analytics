@@ -2,12 +2,11 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, LoadingSpinnerComponent],
+  imports: [ReactiveFormsModule],
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',
 })
@@ -17,10 +16,11 @@ export class LoginPage implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  readonly mode = signal<'login' | 'register' | 'forgot' | 'reset'>('login');
+  readonly mode = signal<'login' | 'register' | 'forgot' | 'reset' | 'confirm' | 'resend'>('login');
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly infoMessage = signal<string | null>(null);
+  readonly pendingConfirmEmail = signal<string | null>(null);
 
   readonly loginForm = this.formBuilder.nonNullable.group({
     username: ['', [Validators.required]],
@@ -42,17 +42,32 @@ export class LoginPage implements OnInit {
     newPassword: ['', [Validators.required, Validators.minLength(8)]],
   });
 
+  readonly resendForm = this.formBuilder.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+  });
+
   ngOnInit(): void {
     const token = this.route.snapshot.queryParamMap.get('token');
-    if (this.router.url.includes('reset-password') || token) {
+    if (this.router.url.includes('confirm-email')) {
+      this.mode.set('confirm');
+      if (token) {
+        this.confirmEmailToken(token);
+      }
+      return;
+    }
+    if (this.router.url.includes('reset-password') || (token && this.router.url.includes('reset'))) {
       this.mode.set('reset');
       if (token) {
         this.resetForm.patchValue({ token });
       }
     }
+    const navState = history.state as { emailConfirmed?: boolean; message?: string } | null;
+    if (navState?.emailConfirmed) {
+      this.infoMessage.set(navState.message || 'Email confirmed. You can sign in now.');
+    }
   }
 
-  setMode(next: 'login' | 'register' | 'forgot' | 'reset'): void {
+  setMode(next: 'login' | 'register' | 'forgot' | 'reset' | 'confirm' | 'resend'): void {
     this.mode.set(next);
     this.errorMessage.set(null);
     this.infoMessage.set(null);
@@ -80,11 +95,20 @@ export class LoginPage implements OnInit {
           },
         });
       },
-      error: (error: { error?: { error?: { message?: string } } }) => {
+      error: (error: {
+        error?: { error?: { code?: string; message?: string } };
+      }) => {
         this.loading.set(false);
-        this.errorMessage.set(
-          error?.error?.error?.message ?? 'Invalid credentials. Please try again.'
-        );
+        const code = error?.error?.error?.code;
+        const message =
+          error?.error?.error?.message ?? 'Invalid credentials. Please try again.';
+        this.errorMessage.set(message);
+        if (code === 'AUTH_008') {
+          const identity = this.loginForm.getRawValue().username.trim();
+          if (identity.includes('@')) {
+            this.resendForm.patchValue({ email: identity });
+          }
+        }
       },
     });
   }
@@ -106,17 +130,14 @@ export class LoginPage implements OnInit {
     };
 
     this.authService.register(payload).subscribe({
-      next: () => {
-        this.authService.loadCurrentUser().subscribe({
-          next: () => {
-            this.loading.set(false);
-            void this.router.navigateByUrl('/workspaces');
-          },
-          error: () => {
-            this.loading.set(false);
-            void this.router.navigateByUrl('/workspaces');
-          },
-        });
+      next: (result) => {
+        this.loading.set(false);
+        this.pendingConfirmEmail.set(result.email);
+        this.setMode('resend');
+        this.resendForm.patchValue({ email: result.email });
+        this.infoMessage.set(
+          result.message || 'Account created. Please confirm your email before signing in.'
+        );
       },
       error: (error: { error?: { error?: { message?: string } } }) => {
         this.loading.set(false);
@@ -125,6 +146,55 @@ export class LoginPage implements OnInit {
         );
       },
     });
+  }
+
+  confirmEmailToken(token: string): void {
+    this.loading.set(true);
+    this.errorMessage.set(null);
+    this.infoMessage.set(null);
+    this.authService.confirmEmail({ token: token.trim() }).subscribe({
+      next: (result) => {
+        this.loading.set(false);
+        void this.router.navigate(['/login'], {
+          replaceUrl: true,
+          state: { emailConfirmed: true, message: result.message },
+        });
+      },
+      error: (error: { error?: { error?: { message?: string } } }) => {
+        this.loading.set(false);
+        this.setMode('resend');
+        this.errorMessage.set(
+          error?.error?.error?.message ?? 'Unable to confirm email. The link may be invalid or expired.'
+        );
+      },
+    });
+  }
+
+  submitResend(): void {
+    if (this.resendForm.invalid) {
+      this.resendForm.markAllAsTouched();
+      return;
+    }
+    this.loading.set(true);
+    this.errorMessage.set(null);
+    this.infoMessage.set(null);
+    this.authService
+      .resendConfirmation({ email: this.resendForm.getRawValue().email.trim() })
+      .subscribe({
+        next: (result) => {
+          this.loading.set(false);
+          this.infoMessage.set(
+            result.message ||
+              'If an unconfirmed account exists for that email, a new confirmation link has been sent.'
+          );
+        },
+        error: () => {
+          this.loading.set(false);
+          this.infoMessage.set(
+            'If an unconfirmed account exists for that email, a new confirmation link has been sent.'
+          );
+        },
+      });
   }
 
   submitForgot(): void {

@@ -339,10 +339,10 @@ Target: finished OpenProject companion — trustworthy, deployable, not enterpri
 |-----------|--------|------|
 | **M12** Decision metrics | **Complete** | ProgressMetrics SoT; extended metrics; portfolio analytics depth; classic Home |
 | **M13** Quality gate | **Complete** | Happy path, handoff docs, known limits, tests green; local company testing ready |
-| **M14a** PA Account Registration | **Complete** | Email/password signup; password reset; rate limits; no first-user admin |
+| **M14a** PA Account Registration | **Complete** | Email/password signup; **email confirmation before login**; password reset; rate limits; no first-user admin |
 | **M14** OpenProject Connection Security | **Complete** | OAuth + PKCE; per-workspace OAuth client credentials; API-key alt; eligibility; encryption |
 | **M15** Analytics Access & Isolation | **Complete** | Memberships; grant/revoke by email; isolation/grant-matrix tests |
-| **N1** Connect & auth soak | **Next** | Manual verification of connect/auth flows before visual work |
+| **N1** Connect & auth soak | **Complete** | Manual verification of connect/auth flows; quirks documented |
 | **N2** Regression gate | Planned | Full automated + smoke gate before UI work |
 | **M16a / N3** Visual polish & dark mode | Planned | Tokens, dark mode, consistency — PE frozen; **mandatory** |
 | **M16b / N4** Motion & transitions | Planned | Subtle dynamics; **non-blocking for M17** |
@@ -377,13 +377,14 @@ N6/M18 optional after N5
 | N1.5 | Password-reset / SMTP readiness | Local path verified; SMTP checklist for real deploy | Manual + password-reset tests |
 | N1.6 | Document findings | Known-limitations / ops notes updated from **confirmed** results | Doc review |
 
-**Exit:** N1 checklist signed off; no open P0 connect bugs for local demo.
+**Exit:** N1 checklist signed off; no open P0 connect bugs for local demo.  
+**Status:** **Complete** (2026-08-19) — see `docs/ops/known-limitations.md` § N1 soak.
 
 ---
 
 ## 18.2 N2 — Regression gate
 
-**Depends on:** N1. **Blocks:** N3+.
+**Depends on:** N1. **Blocks:** N3+. **Status:** **Next** (awaiting approval to start).
 
 | ID | Task | Acceptance | Tests |
 |----|------|------------|-------|

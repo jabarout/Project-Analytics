@@ -4,10 +4,13 @@ import { Router } from '@angular/router';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { ApiResponse } from '../models/api-response.model';
 import {
+  ConfirmEmailRequest,
   ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
+  RegisterResponse,
+  ResendConfirmationRequest,
   ResetPasswordRequest,
   UpdatePreferencesRequest,
   UserPreference,
@@ -45,17 +48,26 @@ export class AuthService {
     );
   }
 
-  /** Creates a PA account and stores the returned JWT (no analytics access yet). */
-  register(request: RegisterRequest): Observable<LoginResponse> {
+  /** Creates a PA account; does not sign in until email is confirmed. */
+  register(request: RegisterRequest): Observable<RegisterResponse> {
     const url = `${this.configuration.apiBaseUrl}/auth/register`;
-    return this.http.post<ApiResponse<LoginResponse>>(url, request).pipe(
-      map((response) => response.data),
-      tap((data) => {
-        this.persistToken(data.token);
-        this.tokenSignal.set(data.token);
-      }),
-      catchError((error) => throwError(() => error))
-    );
+    return this.http
+      .post<ApiResponse<RegisterResponse>>(url, request)
+      .pipe(map((response) => response.data));
+  }
+
+  confirmEmail(request: ConfirmEmailRequest): Observable<{ message: string }> {
+    const url = `${this.configuration.apiBaseUrl}/auth/confirm-email`;
+    return this.http
+      .post<ApiResponse<{ message: string }>>(url, request)
+      .pipe(map((response) => response.data));
+  }
+
+  resendConfirmation(request: ResendConfirmationRequest): Observable<{ message: string }> {
+    const url = `${this.configuration.apiBaseUrl}/auth/resend-confirmation`;
+    return this.http
+      .post<ApiResponse<{ message: string }>>(url, request)
+      .pipe(map((response) => response.data));
   }
 
   forgotPassword(request: ForgotPasswordRequest): Observable<{ message: string }> {

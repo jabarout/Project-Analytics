@@ -1,5 +1,7 @@
 package com.projectanalytics.security;
 
+import com.projectanalytics.authentication.AuthTestSupport;
+import com.projectanalytics.authentication.support.TestMailLinkCaptor;
 import com.projectanalytics.synchronization.application.OpenProjectEligibilityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,9 @@ class ConnectCredentialHardeningApiIntegrationTest {
     @MockBean
     private OpenProjectEligibilityService eligibilityService;
 
+    @Autowired
+    private TestMailLinkCaptor mailLinkCaptor;
+
     @Test
     @DisplayName("second eligible user cannot overwrite credentials on an already-connected URL")
     void secondUserCannotOverwriteCredentials() {
@@ -60,14 +65,10 @@ class ConnectCredentialHardeningApiIntegrationTest {
         assertThat(first.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         String email = "attacker_" + System.nanoTime() + "@example.test";
-        ResponseEntity<Map> register = restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", "att_" + System.nanoTime()),
-                Map.class
+        String username = "att_" + System.nanoTime();
+        String attackerToken = AuthTestSupport.registerConfirmAndLogin(
+                restTemplate, mailLinkCaptor, email, "Welcome123!", username
         );
-        assertThat(register.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
-        String attackerToken = (String) ((Map<?, ?>) register.getBody().get("data")).get("token");
 
         ResponseEntity<Map> second = restTemplate.exchange(
                 "/api/v1/workspaces/connect/api-key",

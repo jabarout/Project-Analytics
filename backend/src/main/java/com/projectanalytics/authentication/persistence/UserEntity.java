@@ -31,6 +31,9 @@ public class UserEntity extends BaseEntity {
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = true;
+
     @Column(name = "credentials_version", nullable = false)
     private int credentialsVersion = 0;
 
@@ -43,6 +46,7 @@ public class UserEntity extends BaseEntity {
         this.passwordHash = passwordHash;
         this.role = role;
         this.enabled = true;
+        this.emailVerified = true;
         this.credentialsVersion = 0;
     }
 
@@ -68,6 +72,14 @@ public class UserEntity extends BaseEntity {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public void setPasswordHash(String passwordHash) {

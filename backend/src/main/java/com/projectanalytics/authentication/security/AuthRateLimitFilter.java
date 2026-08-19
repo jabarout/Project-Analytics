@@ -64,7 +64,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         return !(path.endsWith("/auth/login")
                 || path.endsWith("/auth/register")
                 || path.endsWith("/auth/forgot-password")
-                || path.endsWith("/auth/reset-password"));
+                || path.endsWith("/auth/reset-password")
+                || path.endsWith("/auth/confirm-email")
+                || path.endsWith("/auth/resend-confirmation"));
     }
 
     @Override
@@ -91,9 +93,10 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         if (path.endsWith("/auth/register")) {
             return registerMax;
         }
-        if (path.endsWith("/auth/forgot-password")) {
+        if (path.endsWith("/auth/forgot-password") || path.endsWith("/auth/resend-confirmation")) {
             return forgotMax;
         }
+        // reset-password + confirm-email
         return resetMax;
     }
 

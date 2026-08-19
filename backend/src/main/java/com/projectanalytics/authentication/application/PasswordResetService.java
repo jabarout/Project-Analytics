@@ -90,7 +90,7 @@ public class PasswordResetService {
                 ? Optional.empty()
                 : userRepository.findByEmailIgnoreCase(email);
 
-        if (userOpt.isPresent() && userOpt.get().isEnabled()) {
+        if (userOpt.isPresent() && userOpt.get().isEnabled() && userOpt.get().isEmailVerified()) {
             UserEntity user = userOpt.get();
             tokenRepository.deleteUnusedByUserId(user.getId());
             String rawToken = generateRawToken();

@@ -4,13 +4,14 @@ Version: 1.0
 
 Status: Active
 
-Last updated: 2026-08-18
+Last updated: 2026-08-19
 
-**Active phase:** **N1 — Connect & auth soak** (approved ladder; not started in code).  
-**Just completed (product):** **M14a / M14 / M15** — registration, OAuth (per-workspace client credentials), grants & isolation.  
-**Next (approved order):** **N1 → N2 → N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
-**Gates:** N1+N2 mandatory before visual work; N3 mandatory; **N4 non-blocking for M17**.  
-**Recent:** Multi-OP OAuth client credentials; Hybrid connect UX soak pending; Community KPI adaptation  
+**Active phase:** **N1 — Connect & auth soak** (**complete — awaiting approval to start N2**).  
+**Just completed (product):** **M14a / M14 / M15** + **N1 manual soak** + **signup email confirmation** (must confirm before login).  
+**Next (approved order):** **N2 → N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
+**Gates:** N2 mandatory before visual work; N3 mandatory; **N4 non-blocking for M17**.  
+**Recent:** Email confirmation on register (V17, `AUTH_008`); N1 soak confirmed on local OP `:8090`; OP OAuth CSRF/2FA quirks in known-limitations  
+ 
 **Frozen / do not reopen:** M10 hardening, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership, **Hybrid access model**.  
 **Access model:** Hybrid (OP eligibility for connect; PA grants for ongoing analytics).
 
@@ -45,10 +46,10 @@ It must be updated after every completed milestone.
 | Milestone 11B — PE Implementation | **Largely complete** — E1–E6; UI polish deferred to **M16** |
 | Milestone 12 — Decision metrics | **Complete** — ProgressMetrics SoT, extended metrics, portfolio depth, Home classic triage |
 | Milestone 13 — Product freeze & quality gate | **Complete** — happy path docs, known limitations, tests green, local handoff ready |
-| Milestone 14a — PA Account Registration | **Complete** — signup, password reset, rate limits |
+| Milestone 14a — PA Account Registration | **Complete** — signup, email confirmation before login, password reset, rate limits |
 | Milestone 14 — OpenProject Connection Security | **Complete** — OAuth+PKCE, per-workspace OAuth clients, API-key alt, eligibility, encryption |
 | Milestone 15 — Analytics Access & Isolation | **Complete** — memberships, grant/revoke UI+API, isolation tests |
-| **N1** Connect & auth soak | **Next** — manual connect/auth verification (docs after) |
+| **N1** Connect & auth soak | **Complete** (2026-08-19) — see `docs/ops/known-limitations.md` N1 table |
 | **N2** Regression gate | **Planned** — full suite + smoke before UI |
 | **N3 / M16a** Visual polish & dark mode | **Planned** — mandatory |
 | **N4 / M16b** Motion & transitions | **Planned** — subtle; non-blocking for M17 |
@@ -663,7 +664,7 @@ Additive ops stack only. No domain redesign. Product architecture remains frozen
 | Chart dataset overhaul / P10 | M16 polish if needed |
 | UI visual polish / dark mode | **N3 / M16a** |
 | Motion & transitions | **N4 / M16b** (optional vs M17) |
-| OAuth | **M14** (complete; N1 soak remaining) |
+| OAuth | **M14** (complete; N1 soak done) |
 
 ---
 
@@ -710,8 +711,8 @@ Full task breakdown, acceptance criteria, and tests: **`docs/11_Development_Road
 |-------|--------|------|------|
 | Done | M12–M13 | Metrics + quality gate | — |
 | Done | M14a / M14 / M15 | Registration, OAuth (multi-OP clients), grants/isolation | — |
-| **Next** | **N1 Connect & auth soak** | **Manual** verify OAuth, API-key, multi-OP, M15 deny, password-reset/SMTP; document quirks after | Mandatory before UI |
-| Then | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
+| **Done** | **N1 Connect & auth soak** | Manual OAuth/API-key/M15/password-reset verified; quirks documented | — |
+| **Next** | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
 | Then | **N3 / M16a** | Visual polish + **dark mode** | Mandatory |
 | Then | **N4 / M16b** | Route/loading/KPI/micro-interactions; reduced-motion; scroll reveals **nice-to-have** | **Non-blocking for M17** |
 | Then | **N5 / M17** | Deploy & customer package | After N3 |

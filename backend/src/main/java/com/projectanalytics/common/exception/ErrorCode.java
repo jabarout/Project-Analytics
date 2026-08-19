@@ -16,6 +16,7 @@ public enum ErrorCode {
     AUTH_005("AUTH_005", "Access denied.", HttpStatus.FORBIDDEN),
     AUTH_006("AUTH_006", "Insufficient permissions.", HttpStatus.FORBIDDEN),
     AUTH_007("AUTH_007", "Too many requests. Please try again later.", HttpStatus.TOO_MANY_REQUESTS),
+    AUTH_008("AUTH_008", "Email address not confirmed.", HttpStatus.FORBIDDEN),
 
     USER_001("USER_001", "User not found.", HttpStatus.NOT_FOUND),
     USER_002("USER_002", "Email already exists.", HttpStatus.CONFLICT),

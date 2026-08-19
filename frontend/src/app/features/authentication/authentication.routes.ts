@@ -10,4 +10,8 @@ export const AUTHENTICATION_ROUTES: Routes = [
     path: 'reset-password',
     component: LoginPage,
   },
+  {
+    path: 'confirm-email',
+    component: LoginPage,
+  },
 ];

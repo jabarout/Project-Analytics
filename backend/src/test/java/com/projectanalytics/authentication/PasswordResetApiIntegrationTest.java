@@ -4,6 +4,7 @@ import com.projectanalytics.authentication.api.dto.ResetPasswordRequest;
 import com.projectanalytics.authentication.application.PasswordResetService;
 import com.projectanalytics.authentication.persistence.UserEntity;
 import com.projectanalytics.authentication.persistence.UserRepository;
+import com.projectanalytics.authentication.support.TestMailLinkCaptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +32,15 @@ class PasswordResetApiIntegrationTest {
     @Autowired
     private PasswordResetService passwordResetService;
 
+    @Autowired
+    private TestMailLinkCaptor mailLinkCaptor;
+
     @Test
     @DisplayName("forgot password is enumeration-safe; reset updates password and rejects reuse")
     void forgotAndResetFlow() {
         String email = "reset_" + System.nanoTime() + "@example.test";
-        restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", "rst_" + System.nanoTime()),
-                Map.class
-        );
+        String username = "rst_" + System.nanoTime();
+        AuthTestSupport.registerAndConfirm(restTemplate, mailLinkCaptor, email, "Welcome123!", username);
 
         ResponseEntity<Map> forgotKnown = restTemplate.postForEntity(
                 "/api/v1/auth/forgot-password",

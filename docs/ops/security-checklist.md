@@ -53,10 +53,16 @@ The Flyway seed creates a local platform admin (`admin` / documented demo passwo
 
 ## Auth rate limiting (Phase 5)
 
-In-app limits on `POST /auth/login|register|forgot-password|reset-password` (IP + route, fixed window).  
+In-app limits on `POST /auth/login|register|forgot-password|reset-password|confirm-email|resend-confirmation` (IP + route, fixed window).  
 Configure via `AUTH_RATE_LIMIT_*`. **Still put an edge/WAF rate limit in front of production.**
 
 JWT remains in browser `localStorage` for now (XSS risk accepted short-term). Password change bumps `credentials_version` and invalidates old JWTs.
+
+## Email confirmation on signup
+
+New accounts must confirm email before login (`AUTH_008` until verified).  
+Uses the same mail settings as password reset (`PASSWORD_RESET_MAIL_ENABLED` + `spring.mail.*`).  
+TTL: `EMAIL_CONFIRMATION_TTL_MINUTES` (default 24h). Existing users were backfilled as verified (Flyway V17).
 
 ## Residual risks (accepted / deferred)
 
@@ -65,4 +71,5 @@ JWT remains in browser `localStorage` for now (XSS risk accepted short-term). Pa
 - OAuth for OpenProject = Phase 7 (authorization code + PKCE; callback public; state one-time; same eligibility as API-key).
 - Workspace analytics grant API+UI = Phase 6 / M15 (done: grant/revoke by email; no promote-to-admin).
 - Membership isolation on analytics APIs = Phase 1 (done).
-- Password recovery = Phase 4 (done; enable SMTP before deploy).
+- Password recovery = Phase 4 (done; **enable SMTP before deploy**: `PASSWORD_RESET_MAIL_ENABLED=true` and `spring.mail.host` / port / username / password / from-address).
+- Signup email confirmation = done (same SMTP; must confirm before login).

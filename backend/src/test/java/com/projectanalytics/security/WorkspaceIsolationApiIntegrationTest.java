@@ -1,5 +1,7 @@
 package com.projectanalytics.security;
 
+import com.projectanalytics.authentication.AuthTestSupport;
+import com.projectanalytics.authentication.support.TestMailLinkCaptor;
 import com.projectanalytics.synchronization.application.OpenProjectEligibilityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,9 @@ class WorkspaceIsolationApiIntegrationTest {
     @MockBean
     private OpenProjectEligibilityService eligibilityService;
 
+    @Autowired
+    private TestMailLinkCaptor mailLinkCaptor;
+
     @Test
     @DisplayName("new viewer with no membership cannot list workspaces or hit explorer for admin workspace")
     void viewerWithoutMembershipIsIsolated() {
@@ -66,15 +71,10 @@ class WorkspaceIsolationApiIntegrationTest {
         String workspaceId = (String) created.get("id");
 
         String email = "iso_" + System.nanoTime() + "@example.test";
-        ResponseEntity<Map> register = restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", "iso_" + System.nanoTime()),
-                Map.class
+        String username = "iso_" + System.nanoTime();
+        String viewerToken = AuthTestSupport.registerConfirmAndLogin(
+                restTemplate, mailLinkCaptor, email, "Welcome123!", username
         );
-        assertThat(register.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> regData = (Map<String, Object>) register.getBody().get("data");
-        String viewerToken = (String) regData.get("token");
         HttpHeaders viewerHeaders = bearer(viewerToken);
 
         ResponseEntity<Map> list = restTemplate.exchange(

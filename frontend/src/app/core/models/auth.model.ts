@@ -19,6 +19,19 @@ export interface ResetPasswordRequest {
   readonly newPassword: string;
 }
 
+export interface ConfirmEmailRequest {
+  readonly token: string;
+}
+
+export interface ResendConfirmationRequest {
+  readonly email: string;
+}
+
+export interface RegisterResponse {
+  readonly message: string;
+  readonly email: string;
+}
+
 export interface LoginResponse {
   readonly token: string;
   readonly expiresAt: string;

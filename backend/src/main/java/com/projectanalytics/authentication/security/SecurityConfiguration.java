@@ -62,6 +62,8 @@ public class SecurityConfiguration {
         publicMatchers.add("/api/v1/auth/register");
         publicMatchers.add("/api/v1/auth/forgot-password");
         publicMatchers.add("/api/v1/auth/reset-password");
+        publicMatchers.add("/api/v1/auth/confirm-email");
+        publicMatchers.add("/api/v1/auth/resend-confirmation");
         // OpenProject OAuth browser redirect (state+PKCE bind the flow to the initiating PA user).
         publicMatchers.add("/api/v1/workspaces/oauth/callback");
         // Probes + Prometheus scrape (network-restrict in prod; no secrets on these paths)

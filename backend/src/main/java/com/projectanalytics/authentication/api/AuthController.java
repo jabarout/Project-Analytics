@@ -1,12 +1,15 @@
 package com.projectanalytics.authentication.api;
 
+import com.projectanalytics.authentication.api.dto.ConfirmEmailRequest;
 import com.projectanalytics.authentication.api.dto.ForgotPasswordRequest;
 import com.projectanalytics.authentication.api.dto.LoginRequest;
 import com.projectanalytics.authentication.api.dto.LoginResponse;
 import com.projectanalytics.authentication.api.dto.RegisterRequest;
+import com.projectanalytics.authentication.api.dto.ResendConfirmationRequest;
 import com.projectanalytics.authentication.api.dto.ResetPasswordRequest;
 import com.projectanalytics.authentication.api.dto.UserResponse;
 import com.projectanalytics.authentication.application.AuthenticationService;
+import com.projectanalytics.authentication.application.EmailConfirmationService;
 import com.projectanalytics.authentication.application.PasswordResetService;
 import com.projectanalytics.authentication.security.AuthenticatedUser;
 import com.projectanalytics.common.api.ApiResponse;
@@ -32,22 +35,47 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     private final PasswordResetService passwordResetService;
+    private final EmailConfirmationService emailConfirmationService;
 
     public AuthController(
             AuthenticationService authenticationService,
-            PasswordResetService passwordResetService
+            PasswordResetService passwordResetService,
+            EmailConfirmationService emailConfirmationService
     ) {
         this.authenticationService = authenticationService;
         this.passwordResetService = passwordResetService;
+        this.emailConfirmationService = emailConfirmationService;
     }
 
     @PostMapping("/register")
     @Operation(
             summary = "Register",
-            description = "Creates a Project Analytics account (email/password). Does not grant OpenProject or analytics access."
+            description = "Creates a Project Analytics account (email/password). Sends a confirmation email; login is blocked until confirmed."
     )
-    public ApiResponse<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ApiResponse<java.util.Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
         return ApiResponse.of(authenticationService.register(request));
+    }
+
+    @PostMapping("/confirm-email")
+    @Operation(summary = "Confirm email", description = "Consumes a single-use confirmation token and verifies the account email.")
+    public ApiResponse<java.util.Map<String, String>> confirmEmail(@Valid @RequestBody ConfirmEmailRequest request) {
+        emailConfirmationService.confirmEmail(request);
+        return ApiResponse.of(java.util.Map.of("message", "Email confirmed. You can sign in now."));
+    }
+
+    @PostMapping("/resend-confirmation")
+    @Operation(
+            summary = "Resend confirmation email",
+            description = "Always returns a generic success message. Never reveals whether the email exists."
+    )
+    public ApiResponse<java.util.Map<String, String>> resendConfirmation(
+            @Valid @RequestBody ResendConfirmationRequest request
+    ) {
+        emailConfirmationService.resendConfirmation(request);
+        return ApiResponse.of(java.util.Map.of(
+                "message",
+                "If an unconfirmed account exists for that email, a new confirmation link has been sent."
+        ));
     }
 
     @PostMapping("/login")

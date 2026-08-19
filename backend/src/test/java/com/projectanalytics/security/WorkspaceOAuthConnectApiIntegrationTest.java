@@ -1,5 +1,7 @@
 package com.projectanalytics.security;
 
+import com.projectanalytics.authentication.AuthTestSupport;
+import com.projectanalytics.authentication.support.TestMailLinkCaptor;
 import com.projectanalytics.infrastructure.openproject.OpenProjectOAuthClient;
 import com.projectanalytics.infrastructure.openproject.OpenProjectOAuthClientCredentials;
 import com.projectanalytics.infrastructure.openproject.OpenProjectOAuthTokenResponse;
@@ -76,6 +78,9 @@ class WorkspaceOAuthConnectApiIntegrationTest {
 
     @MockBean
     private OpenProjectOAuthClient oauthClient;
+
+    @Autowired
+    private TestMailLinkCaptor mailLinkCaptor;
 
     @Test
     @DisplayName("oauth status enabled with redirect URI even without global client defaults")
@@ -202,13 +207,10 @@ class WorkspaceOAuthConnectApiIntegrationTest {
         oauthConnect(adminToken, urlA, "Company A", "client-A", "secret-A-only");
         // Company B via second PA user
         String email = "companyb_" + System.nanoTime() + "@example.test";
-        ResponseEntity<Map> register = restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", "b_" + System.nanoTime()),
-                Map.class
+        String usernameB = "b_" + System.nanoTime();
+        String tokenB = AuthTestSupport.registerConfirmAndLogin(
+                restTemplate, mailLinkCaptor, email, "Welcome123!", usernameB
         );
-        @SuppressWarnings("unchecked")
-        String tokenB = (String) ((Map<?, ?>) register.getBody().get("data")).get("token");
         oauthConnect(tokenB, urlB, "Company B", "client-B", "secret-B-only");
 
         assertThat(workspaceRepository.findByBaseUrlIgnoreCase(urlA)).isPresent();
@@ -291,13 +293,10 @@ class WorkspaceOAuthConnectApiIntegrationTest {
         assertThat(workspaceRepository.count()).isEqualTo(workspacesBefore + 1);
 
         String email = "second_" + System.nanoTime() + "@example.test";
-        ResponseEntity<Map> register = restTemplate.postForEntity(
-                "/api/v1/auth/register",
-                Map.of("email", email, "password", "Welcome123!", "username", "sec_" + System.nanoTime()),
-                Map.class
+        String username = "sec_" + System.nanoTime();
+        String secondToken = AuthTestSupport.registerConfirmAndLogin(
+                restTemplate, mailLinkCaptor, email, "Welcome123!", username
         );
-        @SuppressWarnings("unchecked")
-        String secondToken = (String) ((Map<?, ?>) register.getBody().get("data")).get("token");
 
         String state2 = startOAuth(secondToken, baseUrl, "client-shared", "secret-shared");
         ResponseEntity<Void> callback2 = getCallbackNoFollow(
