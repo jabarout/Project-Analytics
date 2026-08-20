@@ -3,13 +3,14 @@ import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { ContactPage } from './features/legal/contact.page';
 import { PrivacyPage } from './features/legal/privacy.page';
 import { TermsPage } from './features/legal/terms.page';
+import { OAuthCompletePage } from './features/oauth/oauth-complete.page';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 
 /**
  * Application routes. Feature modules are lazy-loaded; protected routes use authGuard.
- * Legal pages are public (reachable without login).
+ * Legal pages and /oauth/complete are public (reachable without login).
  */
 export const routes: Routes = [
   {
@@ -33,6 +34,11 @@ export const routes: Routes = [
     path: 'terms',
     component: PublicLayoutComponent,
     children: [{ path: '', component: TermsPage }],
+  },
+  {
+    path: 'oauth/complete',
+    component: PublicLayoutComponent,
+    children: [{ path: '', component: OAuthCompletePage }],
   },
   {
     path: '',

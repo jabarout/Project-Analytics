@@ -22,12 +22,13 @@ public class OpenProjectOAuthProperties {
     private String scopes = "api_v3";
     /**
      * Where the browser is sent after a successful OAuth callback.
+     * Public {@code /oauth/complete} page — must not require a PA JWT in the return window.
      */
-    private String frontendSuccessUrl = "http://localhost:4200/workspaces?oauth=success";
+    private String frontendSuccessUrl = "http://localhost:4200/oauth/complete?oauth=success";
     /**
-     * Where the browser is sent after a failed OAuth callback (append &message=...).
+     * Where the browser is sent after a failed OAuth callback (append {@code &message=...}).
      */
-    private String frontendErrorUrl = "http://localhost:4200/workspaces?oauth=error";
+    private String frontendErrorUrl = "http://localhost:4200/oauth/complete?oauth=error";
     /**
      * Pending state TTL in seconds (default 10 minutes).
      */

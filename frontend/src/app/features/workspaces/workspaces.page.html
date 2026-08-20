@@ -9,7 +9,13 @@
     </p>
   </header>
 
-  <form class="workspaces__form" paReveal [formGroup]="form" (ngSubmit)="oauthEnabled() ? connectWithOAuth() : createWithApiKey()">
+  <form
+    class="workspaces__form"
+    paReveal
+    [formGroup]="form"
+    (ngSubmit)="oauthEnabled() ? connectWithOAuth() : createWithApiKey()"
+    autocomplete="off"
+  >
     <h3>Connect OpenProject</h3>
     <label>
       <span>Display name</span>
@@ -42,7 +48,15 @@
             <span class="optional">(optional if local .env default)</span>
           }
         </span>
-        <input type="text" formControlName="clientId" placeholder="From OpenProject OAuth application" autocomplete="off" />
+        <input
+          type="text"
+          name="openproject-oauth-client-id"
+          formControlName="clientId"
+          placeholder="From OpenProject OAuth application"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
       </label>
       <label>
         <span>
@@ -52,10 +66,14 @@
           }
         </span>
         <input
-          type="password"
+          type="text"
+          class="workspaces__secret"
+          name="openproject-oauth-client-secret"
           formControlName="clientSecret"
           placeholder="From OpenProject OAuth application"
-          autocomplete="new-password"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
         />
       </label>
       <button

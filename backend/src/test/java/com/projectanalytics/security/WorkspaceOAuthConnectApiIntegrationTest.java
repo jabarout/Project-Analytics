@@ -53,8 +53,8 @@ import static org.mockito.Mockito.when;
         "projectanalytics.openproject.oauth.client-id=",
         "projectanalytics.openproject.oauth.client-secret=",
         "projectanalytics.openproject.oauth.redirect-uri=http://localhost/api/v1/workspaces/oauth/callback",
-        "projectanalytics.openproject.oauth.frontend-success-url=http://localhost:4200/workspaces?oauth=success",
-        "projectanalytics.openproject.oauth.frontend-error-url=http://localhost:4200/workspaces?oauth=error"
+        "projectanalytics.openproject.oauth.frontend-success-url=http://localhost:4200/oauth/complete?oauth=success",
+        "projectanalytics.openproject.oauth.frontend-error-url=http://localhost:4200/oauth/complete?oauth=error"
 })
 class WorkspaceOAuthConnectApiIntegrationTest {
 
@@ -149,7 +149,10 @@ class WorkspaceOAuthConnectApiIntegrationTest {
                 "/api/v1/workspaces/oauth/callback?code=auth-code-1&state=" + state
         );
         assertThat(callback.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(callback.getHeaders().getLocation().toString()).contains("oauth=success");
+        assertThat(callback.getHeaders().getLocation().toString())
+                .contains("/oauth/complete")
+                .contains("oauth=success")
+                .doesNotContain("/workspaces");
 
         ArgumentCaptor<OpenProjectOAuthClientCredentials> clientCaptor =
                 ArgumentCaptor.forClass(OpenProjectOAuthClientCredentials.class);
@@ -264,7 +267,10 @@ class WorkspaceOAuthConnectApiIntegrationTest {
                 "/api/v1/workspaces/oauth/callback?code=auth-code-2&state=" + state
         );
         assertThat(callback.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(callback.getHeaders().getLocation().toString()).contains("oauth=error");
+        assertThat(callback.getHeaders().getLocation().toString())
+                .contains("/oauth/complete")
+                .contains("oauth=error")
+                .doesNotContain("/workspaces");
         assertThat(workspaceRepository.findByBaseUrlIgnoreCase(baseUrl)).isEmpty();
     }
 
@@ -327,7 +333,9 @@ class WorkspaceOAuthConnectApiIntegrationTest {
                 "/api/v1/workspaces/oauth/callback?code=code-" + clientId + "&state=" + state
         );
         assertThat(callback.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(callback.getHeaders().getLocation().toString()).contains("oauth=success");
+        assertThat(callback.getHeaders().getLocation().toString())
+                .contains("/oauth/complete")
+                .contains("oauth=success");
     }
 
     private String startOAuth(String token, String baseUrl, String clientId, String clientSecret) {

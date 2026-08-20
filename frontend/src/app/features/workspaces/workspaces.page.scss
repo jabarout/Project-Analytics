@@ -42,6 +42,11 @@
   min-height: 2.65rem;
 }
 
+.workspaces__secret {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
 .workspaces__form button,
 .workspace-card button {
   justify-self: start;
