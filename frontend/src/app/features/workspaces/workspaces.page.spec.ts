@@ -8,6 +8,17 @@ describe('WorkspacesPage OAuth form', () => {
   let fixture: ComponentFixture<WorkspacesPage>;
 
   beforeEach(async () => {
+    class MockIntersectionObserver {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+      takeRecords(): IntersectionObserverEntry[] {
+        return [];
+      }
+    }
+    globalThis.IntersectionObserver =
+      MockIntersectionObserver as unknown as typeof IntersectionObserver;
+
     await TestBed.configureTestingModule({
       imports: [WorkspacesPage],
       providers: [
@@ -40,13 +51,13 @@ describe('WorkspacesPage OAuth form', () => {
       'input[formControlName="clientSecret"]'
     ) as HTMLInputElement;
 
-    expect(form.autocomplete).toBe('off');
+    expect(form.getAttribute('autocomplete')).toBe('off');
     expect(clientId).toBeTruthy();
     expect(clientSecret).toBeTruthy();
     expect(clientSecret.type).toBe('text');
     expect(clientSecret.type).not.toBe('password');
-    expect(clientSecret.autocomplete).toBe('off');
-    expect(clientId.autocomplete).toBe('off');
+    expect(clientSecret.getAttribute('autocomplete')).toBe('off');
+    expect(clientId.getAttribute('autocomplete')).toBe('off');
     expect(clientSecret.getAttribute('name')).toBe('openproject-oauth-client-secret');
     expect(clientId.getAttribute('name')).toBe('openproject-oauth-client-id');
     expect(clientSecret.getAttribute('name')).not.toMatch(/password/i);
