@@ -14,7 +14,9 @@ WORKDIR /app
 # curl is required for Docker HEALTHCHECK (not present on minimal JRE images).
 RUN apk add --no-cache curl \
     && addgroup -S app \
-    && adduser -S app -G app
+    && adduser -S app -G app \
+    && mkdir -p /data/reports \
+    && chown app:app /data/reports
 
 COPY --from=build /workspace/target/application.jar /app/application.jar
 
