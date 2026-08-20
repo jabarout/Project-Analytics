@@ -1,6 +1,6 @@
 /**
  * Generic KPI literacy copy aligned with the analytics scoring model (presentation only).
- * Does not invent factors beyond Health / Risk / Needs Attention construction.
+ * Under-title = short human meaning; thresholds/detail = precise hover/info copy.
  */
 
 export interface ScoreGlossaryEntry {
@@ -14,31 +14,33 @@ export const SCORE_GLOSSARY = {
   health: {
     title: 'Health',
     summary:
-      'Summarizes project delivery condition from local schedule, progress, and overdue work signals.',
-    thresholds: 'Critical when score is below 40. Higher is healthier (0–100).',
+      'A 0–100 score of how healthy delivery looks. Higher means stronger delivery health; lower means more delivery concerns.',
+    thresholds: 'Critical when Health is below 40. Higher is healthier (0–100 score, not a %).',
     detail:
-      'Health combines schedule pressure, delivery/progress, and overdue work-package pressure using the analytics engine. Progress is WP completion when work packages exist (not the OpenProject project field alone). Open the project to see factor contributions for the exact mix on this project.',
+      'Health is calculated from three signals: (1) schedule alignment — whether Progress keeps up with the project start→end timeline in OpenProject, (2) work-package completion — completed ÷ total work packages (or OpenProject project progress if there are no WPs), (3) overdue pressure — open work packages past their due date (or a past project finish date if there are no WPs). To see these three factors for one project: open it from Explorer and scroll to Health factors.',
   },
   risk: {
     title: 'Risk',
-    summary: 'Summarizes elevated delivery risk from overdue work, schedule stress, and weak completion.',
-    thresholds: 'Elevated risk typically from 40 upward; high concern near 70+ (0–100, higher = more risk).',
+    summary:
+      'A 0–100 score of delivery risk. Higher means more risk; lower means less operational delivery risk.',
+    thresholds: 'Higher Risk is worse (0–100 score, not a %). Elevated concern often appears from the mid-range upward.',
     detail:
-      'Risk weights overdue work packages, schedule variance, and completion weakness. It is a synthesis score — use overdue counts and Project Detail for operational evidence.',
+      'Risk is calculated from three separate signals: (1) the share of open work packages past their due date, (2) whether the project finish date is already past while not archived, (3) how much work is still incomplete (low Progress) — incomplete work is not the same as overdue. Average Risk on Home is the mean of each project’s Risk score.',
   },
   needsAttention: {
     title: 'Needs Attention',
-    summary: 'Prioritization signal combining health pressure, risk, and overdue load.',
-    thresholds: 'Projects with score ≥ 50 are treated as needing attention in dashboards and filters.',
+    summary:
+      'A 0–100 priority score that rises when a project needs closer management attention. Higher means more urgent.',
+    thresholds: 'Projects with Needs Attention score ≥ 50 are counted on Home and used in filters.',
     detail:
-      'Needs Attention rises when health is weak, risk is elevated, and overdue work accumulates. On multi-project views we show how many projects cross the threshold (count and %), not an average of this score.',
+      'Needs Attention is calculated from: (1) how weak Health is, (2) how high Risk is, and (3) whether there are overdue work packages or a past project finish date. The Home count is how many projects reach Attention ≥ 50. To see which pressures matter most for one project: open it from Explorer and scroll to Needs Attention factors.',
   },
   actualProgress: {
-    title: 'Actual progress',
-    summary: 'How far delivery has progressed based on local work packages (completed ÷ total × 100).',
+    title: 'Progress',
+    summary: 'How much of the project’s work is completed, based on synchronized work packages.',
     thresholds: '0–100%. Uses OpenProject project progress only when no work packages are synced.',
     detail:
-      'This is the canonical progress used across Explorer, Home, and scores. It does not require project start/end dates.',
+      'When work packages exist: completed work packages ÷ total work packages × 100. If a project has no work packages, falls back to OpenProject’s project progress field if set; otherwise 0. Average Progress on Home averages those project values.',
   },
   expectedProgress: {
     title: 'Expected progress',
@@ -66,5 +68,20 @@ export const SCORE_GLOSSARY = {
     summary: 'Share of work packages that are open and past their due date.',
     thresholds: 'Requires synchronized work packages. Shown as a percentage of total WPs.',
     detail: 'Uses local WP due dates and completion status. Independent of project start/end dates.',
+  },
+  healthBands: {
+    title: 'Health bands',
+    summary: 'How projects are grouped by Health score on Home.',
+    thresholds: 'Critical: below 40 · Watch: 40–69 · Healthy: 70–100 · Unknown: not scored yet.',
+    detail:
+      'These bands are used by the Health distribution chart. “At Risk” may appear as a project Health status label for scores 40–59, but on this chart those projects sit in Watch.',
+  },
+  exceptionQueue: {
+    title: 'Exception queue',
+    summary:
+      'Projects flagged because they need attention, are in Critical Health, and/or have overdue work packages.',
+    thresholds: 'Included if Attention ≥ 50, Health < 40, or at least one open overdue work package. Top 8 by Attention.',
+    detail:
+      'Sorted by Needs Attention score (highest first), limited to 8 rows. Open a project from Explorer to inspect Health, Risk, and Needs Attention factors.',
   },
 } as const satisfies Record<string, ScoreGlossaryEntry>;

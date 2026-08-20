@@ -19,8 +19,8 @@ import { Component, input } from '@angular/core';
       display: inline-flex;
       align-items: center;
       gap: 0.75rem;
-      color: var(--pa-text-muted, #5b6472);
-      font-size: 0.95rem;
+      color: var(--pa-text-secondary);
+      font-size: var(--pa-font-sm, 0.875rem);
     }
 
     .spinner__dot {
@@ -32,9 +32,21 @@ import { Component, input } from '@angular/core';
       animation: pa-spin 0.7s linear infinite;
     }
 
+    .spinner__label {
+      color: var(--pa-text-secondary);
+    }
+
     @keyframes pa-spin {
       to {
         transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner__dot {
+        animation: none;
+        border-right-color: currentColor;
+        opacity: 0.7;
       }
     }
   `,

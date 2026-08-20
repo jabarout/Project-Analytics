@@ -1,8 +1,30 @@
 .project {
   display: flex;
   flex-direction: column;
+  gap: 1.75rem;
+  max-width: 1280px;
+}
+
+.project__wp-delivery {
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
-  max-width: 1000px;
+}
+
+.project__charts {
+  margin-top: 0.25rem;
+}
+
+.project__trend {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Keep Score trends visually separated from Overdue WPs below */
+  margin-bottom: 0.75rem;
+}
+
+.project__block--spaced {
+  margin-top: 1rem;
 }
 
 .project__crumbs {
@@ -11,7 +33,7 @@
 }
 
 .project__crumbs a {
-  color: #1d4ed8;
+  color: var(--pa-text);
   text-decoration: none;
   font-weight: 600;
 }
@@ -22,13 +44,13 @@
 
 .project header p {
   margin: 0;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.9rem;
 }
 
 .score-grid {
@@ -37,11 +59,23 @@
   gap: 1rem;
 }
 
-.score-grid article {
+.score-grid article,
+.project__factor-card {
   padding: 1.1rem;
-  border-radius: 12px;
-  border: 1px solid var(--pa-border);
-  background: var(--pa-surface);
+  border-radius: var(--pa-radius-lg);
+  border: 2px solid var(--pa-border-strong);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--pa-surface-muted) 55%, transparent) 0%, transparent 48%),
+    var(--pa-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.project__factor-card app-pa-bar-chart {
+  display: block;
+  min-width: 0;
 }
 
 .project__section {
@@ -49,16 +83,12 @@
   font-size: 1rem;
 }
 
-.project__charts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
+/* Chart grid: global .pa-charts */
 
 .project__block {
   padding: 1rem;
-  border: 1px solid var(--pa-border);
-  border-radius: 12px;
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-lg);
   background: var(--pa-surface);
 }
 
@@ -68,12 +98,20 @@
 
 .project__muted {
   margin: 0 0 0.75rem;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
   font-size: 0.9rem;
+}
+
+.project__table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .project__block table {
   width: 100%;
+  min-width: 26rem;
   border-collapse: collapse;
   font-size: 0.88rem;
 }
@@ -90,7 +128,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .score-grid p {

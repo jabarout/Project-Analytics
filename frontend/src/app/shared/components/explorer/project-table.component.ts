@@ -22,7 +22,7 @@ import {
             @for (col of columns(); track col) {
               <th>
                 @if (isSortable(col)) {
-                  <button type="button" class="ptable__sort" (click)="toggleSort(col)">
+                  <button type="button" class="pa-btn-reset ptable__sort" (click)="toggleSort(col)">
                     {{ columnLabel(col) }}
                     @if (sortMark(col); as mark) {
                       <span aria-hidden="true">{{ mark }}</span>
@@ -116,8 +116,8 @@ import {
   styles: `
     .ptable {
       overflow: auto;
-      border: 1px solid var(--pa-border);
-      border-radius: 12px;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-lg);
       background: var(--pa-surface);
     }
     table {
@@ -136,7 +136,7 @@ import {
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       background: var(--pa-surface-muted);
     }
     .ptable--dense th,
@@ -145,19 +145,16 @@ import {
       font-size: 0.82rem;
     }
     .ptable__sort {
-      border: 0;
-      background: transparent;
-      font: inherit;
-      color: inherit;
-      cursor: pointer;
-      padding: 0;
       display: inline-flex;
       gap: 0.25rem;
       align-items: center;
+      font: inherit;
+      color: inherit;
+      font-weight: inherit;
     }
     .ptable__empty {
       text-align: center;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       padding: 1.5rem !important;
     }
     .ptable__chip {
@@ -165,29 +162,29 @@ import {
       margin-left: 0.35rem;
       font-size: 0.65rem;
       padding: 0.1rem 0.35rem;
-      border-radius: 999px;
-      background: rgba(185, 28, 28, 0.1);
-      color: #b91c1c;
+      border-radius: var(--pa-radius-pill);
+      background: var(--pa-danger-muted);
+      color: var(--pa-danger);
       vertical-align: middle;
     }
     .score--critical {
-      color: #b91c1c;
+      color: var(--pa-danger);
       font-weight: 650;
     }
     .score--watch {
-      color: #b45309;
+      color: var(--pa-warning);
       font-weight: 600;
     }
     .score--ok {
-      color: #0f766e;
+      color: var(--pa-success);
       font-weight: 600;
     }
     .gap--behind {
-      color: #b91c1c;
+      color: var(--pa-danger);
       font-weight: 650;
     }
     .gap--ahead {
-      color: #0f766e;
+      color: var(--pa-success);
       font-weight: 600;
     }
     a {

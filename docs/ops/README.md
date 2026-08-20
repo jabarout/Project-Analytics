@@ -1,14 +1,22 @@
-# Operations (M9 + M10 + M13)
+# Operations
 
 Additive observability and operational tooling. Product domain architecture and M11 PE are frozen.
 
-## Quality gate (M13)
+## Customer handoff (N5 / M17)
 
 | Doc | Purpose |
 |-----|---------|
-| [demo-happy-path.md](./demo-happy-path.md) | Connect → sync → triage → Explorer → detail → portfolio → report |
+| **[DEPLOY.md](./DEPLOY.md)** | **Start here** — deploy & handoff index |
+| **[vps-deploy.md](./vps-deploy.md)** | **VPS + Caddy HTTPS** runbook (you SSH) |
+| [prod.env.vps.example](./prod.env.vps.example) | VPS `prod.env` template (`YOUR_DOMAIN`) |
+| [smtp-setup.md](./smtp-setup.md) | Gmail SMTP for confirmation / password reset |
+| [n5.1-prod-compose.md](./n5.1-prod-compose.md) | Production Compose overlay (laptop smoke) |
+| [n5.2-env-template.md](./n5.2-env-template.md) | Env keys / ProductionSecurityValidator |
+| [n5.3-backup-restore.md](./n5.3-backup-restore.md) | Backup & restore |
+| [security-checklist.md](./security-checklist.md) | Day-of security deploy checklist |
+| [demo-happy-path.md](./demo-happy-path.md) | Buyer demo walkthrough |
 | [known-limitations.md](./known-limitations.md) | Buyer-honest product bounds |
-| [release-checklist.md](./release-checklist.md) | Release / deploy checklist (M10) |
+| [release-checklist.md](./release-checklist.md) | Release checklist |
 
 ## Stack
 

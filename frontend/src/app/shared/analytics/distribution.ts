@@ -1,9 +1,20 @@
 import { ExplorerProjectRow } from '../../core/models/explorer.model';
-import { BarChartDatum } from '../components/dashboard/bar-chart.component';
 import { CRITICAL_HEALTH_MAX, DEFAULT_UPCOMING_DEADLINE_DAYS } from './analytics-thresholds';
 import { ExplorerDrillPreset } from './explorer-query';
 
-export interface InteractiveChartSegment extends BarChartDatum {
+/** Shared segment shape for distribution helpers (formerly on legacy SVG bar-chart). */
+export interface ChartSegmentDatum {
+  readonly label: string;
+  readonly value: number;
+  readonly color?: string;
+  readonly drill?: string;
+  readonly healthMin?: number;
+  readonly healthMax?: number;
+  readonly progressMin?: number;
+  readonly progressMax?: number;
+}
+
+export interface InteractiveChartSegment extends ChartSegmentDatum {
   readonly drill?: ExplorerDrillPreset | 'healthCritical' | 'healthWatch' | 'healthOk' | 'progressLow' | 'progressMid' | 'progressHigh';
   readonly healthMin?: number;
   readonly healthMax?: number;
@@ -28,10 +39,12 @@ export function healthDistribution(rows: readonly ExplorerProjectRow[]): Interac
     }
   }
   return [
-    { label: 'Critical', value: critical, color: '#b91c1c', drill: 'critical', healthMax: 39.99 },
-    { label: 'Watch', value: watch, color: '#b45309', drill: 'healthWatch', healthMin: 40, healthMax: 69.99 },
-    { label: 'Healthy', value: healthy, color: '#0f766e', drill: 'healthOk', healthMin: 70 },
-    ...(unknown ? [{ label: 'Unknown', value: unknown, color: '#94a3b8' } as InteractiveChartSegment] : []),
+    { label: 'Critical', value: critical, color: 'var(--pa-danger)', drill: 'critical', healthMax: 39.99 },
+    { label: 'Watch', value: watch, color: 'var(--pa-warning)', drill: 'healthWatch', healthMin: 40, healthMax: 69.99 },
+    { label: 'Healthy', value: healthy, color: 'var(--pa-success)', drill: 'healthOk', healthMin: 70 },
+    ...(unknown
+      ? [{ label: 'Unknown', value: unknown, color: 'var(--pa-chart-3)' } as InteractiveChartSegment]
+      : []),
   ];
 }
 
@@ -51,11 +64,14 @@ export function progressDistribution(rows: readonly ExplorerProjectRow[]): Inter
       high++;
     }
   }
+  // Greyscale bands — progress volume, not health semantics
   return [
-    { label: '0–33%', value: low, color: '#b91c1c', progressMax: 33 },
-    { label: '34–66%', value: mid, color: '#b45309', progressMin: 34, progressMax: 66 },
-    { label: '67–100%', value: high, color: '#0f766e', progressMin: 67 },
-    ...(unknown ? [{ label: 'Unknown', value: unknown, color: '#94a3b8' } as InteractiveChartSegment] : []),
+    { label: '0–33% complete', value: low, color: 'var(--pa-chart-1)', progressMax: 33 },
+    { label: '34–66% complete', value: mid, color: 'var(--pa-chart-2)', progressMin: 34, progressMax: 66 },
+    { label: '67–100% complete', value: high, color: 'var(--pa-chart-3)', progressMin: 67 },
+    ...(unknown
+      ? [{ label: 'Unknown', value: unknown, color: 'var(--pa-chart-4)' } as InteractiveChartSegment]
+      : []),
   ];
 }
 
@@ -70,8 +86,8 @@ export function delayedVsOnTrack(rows: readonly ExplorerProjectRow[]): Interacti
     }
   }
   return [
-    { label: 'Delayed', value: delayed, color: '#b91c1c', drill: 'delayed' },
-    { label: 'On track', value: onTrack, color: '#0f766e' },
+    { label: 'Delayed', value: delayed, color: 'var(--pa-danger)', drill: 'delayed' },
+    { label: 'On track', value: onTrack, color: 'var(--pa-success)' },
   ];
 }
 
@@ -87,8 +103,8 @@ export function overdueWpProjectsSplit(rows: readonly ExplorerProjectRow[]): Int
     }
   }
   return [
-    { label: 'Has overdue WPs', value: withOverdue, color: '#b91c1c', drill: 'hasOverdueWp' },
-    { label: 'No overdue WPs', value: clean, color: '#0f766e' },
+    { label: 'Has overdue WPs', value: withOverdue, color: 'var(--pa-danger)', drill: 'hasOverdueWp' },
+    { label: 'No overdue WPs', value: clean, color: 'var(--pa-viz-2)' },
   ];
 }
 
@@ -103,8 +119,8 @@ export function needsAttentionSplit(rows: readonly ExplorerProjectRow[]): Intera
     }
   }
   return [
-    { label: 'Needs Attention', value: needs, color: '#1d4ed8', drill: 'needsAttention' },
-    { label: 'Stable', value: stable, color: '#94a3b8' },
+    { label: 'Needs Attention', value: needs, color: 'var(--pa-warning)', drill: 'needsAttention' },
+    { label: 'Stable', value: stable, color: 'var(--pa-success)' },
   ];
 }
 
@@ -128,10 +144,10 @@ export function recommendationSeverityBars(
     }
   }
   return [
-    { label: 'Critical', value: critical, color: '#b91c1c' },
-    { label: 'High', value: high, color: '#c2410c' },
-    { label: 'Medium', value: medium, color: '#b45309' },
-    { label: 'Other', value: low, color: '#64748b' },
+    { label: 'Critical', value: critical, color: 'var(--pa-danger)' },
+    { label: 'High', value: high, color: 'var(--pa-warning)' },
+    { label: 'Medium', value: medium, color: 'var(--pa-chart-2)' },
+    { label: 'Other', value: low, color: 'var(--pa-chart-3)' },
   ];
 }
 
@@ -156,11 +172,13 @@ export function riskDistribution(rows: readonly ExplorerProjectRow[]): Interacti
     }
   }
   return [
-    { label: 'Low', value: low, color: '#0f766e' },
-    { label: 'Medium', value: medium, color: '#b45309' },
-    { label: 'High', value: high, color: '#c2410c' },
-    { label: 'Critical', value: critical, color: '#b91c1c' },
-    ...(unknown ? [{ label: 'Unknown', value: unknown, color: '#94a3b8' } as InteractiveChartSegment] : []),
+    { label: 'Low', value: low, color: 'var(--pa-success)' },
+    { label: 'Medium', value: medium, color: 'var(--pa-warning)' },
+    { label: 'High', value: high, color: 'var(--pa-danger)' },
+    { label: 'Critical', value: critical, color: 'var(--pa-danger)' },
+    ...(unknown
+      ? [{ label: 'Unknown', value: unknown, color: 'var(--pa-chart-3)' } as InteractiveChartSegment]
+      : []),
   ];
 }
 
@@ -185,10 +203,12 @@ export function progressGapSplit(rows: readonly ExplorerProjectRow[]): Interacti
     }
   }
   return [
-    { label: 'Behind schedule', value: behind, color: '#b91c1c' },
-    { label: 'On track', value: onTrack, color: '#0f766e' },
-    { label: 'Ahead', value: ahead, color: '#1d4ed8' },
-    ...(unknown ? [{ label: 'No schedule', value: unknown, color: '#94a3b8' } as InteractiveChartSegment] : []),
+    { label: 'Behind schedule', value: behind, color: 'var(--pa-danger)' },
+    { label: 'On track', value: onTrack, color: 'var(--pa-success)' },
+    { label: 'Ahead', value: ahead, color: 'var(--pa-text)' },
+    ...(unknown
+      ? [{ label: 'No schedule', value: unknown, color: 'var(--pa-chart-3)' } as InteractiveChartSegment]
+      : []),
   ];
 }
 

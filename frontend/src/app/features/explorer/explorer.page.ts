@@ -25,9 +25,10 @@ import { ExplorerFilterPanelComponent } from '../../shared/components/explorer/e
 import { ProjectTableComponent } from '../../shared/components/explorer/project-table.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { BarChartComponent, BarChartDatum } from '../../shared/components/dashboard/bar-chart.component';
+import { PaBarChartComponent, PaBarDatum } from '../../shared/charts/pa-bar-chart.component';
 import { healthDistribution } from '../../shared/analytics/distribution';
 import { downloadExplorerCsv } from '../../shared/utils/csv-export';
+import { PaRevealDirective } from '../../shared/directives/pa-reveal.directive';
 
 /**
  * Primary analytical workspace (M11A/B Explorer). Filter, sort, group, Saved Views.
@@ -36,13 +37,14 @@ import { downloadExplorerCsv } from '../../shared/utils/csv-export';
   selector: 'app-explorer-page',
   standalone: true,
   imports: [
+    PaRevealDirective,
     RouterLink,
     FormsModule,
     ExplorerFilterPanelComponent,
     ProjectTableComponent,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    BarChartComponent,
+    PaBarChartComponent,
   ],
   templateUrl: './explorer.page.html',
   styleUrl: './explorer.page.scss',
@@ -66,7 +68,15 @@ export class ExplorerPage implements OnInit {
 
   readonly pipeline = computed(() => applyExplorerPipeline(this.rows(), this.viewState()));
   readonly matchCount = computed(() => this.pipeline().filtered.length);
-  readonly resultHealthChart = computed(() => healthDistribution(this.pipeline().filtered));
+  /** Health band counts for the filtered result set (canonical healthDistribution). */
+  readonly resultHealthSegments = computed(() => healthDistribution(this.pipeline().filtered));
+  readonly resultHealthBars = computed((): PaBarDatum[] =>
+    this.resultHealthSegments().map((s) => ({
+      name: s.label,
+      value: s.value,
+      id: s.label,
+    }))
+  );
   readonly adminSuggestions = computed(() => {
     const set = new Set<string>();
     for (const row of this.rows()) {
@@ -232,7 +242,12 @@ export class ExplorerPage implements OnInit {
     downloadExplorerCsv(filtered, this.viewState().columns, `explorer-${ws}.csv`);
   }
 
-  onResultChartSegment(segment: BarChartDatum): void {
+  /** Click Health band → same filter semantics as legacy SVG chart. */
+  onResultHealthBarClick(datum: PaBarDatum): void {
+    const segment = this.resultHealthSegments().find((s) => s.label === datum.name);
+    if (!segment) {
+      return;
+    }
     if (segment.drill === 'critical') {
       this.patchFilters({ criticalOnly: true });
       return;

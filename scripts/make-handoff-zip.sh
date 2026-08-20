@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Create a small zip for company handoff (no node_modules / build / .git).
-# Includes .env if present (secrets — only for private handoff).
+# Create a handoff zip (no node_modules / build / .git / secrets).
+# Recipients should open docs/ops/DEPLOY.md first.
+#
+# Usage:
+#   ./scripts/make-handoff-zip.sh [output.zip]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="${1:-$HOME/Project-Analytics-Xtensus.zip}"
+OUT="${1:-$HOME/Project-Analytics-Handoff.zip}"
 
 rm -f "$OUT"
 cd "$ROOT"
@@ -20,6 +23,8 @@ zip -r "$OUT" . \
   -x "backend/target/**" \
   -x "backend/data/*" \
   -x "backend/data/**" \
+  -x "data/backups/*" \
+  -x "data/backups/**" \
   -x ".git/*" \
   -x ".git/**" \
   -x "**/.git/*" \
@@ -30,8 +35,13 @@ zip -r "$OUT" . \
   -x "**/*.log" \
   -x "**/coverage/*" \
   -x "**/.vite/*" \
+  -x ".env" \
+  -x ".env.local" \
+  -x ".env.*.local" \
+  -x "prod.env" \
+  -x "*.env.local" \
   >/dev/null
 
 ls -lh "$OUT"
 echo "Ready: $OUT"
-echo "Tell recipients to open README-XTENSUS.md first."
+echo "Tell recipients to open docs/ops/DEPLOY.md first (then copy .env.example → prod.env)."

@@ -344,9 +344,9 @@ Target: finished OpenProject companion — trustworthy, deployable, not enterpri
 | **M15** Analytics Access & Isolation | **Complete** | Memberships; grant/revoke by email; isolation/grant-matrix tests |
 | **N1** Connect & auth soak | **Complete** | Manual verification of connect/auth flows; quirks documented |
 | **N2** Regression gate | **Complete** | Full automated + smoke gate before UI work |
-| **M16a / N3** Visual polish & dark mode | **Next** | Tokens, dark mode, consistency — PE frozen; **mandatory** |
-| **M16b / N4** Motion & transitions | Planned | Subtle dynamics; **non-blocking for M17** |
-| **M17 / N5** Deploy & customer package | Planned | Compose/prod, env template, backup, demo walkthrough |
+| **UI modernization** (replaces monolithic N3 batch) | **In progress** | Gated UI-1…UI-8; Option B (SCSS tokens + later ECharts); Zard/Bklit reference only |
+| **M16b / N4** Optional motion extras | Complete | Scroll reveals / placement; **non-blocking for M17** |
+| **M17 / N5** Deploy & customer package | **Complete** (2026-08-20) | Start at `docs/ops/DEPLOY.md` |
 | **M18 / N6** Soft intelligence | Optional | Snapshot trends, reco evidence; no LLM requirement |
 
 ### Execution order (approved)
@@ -399,48 +399,39 @@ N6/M18 optional after N5
 
 ---
 
-## 18.3 N3 / M16a — Visual polish & dark mode (mandatory)
+## 18.3 N3 / M16a — Visual polish, dark mode, motion & footer (mandatory)
 
-**Depends on:** N2. **No IA redesign.** **Status:** **Next** (awaiting approval to start).
+**Depends on:** N2. **No IA redesign.** **Status:** **In progress** (approved 2026-08-19).
+
+**Visual direction:** Monochromatic-first (black / white / grey shades for chrome). No blue/indigo/purple brand accent. Semantic color only for healthy / attention / critical / errors. Revolut-inspired restraint (flat surfaces, pills, type/spacing hierarchy) — not a fintech lookalike.
 
 | ID | Task | Acceptance | Tests |
 |----|------|------------|-------|
-| N3.1 | Design tokens (light + dark) | Shared CSS variables for surfaces/text/borders/accents | Visual review |
-| N3.2 | Dark mode wiring | Settings theme + persistence; readable charts/cards | Manual theme switch on core routes |
-| N3.3 | Surface consistency | Spacing, cards, empty states, banners | UI guidelines checklist |
-| N3.4 | Terminology pass | PE language (Connections, Synchronize vs Recalculate, grants) | Copy review |
-| N3.5 | Static loading polish | Consistent spinners/skeletons (motion in N4) | Manual |
-| N3.6 | A11y baseline | Contrast/focus in both themes | Spot-check |
+| N3.1 | Design tokens (light + dark) | Neutral ladder + semantic tokens; no brand hue accent | Visual review |
+| N3.2 | Dark mode wiring | Settings theme + persistence; ThemeService on document | Manual theme switch |
+| N3.3 | Shared controls + surfaces | Pill buttons, cards, focus rings (neutral) | UI checklist |
+| N3.4 | Shell polish (main + auth) | Header/nav/content coherent in both themes | Manual |
+| N3.5 | Core feature surfaces | Home, Explorer, Project, Connections, login — no hardcoded blue | Manual |
+| N3.6 | Motion + micro-interactions | Button press, hover, short route fade; `prefers-reduced-motion` | Manual + OS toggle |
+| N3.7 | Charts / KPI | Greyscale structure; semantic chips only | Manual |
+| N3.8 | Footer + legal placeholders | Privacy / Contact / Terms public; draft banners | Manual logged-out |
+| N3.9 | A11y baseline | Contrast/focus in both themes | Spot-check |
 
-**Exit:** Dark mode usable on primary routes; polish signed off.
+**Exit:** Premium monochrome UI + dark mode + subtle motion + footer/legal; go/no-go for N5 (N4 optional).
 
 ---
 
-## 18.4 N4 / M16b — Motion & transitions (non-blocking for M17)
+## 18.4 N4 / M16b — Optional motion extras (non-blocking for M17)
 
-**Depends on:** N3. **May be deferred** without making N5 incomplete.
-
-**Mandatory priorities:**
-
-1. Route/page transitions  
-2. Loading/skeleton transitions  
-3. KPI/chart transitions  
-4. Subtle card/button micro-interactions  
-5. Accessibility + `prefers-reduced-motion`
-
-**Nice-to-have:** scroll-based reveals — include only if natural, performant, and professional; may be skipped without making N4 incomplete.
+**Depends on:** N3. **May be deferred.** Core motion/micro-interactions moved into **N3**.
 
 | ID | Task | Acceptance | Tests |
 |----|------|------------|-------|
-| N4.1 | Motion principles + reduced-motion | Non-essential motion off when reduced | Manual OS toggle |
-| N4.2 | Route/page transitions | Subtle, short; no IA change | Manual navigation |
-| N4.3 | Loading/skeleton transitions | Skeleton → content fade; works in dark mode | Manual |
-| N4.4 | KPI/chart transitions | Soft updates; no jank on recalculate/filter | Manual |
-| N4.5 | Micro-interactions | Subtle hover/focus/press; keyboard OK | Manual + keyboard |
-| N4.6 | Scroll reveals *(optional)* | Only if performant/professional | Manual (if shipped) |
-| N4.7 | Perf gate | No jank → simplify or defer before M17 | DevTools spot-check |
+| N4.1 | Scroll reveals *(optional)* | Only if performant/professional | Manual (if shipped) |
+| N4.2 | Extra motion polish | Only if needed after N3 | Manual |
+| N4.3 | Perf gate | No jank → simplify or defer before M17 | DevTools spot-check |
 
-**Exit (ship):** checklist + reduced-motion pass. **Exit (defer):** Project State notes N4 deferred; N5 proceeds on N3.
+**Exit (ship):** optional extras signed off. **Exit (defer):** Project State notes N4 deferred; N5 proceeds on N3.
 
 ---
 

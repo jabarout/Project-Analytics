@@ -18,23 +18,41 @@
       </p>
     </header>
 
-    <div class="kpi-row">
+    <div class="kpi-row" paReveal>
       <app-kpi-card
         label="Health"
         [value]="board.analytics.health.score"
         [hint]="board.analytics.health.label"
         kind="score"
         [accent]="true"
+        severity="positive"
         [infoTitle]="glossary.health.title"
-        [infoBody]="glossary.health.summary + ' ' + board.analytics.health.explanation"
+        [infoBody]="
+          glossary.health.summary +
+          ' ' +
+          glossary.health.thresholds +
+          ' ' +
+          glossary.health.detail +
+          ' This project: ' +
+          board.analytics.health.explanation
+        "
       />
       <app-kpi-card
         label="Risk"
         [value]="board.analytics.risk.score"
         [hint]="board.analytics.risk.label"
         kind="score"
+        severity="watch"
         [infoTitle]="glossary.risk.title"
-        [infoBody]="glossary.risk.summary + ' ' + board.analytics.risk.explanation"
+        [infoBody]="
+          glossary.risk.summary +
+          ' ' +
+          glossary.risk.thresholds +
+          ' ' +
+          glossary.risk.detail +
+          ' This project: ' +
+          board.analytics.risk.explanation
+        "
       />
       <app-kpi-card
         label="Needs Attention"
@@ -42,131 +60,263 @@
         [hint]="board.analytics.attention.label"
         kind="score"
         [infoTitle]="glossary.needsAttention.title"
-        [infoBody]="glossary.needsAttention.summary + ' ' + board.analytics.attention.explanation"
+        [infoBody]="
+          glossary.needsAttention.summary +
+          ' ' +
+          glossary.needsAttention.thresholds +
+          ' ' +
+          glossary.needsAttention.detail +
+          ' This project: ' +
+          board.analytics.attention.explanation
+        "
       />
       <app-kpi-card
         label="Actual progress"
         [value]="board.analytics.completionPercentage != null ? board.analytics.completionPercentage + '%' : '—'"
         kind="score"
-        [hint]="glossary.actualProgress.thresholds"
+        hint="Share of this project’s work packages that are completed."
         [infoTitle]="glossary.actualProgress.title"
         [infoBody]="glossary.actualProgress.summary + ' ' + glossary.actualProgress.detail"
       />
     </div>
 
     @if (wpAnalytics(); as wp) {
+      <div class="project__wp-delivery" paReveal>
       <h3 class="project__section">Work package delivery</h3>
       <p class="project__muted">
         Metrics below use synchronized work packages (status, due dates, priority) — not project start/end dates.
       </p>
       <div class="kpi-row">
-        <app-kpi-card label="Total WPs" [value]="wp.totalWorkPackages" kind="volume" [accent]="true" />
-        <app-kpi-card label="Completed" [value]="wp.completedWorkPackages" kind="count" severity="positive" />
-        <app-kpi-card label="Open / remaining" [value]="wp.openWorkPackages" kind="count" />
-        <app-kpi-card label="Overdue" [value]="wp.overdueWorkPackages" kind="count" severity="critical" />
-        <app-kpi-card label="High priority open" [value]="wp.highPriorityOpen" kind="count" severity="watch" />
+        <app-kpi-card
+          label="Total WPs"
+          [value]="wp.totalWorkPackages"
+          kind="volume"
+          [accent]="true"
+          hint="All synchronized work packages for this project."
+          infoTitle="Total work packages"
+          infoBody="Count of work packages synchronized from OpenProject for this project."
+        />
+        <app-kpi-card
+          label="Completed"
+          [value]="wp.completedWorkPackages"
+          kind="count"
+          severity="positive"
+          hint="Work packages marked completed in OpenProject."
+          infoTitle="Completed work packages"
+          infoBody="Count of synchronized work packages whose status is treated as completed."
+        />
+        <app-kpi-card
+          label="Open / remaining"
+          [value]="wp.openWorkPackages"
+          kind="count"
+          hint="Work packages that are not completed yet."
+          infoTitle="Open work packages"
+          infoBody="Count of synchronized work packages that are still open (not completed)."
+        />
+        <app-kpi-card
+          label="Overdue"
+          [value]="wp.overdueWorkPackages"
+          kind="count"
+          severity="critical"
+          hint="Open work packages with a due date before today."
+          infoTitle="Overdue work packages"
+          infoBody="Count of open synchronized work packages whose due date is before today."
+        />
+        <app-kpi-card
+          label="High priority open"
+          [value]="wp.highPriorityOpen"
+          kind="count"
+          severity="watch"
+          hint="Open work packages marked high priority."
+          infoTitle="High priority open"
+          infoBody="Count of open synchronized work packages with a high priority flag in OpenProject."
+        />
         <app-kpi-card
           label="Overdue ratio"
           [value]="overdueRatioDisplay(board.analytics.overdueRatio)"
           kind="score"
-          [hint]="glossary.overdueRatio.thresholds"
+          hint="Open overdue work packages ÷ total work packages."
           [infoTitle]="glossary.overdueRatio.title"
           [infoBody]="glossary.overdueRatio.summary + ' ' + glossary.overdueRatio.detail"
         />
-        <app-kpi-card label="Blocked" [value]="wp.blockedWorkPackages" kind="count" />
+        <app-kpi-card
+          label="Blocked"
+          [value]="wp.blockedWorkPackages"
+          kind="count"
+          hint="Work packages currently blocked in OpenProject."
+          infoTitle="Blocked work packages"
+          infoBody="Count of synchronized work packages whose status indicates they are blocked."
+        />
       </div>
 
-      <div class="project__charts">
-        @if (completionRemainChart().length) {
-          <app-bar-chart title="Completed vs remaining work packages" [data]="completionRemainChart()" />
+      <div class="project__charts pa-charts">
+        <div class="pa-chart-block">
+          <app-pa-bar-chart
+            title="Work package status"
+            subtitle="Local WP management buckets"
+            size="md"
+            orientation="horizontal"
+            [data]="wpStatusBars()"
+            emptyMessage="No work package status counts available."
+          >
+            <div class="pa-chart-legend pa-chart-legend--note" shellFooter>
+              <p class="pa-chart-legend__note">
+                Buckets from synchronized work packages (open, in progress, completed, overdue, blocked).
+              </p>
+            </div>
+          </app-pa-bar-chart>
+        </div>
+        @if (completionDonut().length) {
+          <div class="pa-chart-block">
+            <app-pa-donut-chart
+              title="Completion"
+              subtitle="Share of work packages completed"
+              centerLabel="% done"
+              [centerValue]="completionCenter()"
+              [data]="completionDonut()"
+            >
+              <div class="pa-chart-legend pa-chart-legend--note" shellFooter>
+                <p class="pa-chart-legend__note">
+                  Same definition as Actual progress: completed work packages ÷ total work packages.
+                </p>
+              </div>
+            </app-pa-donut-chart>
+          </div>
         }
-        <app-bar-chart title="Work package status distribution" [data]="wpStatusChart()" />
+      </div>
       </div>
     }
 
-    <div class="score-grid">
-      <article>
+    <div class="score-grid" paReveal>
+      <article class="project__factor-card">
         <h3>Health</h3>
         <p>{{ board.analytics.health.explanation }}</p>
-        <app-factor-bars title="Health factors" [factors]="board.analytics.health.factors" />
+        <app-pa-bar-chart
+          title="Health factors"
+          subtitle="Contribution weights — hover a bar or label for the full factor description"
+          size="sm"
+          orientation="horizontal"
+          valueLabel="Contribution"
+          [categoryLabelWidth]="132"
+          [data]="healthFactorBars()"
+          emptyMessage="No Health factor breakdown available."
+        />
       </article>
-      <article>
+      <article class="project__factor-card">
         <h3>Risk</h3>
         <p>{{ board.analytics.risk.explanation }}</p>
-        <app-factor-bars title="Risk factors" [factors]="board.analytics.risk.factors" />
+        <app-pa-bar-chart
+          title="Risk factors"
+          subtitle="Contribution weights — hover a bar or label for the full factor description"
+          size="sm"
+          orientation="horizontal"
+          valueLabel="Contribution"
+          [categoryLabelWidth]="132"
+          [data]="riskFactorBars()"
+          emptyMessage="No Risk factor breakdown available."
+        />
       </article>
-      <article>
+      <article class="project__factor-card">
         <h3>Needs Attention</h3>
         <p>{{ board.analytics.attention.explanation }}</p>
-        <app-factor-bars title="Needs Attention factors" [factors]="board.analytics.attention.factors" />
+        <app-pa-bar-chart
+          title="Needs Attention factors"
+          subtitle="Contribution weights — hover a bar or label for the full factor description"
+          size="sm"
+          orientation="horizontal"
+          valueLabel="Contribution"
+          [categoryLabelWidth]="132"
+          [data]="attentionFactorBars()"
+          emptyMessage="No Needs Attention factor breakdown available."
+        />
       </article>
     </div>
 
-    <app-trend-chart title="Score trends (historical snapshots)" [points]="board.trends" />
+    <div class="project__trend" paReveal>
+      <div class="pa-charts pa-charts--hero">
+        <app-pa-line-chart
+          title="Score trends"
+          subtitle="Health, Risk, and Needs Attention from stored analytics snapshots (0–100)"
+          size="lg"
+          metricLabel="Score"
+          [categories]="trendCategories()"
+          [series]="trendSeries()"
+          [yMin]="0"
+          [yMax]="100"
+          yName="Score"
+          [featured]="true"
+          emptyMessage="Not enough snapshot history for a trend chart yet. Recalculate analytics after syncs."
+        />
+      </div>
+    </div>
 
     @if (wpAnalytics(); as wp) {
-      <section class="project__block">
+      <section class="project__block project__block--spaced" paReveal>
         <h3>Overdue work packages</h3>
         @if (wp.overdueWorkPackagesList.length === 0) {
           <p class="project__muted">No overdue open work packages in local data.</p>
         } @else {
-          <table>
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Assignee</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Due</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of wp.overdueWorkPackagesList; track item.id) {
+          <div class="project__table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td>{{ item.subject }}</td>
-                  <td>{{ item.assignee || 'Unassigned' }}</td>
-                  <td>{{ item.priority || '—' }}</td>
-                  <td>{{ item.status || '—' }}</td>
-                  <td>{{ item.dueDate || '—' }}</td>
+                  <th>Subject</th>
+                  <th>Assignee</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Due</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (item of wp.overdueWorkPackagesList; track item.id) {
+                  <tr>
+                    <td>{{ item.subject }}</td>
+                    <td>{{ item.assignee || 'Unassigned' }}</td>
+                    <td>{{ item.priority || '—' }}</td>
+                    <td>{{ item.status || '—' }}</td>
+                    <td>{{ item.dueDate || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
       </section>
 
-      <section class="project__block">
+      <section class="project__block" paReveal>
         <h3>Assignee bottlenecks</h3>
         <p class="project__muted">Local open and overdue load by assignee — identify bottlenecks before opening OpenProject.</p>
         @if (wp.assigneeBottlenecks.length === 0) {
           <p class="project__muted">No work packages to aggregate.</p>
         } @else {
-          <table>
-            <thead>
-              <tr>
-                <th>Assignee</th>
-                <th>Open</th>
-                <th>Overdue</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of wp.assigneeBottlenecks; track row.assignee) {
+          <div class="project__table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td>{{ row.assignee }}</td>
-                  <td>{{ row.openCount }}</td>
-                  <td>{{ row.overdueCount }}</td>
-                  <td>{{ row.totalCount }}</td>
+                  <th>Assignee</th>
+                  <th>Open</th>
+                  <th>Overdue</th>
+                  <th>Total</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (row of wp.assigneeBottlenecks; track row.assignee) {
+                  <tr>
+                    <td>{{ row.assignee }}</td>
+                    <td>{{ row.openCount }}</td>
+                    <td>{{ row.overdueCount }}</td>
+                    <td>{{ row.totalCount }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
       </section>
     }
 
     @if (recommendations(); as reco) {
-      <app-recommendation-list
+      <app-recommendation-list paReveal
         title="Project recommendations"
         [summary]="reco.executiveSummary"
         [items]="reco.recommendations"

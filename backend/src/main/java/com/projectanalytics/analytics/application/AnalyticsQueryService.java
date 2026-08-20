@@ -9,7 +9,10 @@ import com.projectanalytics.analytics.api.dto.ScoreFactorResponse;
 import com.projectanalytics.analytics.api.dto.ScoredMetricResponse;
 import com.projectanalytics.analytics.api.dto.ScopeAnalyticsKpiResponse;
 import com.projectanalytics.analytics.api.dto.ScopeDashboardResponse;
+import com.projectanalytics.analytics.api.dto.ProjectHealthDriverResponse;
 import com.projectanalytics.analytics.api.dto.TrendPointResponse;
+import com.projectanalytics.analytics.api.dto.WorkspaceHealthTrendPointResponse;
+import com.projectanalytics.analytics.api.dto.WorkspaceHealthTrendResponse;
 import com.projectanalytics.project.persistence.WorkPackageEntity;
 import com.projectanalytics.analytics.domain.ScoreFactor;
 import com.projectanalytics.analytics.domain.ScoredMetric;
@@ -282,6 +285,99 @@ public class AnalyticsQueryService {
             ));
         }
         return points;
+    }
+
+    /**
+     * Workspace Average Health over snapshot waves + ranked Health drivers.
+     * <p>
+     * {@code averageHealthScore} per wave uses the same equal-weight mean
+     * (scale 2, HALF_UP) as {@link #buildScopeKpis} — not a new metric.
+     * Waves are clustered by truncated minute (workspace recalculate writes near-aligned timestamps).
+     */
+    @Transactional(readOnly = true)
+    public WorkspaceHealthTrendResponse getWorkspaceHealthTrends(UUID workspaceId) {
+        if (!workspaceRepository.existsById(workspaceId)) {
+            throw new BusinessException(ErrorCode.WORKSPACE_001);
+        }
+        List<AnalyticsSnapshotEntity> snapshots =
+                snapshotRepository.findByWorkspaceIdOrderByCalculatedAtAsc(workspaceId);
+        if (snapshots.isEmpty()) {
+            return new WorkspaceHealthTrendResponse(List.of(), List.of(), List.of());
+        }
+
+        // Wave key = UTC minute truncated from calculatedAt
+        Map<Instant, List<AnalyticsSnapshotEntity>> waves = new LinkedHashMap<>();
+        for (AnalyticsSnapshotEntity s : snapshots) {
+            Instant key = truncateToMinute(s.getCalculatedAt());
+            waves.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+        }
+
+        List<WorkspaceHealthTrendPointResponse> points = new ArrayList<>();
+        for (Map.Entry<Instant, List<AnalyticsSnapshotEntity>> entry : waves.entrySet()) {
+            // One snapshot per project per wave (latest in that minute if duplicates)
+            Map<UUID, AnalyticsSnapshotEntity> byProject = new LinkedHashMap<>();
+            for (AnalyticsSnapshotEntity s : entry.getValue()) {
+                byProject.put(s.getProject().getId(), s);
+            }
+            List<BigDecimal> healthValues = byProject.values().stream()
+                    .map(AnalyticsSnapshotEntity::getHealthScore)
+                    .filter(v -> v != null)
+                    .toList();
+            if (healthValues.isEmpty()) {
+                continue;
+            }
+            BigDecimal sum = healthValues.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal avg = sum.divide(BigDecimal.valueOf(healthValues.size()), 2, RoundingMode.HALF_UP);
+            points.add(new WorkspaceHealthTrendPointResponse(
+                    entry.getKey(),
+                    avg,
+                    healthValues.size()
+            ));
+        }
+
+        // Drivers: last − first Health per project (need ≥2 snapshots)
+        Map<UUID, List<AnalyticsSnapshotEntity>> byProject = snapshots.stream()
+                .collect(Collectors.groupingBy(s -> s.getProject().getId(), LinkedHashMap::new, Collectors.toList()));
+        List<ProjectHealthDriverResponse> drivers = new ArrayList<>();
+        for (Map.Entry<UUID, List<AnalyticsSnapshotEntity>> e : byProject.entrySet()) {
+            List<AnalyticsSnapshotEntity> hist = e.getValue();
+            if (hist.size() < 2) {
+                continue;
+            }
+            AnalyticsSnapshotEntity first = hist.get(0);
+            AnalyticsSnapshotEntity last = hist.get(hist.size() - 1);
+            if (first.getHealthScore() == null || last.getHealthScore() == null) {
+                continue;
+            }
+            BigDecimal delta = last.getHealthScore().subtract(first.getHealthScore()).setScale(2, RoundingMode.HALF_UP);
+            drivers.add(new ProjectHealthDriverResponse(
+                    e.getKey(),
+                    first.getProject().getName(),
+                    first.getHealthScore(),
+                    last.getHealthScore(),
+                    delta,
+                    first.getCalculatedAt(),
+                    last.getCalculatedAt()
+            ));
+        }
+
+        List<ProjectHealthDriverResponse> improving = drivers.stream()
+                .filter(d -> d.delta().compareTo(BigDecimal.ZERO) > 0)
+                .sorted(Comparator.comparing(ProjectHealthDriverResponse::delta).reversed())
+                .limit(5)
+                .toList();
+        List<ProjectHealthDriverResponse> worsening = drivers.stream()
+                .filter(d -> d.delta().compareTo(BigDecimal.ZERO) < 0)
+                .sorted(Comparator.comparing(ProjectHealthDriverResponse::delta))
+                .limit(5)
+                .toList();
+
+        return new WorkspaceHealthTrendResponse(points, improving, worsening);
+    }
+
+    private static Instant truncateToMinute(Instant instant) {
+        long epochMinute = instant.getEpochSecond() / 60;
+        return Instant.ofEpochSecond(epochMinute * 60);
     }
 
     /**

@@ -9,17 +9,22 @@
     <header class="detail__header">
       <div>
         <h2>{{ portfolio.name }}</h2>
-        <p>Analytical collection — dig into progress, delivery quality, and exceptions for these members only.</p>
+        <p>Analytical collection — dig into progress, delivery quality, and exceptions for these projects only.</p>
       </div>
       <div class="detail__header-actions">
-        <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
-        <button type="button" class="danger" (click)="deletePortfolio()">Delete portfolio</button>
+        <button type="button" class="pa-btn pa-btn--secondary" (click)="openExplorer('clearExceptions')">
+          Open in Explorer
+        </button>
+        <button type="button" class="pa-btn pa-btn--danger" (click)="deletePortfolio()">
+          Delete portfolio
+        </button>
       </div>
     </header>
 
-    <div class="detail__tabs" role="tablist">
+    <div class="detail__tabs pa-segment" role="tablist">
       <button
         type="button"
+        class="pa-btn-reset"
         role="tab"
         [class.is-active]="activeTab() === 'overview'"
         (click)="activeTab.set('overview')"
@@ -28,6 +33,7 @@
       </button>
       <button
         type="button"
+        class="pa-btn-reset"
         role="tab"
         [class.is-active]="activeTab() === 'membership'"
         (click)="activeTab.set('membership')"
@@ -44,80 +50,25 @@
     }
 
     @if (activeTab() === 'overview' && dashboard(); as board) {
-      <section class="health-summary" [attr.data-band]="healthSummaryBand()">
+      <section class="health-summary" paReveal [attr.data-band]="healthSummaryBand()">
         <div>
           <h3>Portfolio Health Summary</h3>
           <p class="health-summary__band">Band: {{ healthSummaryBand() }}</p>
           <p class="health-summary__narrative">{{ board.executiveSummary }}</p>
           <p>
-            {{ board.kpis.totalProjects }} members · {{ board.kpis.activeProjects }} active ·
+            {{ board.kpis.totalProjects }} projects · {{ board.kpis.activeProjects }} active ·
             {{ board.kpis.totalWorkPackages }} work packages
             @if (board.kpis.lastCalculatedAt) {
               · Last scored {{ board.kpis.lastCalculatedAt | date: 'medium' }}
             }
           </p>
         </div>
-        <button type="button" (click)="openExplorer('clearExceptions')">Open in Explorer</button>
+        <button type="button" class="pa-btn pa-btn--secondary" (click)="openExplorer('clearExceptions')">
+          Open in Explorer
+        </button>
       </section>
 
-      <h3 class="detail__section-title">Overview</h3>
-      <div class="kpi-row">
-        <app-kpi-card
-          label="Total projects"
-          [value]="board.kpis.totalProjects"
-          kind="volume"
-          [accent]="true"
-          hint="Members in this portfolio"
-          actionLabel="Explore all →"
-          [clickable]="true"
-          (activated)="openExplorer('clearExceptions')"
-        />
-        <app-kpi-card
-          label="Active projects"
-          [value]="board.kpis.activeProjects"
-          kind="volume"
-          hint="Not archived in OpenProject (On track / At risk / … still count as active)"
-        />
-        <app-kpi-card
-          label="Projects needing attention"
-          [value]="needsAttentionDisplay()"
-          kind="count"
-          severity="critical"
-          [infoTitle]="glossary.needsAttention.title"
-          [infoBody]="glossary.needsAttention.summary"
-          actionLabel="View all →"
-          [clickable]="true"
-          (activated)="openExplorer('needsAttention')"
-        />
-        <app-kpi-card
-          label="Critical health"
-          [value]="board.kpis.criticalProjects"
-          kind="count"
-          severity="critical"
-          [infoTitle]="glossary.health.title"
-          [infoBody]="glossary.health.thresholds"
-          actionLabel="View all →"
-          [clickable]="true"
-          (activated)="openExplorer('critical')"
-        />
-        <app-kpi-card
-          label="With overdue WPs"
-          [value]="board.kpis.projectsWithOverdueWorkPackages"
-          kind="count"
-          severity="watch"
-          hint="At least one open work package past due"
-          actionLabel="View all →"
-          [clickable]="true"
-          (activated)="openExplorer('hasOverdueWp')"
-        />
-        <app-kpi-card
-          label="Total work packages"
-          [value]="board.kpis.totalWorkPackages"
-          kind="volume"
-          hint="All WPs across portfolio members"
-        />
-      </div>
-
+      <section class="detail__flow-section" paReveal>
       <h3 class="detail__section-title">Progress & delivery quality</h3>
       <p class="detail__hint">
         Based on synchronized work packages (completion status and due dates). Project-level calendar schedule KPIs are
@@ -128,7 +79,7 @@
           label="Avg progress"
           [value]="formatPercent(board.kpis.averageCompletion)"
           kind="score"
-          [hint]="glossary.actualProgress.thresholds"
+          hint="Average share of work packages completed across projects."
           [infoTitle]="glossary.actualProgress.title"
           [infoBody]="glossary.actualProgress.summary + ' ' + glossary.actualProgress.detail"
         />
@@ -138,8 +89,8 @@
           kind="score"
           [hint]="
             board.kpis.averageOverdueRatio != null
-              ? 'Average overdue WPs ÷ total WPs'
-              : 'Unavailable — members have no work packages'
+              ? 'Average overdue WPs ÷ total WPs across projects'
+              : 'Unavailable — projects have no work packages'
           "
           [infoTitle]="glossary.overdueRatio.title"
           [infoBody]="glossary.overdueRatio.summary + ' ' + glossary.overdueRatio.detail"
@@ -148,36 +99,204 @@
           label="Avg health"
           [value]="board.kpis.averageHealthScore ?? '—'"
           kind="score"
-          hint="Score 0–100 (not a %)"
+          severity="positive"
+          hint="Average of each project’s Health score (0–100). Higher = healthier delivery."
           [infoTitle]="glossary.health.title"
-          [infoBody]="glossary.health.summary"
+          [infoBody]="
+            'Average Health = mean of each project’s Health score (each project counts equally). ' +
+            glossary.health.summary +
+            ' ' +
+            glossary.health.thresholds +
+            ' ' +
+            glossary.health.detail
+          "
         />
         <app-kpi-card
           label="Avg risk"
           [value]="board.kpis.averageRiskScore ?? '—'"
           kind="score"
-          hint="Score 0–100 (not a %)"
+          severity="watch"
+          hint="Average of each project’s Risk score (0–100). Higher = more delivery risk."
           [infoTitle]="glossary.risk.title"
-          [infoBody]="glossary.risk.summary"
+          [infoBody]="
+            'Average Risk = mean of each project’s Risk score (each project counts equally). ' +
+            glossary.risk.summary +
+            ' ' +
+            glossary.risk.thresholds +
+            ' ' +
+            glossary.risk.detail
+          "
         />
       </div>
+      </section>
 
-      <h3 class="detail__section-title">Visual analytics</h3>
-      <div class="charts">
-        <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Risk distribution" [data]="riskChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Actual progress bands" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Overdue work packages" [data]="overdueWpChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-        <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
+      <section class="detail__flow-section" paReveal>
+      <h3 class="detail__section-title">Overview</h3>
+      <div class="kpi-row">
+        <app-kpi-card
+          label="Total projects"
+          [value]="board.kpis.totalProjects"
+          kind="volume"
+          [accent]="true"
+          hint="Projects in this portfolio"
+          actionLabel="Explore all →"
+          [clickable]="true"
+          (activated)="openExplorer('clearExceptions')"
+        />
+        <app-kpi-card
+          label="Active projects"
+          [value]="board.kpis.activeProjects"
+          kind="volume"
+          hint="Projects that are not archived in OpenProject."
+          infoTitle="Active projects"
+          infoBody="Counts portfolio projects whose status is not ARCHIVED. Statuses like On track or At risk still count as active."
+        />
+        <app-kpi-card
+          label="Projects needing attention"
+          [value]="needsAttentionDisplay()"
+          kind="count"
+          severity="critical"
+          hint="Projects with a Needs Attention score of 50 or higher."
+          [infoTitle]="glossary.needsAttention.title"
+          [infoBody]="
+            'Count of projects with Needs Attention ≥ 50. ' +
+            glossary.needsAttention.summary +
+            ' Built from Health, Risk, and overdue / past-finish pressure (see Avg health and Avg risk above).'
+          "
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('needsAttention')"
+        />
+        <app-kpi-card
+          label="Critical health"
+          [value]="board.kpis.criticalProjects"
+          kind="count"
+          severity="critical"
+          hint="Projects with Critical Health (Health score below 40)."
+          infoTitle="Critical health"
+          infoBody="Count of projects with Health below 40 (Critical band). Health definition is explained under Avg health above."
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('critical')"
+        />
+        <app-kpi-card
+          label="With overdue WPs"
+          [value]="board.kpis.projectsWithOverdueWorkPackages"
+          kind="count"
+          severity="watch"
+          hint="Projects with at least one open work package past its due date."
+          infoTitle="Projects with overdue work packages"
+          infoBody="Counts projects that have at least one open synchronized work package whose due date is before today."
+          actionLabel="View all →"
+          [clickable]="true"
+          (activated)="openExplorer('hasOverdueWp')"
+        />
+        <app-kpi-card
+          label="Total work packages"
+          [value]="board.kpis.totalWorkPackages"
+          kind="volume"
+          hint="All synchronized work packages across portfolio projects"
+        />
       </div>
+      </section>
 
-      <h3 class="detail__section-title">Member intelligence</h3>
+      <section class="detail__flow-section" paReveal>
+      <h3 class="detail__section-title">Visual analytics</h3>
+      <div class="pa-charts charts">
+        <div class="pa-chart-block">
+          <app-pa-donut-chart
+            title="Health distribution"
+            subtitle="Portfolio projects by Health band"
+            centerLabel="Projects"
+            [data]="healthDonut()"
+            [interactive]="true"
+            (sliceClick)="onDistributionClick($event.name)"
+          >
+            <ul class="pa-chart-legend" shellFooter aria-label="Health band meanings">
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--danger" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>Critical</strong>
+                  <span class="pa-chart-legend__meta">Health below 40</span>
+                </span>
+              </li>
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--warning" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>Watch</strong>
+                  <span class="pa-chart-legend__meta">Health 40–69</span>
+                </span>
+              </li>
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--success" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>Healthy</strong>
+                  <span class="pa-chart-legend__meta">Health 70–100</span>
+                </span>
+              </li>
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--muted" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>Unknown</strong>
+                  <span class="pa-chart-legend__meta">Not scored yet (if shown)</span>
+                </span>
+              </li>
+            </ul>
+          </app-pa-donut-chart>
+        </div>
+        <div class="pa-chart-block">
+          <app-pa-bar-chart
+            title="Actual progress bands"
+            subtitle="Portfolio projects by progress %"
+            [data]="progressBars()"
+            [interactive]="true"
+            (barClick)="onDistributionClick($event.name)"
+          >
+            <div class="pa-chart-legend pa-chart-legend--note" shellFooter>
+              <p class="pa-chart-legend__note">
+                Progress uses completed work packages ÷ total (same as Avg progress).
+                Bands: <strong>0–33%</strong>, <strong>34–66%</strong>, <strong>67–100%</strong> complete.
+              </p>
+            </div>
+          </app-pa-bar-chart>
+        </div>
+        <div class="pa-chart-block">
+          <app-pa-bar-chart
+            title="Overdue work packages"
+            subtitle="Projects with overdue open WPs"
+            [data]="overdueBars()"
+            [interactive]="true"
+            (barClick)="onDistributionClick($event.name)"
+          >
+            <ul class="pa-chart-legend" shellFooter aria-label="Overdue work package split meanings">
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--danger" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>Has overdue WPs</strong>
+                  <span class="pa-chart-legend__meta">≥ 1 open WP past due</span>
+                </span>
+              </li>
+              <li>
+                <span class="pa-chart-legend__swatch pa-chart-legend__swatch--viz2" aria-hidden="true"></span>
+                <span class="pa-chart-legend__copy">
+                  <strong>No overdue WPs</strong>
+                  <span class="pa-chart-legend__meta">No open overdue work packages</span>
+                </span>
+              </li>
+            </ul>
+          </app-pa-bar-chart>
+        </div>
+      </div>
+      </section>
+
+      <section class="detail__flow-section" paReveal>
+      <h3 class="detail__section-title">Project intelligence</h3>
       <p class="detail__hint">
-        All members sorted by attention — open a project for factor breakdown, or use Explorer for full filtering.
+        All projects sorted by attention — open a project for factor breakdown, or use Explorer for full filtering.
       </p>
       @if (memberRows().length === 0) {
         <app-empty-state
-          title="No members yet"
+          title="No projects yet"
           message="Add workspace projects on the Membership tab to build this analytical view."
         />
       } @else {
@@ -188,12 +307,14 @@
           density="dense"
         />
       }
+      </section>
 
-      <div class="detail__two-col">
+      <div class="detail__two-col" paReveal>
         <app-attention-table title="Highest attention" [projects]="board.topAttentionProjects" />
         <app-attention-table title="Critical health" [projects]="board.criticalHealthProjects" />
       </div>
 
+      <section class="detail__flow-section" paReveal>
       <app-insight-list title="Portfolio insights" [items]="board.insights" />
 
       @if (recommendations(); as reco) {
@@ -203,14 +324,15 @@
           [items]="reco.recommendations"
         />
       }
+      </section>
     }
 
     @if (activeTab() === 'membership') {
-      <section class="detail__block">
-        <h3>Member projects</h3>
+      <section class="detail__block" paReveal>
+        <h3>Projects in this portfolio</h3>
         <p class="detail__hint">
-          Membership is many-to-many and organizational only. Use analytical filters to shortlist candidates, then
-          multi-select and add.
+          Portfolio membership is many-to-many and organizational only. Use analytical filters to shortlist projects,
+          then multi-select and add.
         </p>
 
         <div class="detail__assign-panel">
@@ -223,7 +345,7 @@
           />
           <button
             type="button"
-            class="detail__add"
+            class="pa-btn pa-btn--primary detail__add"
             (click)="addSelected()"
             [disabled]="selectedProjectIds().length === 0 || adding()"
           >
@@ -243,36 +365,44 @@
             message="Filter and select synchronized workspace projects above to build this analytical view."
           />
         } @else {
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Progress</th>
-                <th>Overdue WPs</th>
-                <th>Health</th>
-                <th>Risk</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (project of portfolio.projects; track project.id) {
+          <div class="detail__table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td>
-                    <a [routerLink]="['/projects', project.id]">{{ project.name }}</a>
-                  </td>
-                  <td>{{ project.status || '—' }}</td>
-                  <td>{{ memberMetric(project.id, 'progress') }}</td>
-                  <td>{{ memberMetric(project.id, 'overdue') }}</td>
-                  <td>{{ memberMetric(project.id, 'health') }}</td>
-                  <td>{{ memberMetric(project.id, 'risk') }}</td>
-                  <td>
-                    <button type="button" class="linkish" (click)="removeProject(project.id)">Remove</button>
-                  </td>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Overdue WPs</th>
+                  <th>Health</th>
+                  <th>Risk</th>
+                  <th></th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (project of portfolio.projects; track project.id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/projects', project.id]">{{ project.name }}</a>
+                    </td>
+                    <td>{{ project.status || '—' }}</td>
+                    <td>{{ memberMetric(project.id, 'progress') }}</td>
+                    <td>{{ memberMetric(project.id, 'overdue') }}</td>
+                    <td>{{ memberMetric(project.id, 'health') }}</td>
+                    <td>{{ memberMetric(project.id, 'risk') }}</td>
+                    <td>
+                      <button
+                        type="button"
+                        class="pa-btn pa-btn--ghost pa-btn--sm"
+                        (click)="removeProject(project.id)"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
       </section>
     }

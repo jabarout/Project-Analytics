@@ -20,8 +20,8 @@ import { Component, input } from '@angular/core';
   styles: `
     .insights {
       padding: 1.1rem;
-      border: 1px solid var(--pa-border);
-      border-radius: 12px;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-lg);
       background: var(--pa-surface);
     }
     h3 {
@@ -35,7 +35,7 @@ import { Component, input } from '@angular/core';
     }
     .insights__empty {
       margin: 0;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
   `,
 })

@@ -9,7 +9,7 @@ public enum Theme {
 
     public static Theme fromConfigValue(String value) {
         if (value == null || value.isBlank()) {
-            return LIGHT;
+            return DARK;
         }
         return Theme.valueOf(value.trim().toUpperCase());
     }

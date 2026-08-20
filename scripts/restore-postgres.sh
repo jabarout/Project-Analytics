@@ -29,7 +29,8 @@ DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-projectanalytics}"
 DB_USERNAME="${DB_USERNAME:-projectanalytics}"
 DB_PASSWORD="${DB_PASSWORD:-projectanalytics}"
-REPORT_STORAGE_PATH="${REPORT_STORAGE_PATH:-./data/reports}"
+# Repo-root default matches run-backend.sh (cwd=backend/). Docker sets /data/reports.
+REPORT_STORAGE_PATH="${REPORT_STORAGE_PATH:-./backend/data/reports}"
 
 DUMP="${BACKUP_PATH}/postgres.dump"
 if [[ ! -f "$DUMP" ]]; then

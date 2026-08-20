@@ -4,6 +4,14 @@ Enterprise Decision Intelligence Platform for OpenProject
 
 ---
 
+## Quick links
+
+| Audience | Start here |
+|----------|------------|
+| Local / company laptop setup | [`README-XTENSUS.md`](README-XTENSUS.md) |
+| **Production deploy & customer handoff** | [`docs/ops/DEPLOY.md`](docs/ops/DEPLOY.md) |
+| Ops index | [`docs/ops/README.md`](docs/ops/README.md) |
+
 ## Overview
 
 Project Analytics is an enterprise web application designed to extend OpenProject by transforming operational project data into meaningful business intelligence.

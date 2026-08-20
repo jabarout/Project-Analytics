@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-login-page',
@@ -13,6 +14,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginPage implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -86,6 +88,7 @@ export class LoginPage implements OnInit {
       next: () => {
         this.authService.loadCurrentUser().subscribe({
           next: () => {
+            this.themeService.syncFromUserPreferences();
             this.loading.set(false);
             void this.router.navigateByUrl('/');
           },

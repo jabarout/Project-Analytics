@@ -1,12 +1,95 @@
+/* =============================================================================
+ * Project Analytics design tokens — monochromatic-first
+ * Chrome = black / white / grey shades only.
+ * Semantic hues only for healthy / attention / critical / errors.
+ * ============================================================================= */
+
 :root {
-  --pa-bg: #f7f8fb;
+  /* Neutrals — light (bold / crisp separation) */
+  --pa-bg: #e4e4ea;
+  --pa-bg-elevated: #dadce3;
   --pa-surface: #ffffff;
-  --pa-surface-muted: #f1f5f9;
-  --pa-border: #e2e8f0;
-  --pa-text: #0f172a;
-  --pa-text-muted: #64748b;
-  --pa-accent: #1d4ed8;
-  --pa-radius: 12px;
+  --pa-surface-muted: #ececf2;
+  --pa-surface-strong: #c8cad3;
+  --pa-border: #b4b6c0;
+  --pa-border-strong: #7a7d8a;
+  --pa-text: #050507;
+  --pa-text-secondary: #2e3038;
+  --pa-text-tertiary: #555866;
+  /* Alias used by older component SCSS */
+  --pa-text-muted: var(--pa-text-secondary);
+  --pa-inverse: #ffffff;
+  --pa-focus-ring: #050507;
+  /* Button interaction tokens (shared grammar) */
+  --pa-btn-primary-bg: var(--pa-text);
+  --pa-btn-primary-fg: var(--pa-inverse);
+  --pa-btn-primary-hover: #2a2a32;
+  --pa-btn-secondary-bg: var(--pa-surface);
+  --pa-btn-secondary-border: var(--pa-border-strong);
+  --pa-btn-secondary-hover: var(--pa-surface-strong);
+
+  /* Semantic — meaning only */
+  --pa-success: #1f7a54;
+  --pa-success-muted: rgba(31, 122, 84, 0.12);
+  --pa-warning: #b45309;
+  --pa-warning-muted: rgba(180, 83, 9, 0.12);
+  --pa-danger: #c2343a;
+  --pa-danger-muted: rgba(194, 52, 58, 0.12);
+
+  /* Shape */
+  --pa-radius-sm: 8px;
+  --pa-radius-md: 12px;
+  --pa-radius-lg: 18px;
+  --pa-radius-pill: 9999px;
+
+  /* Typography scale */
+  --pa-font-xs: 0.75rem;
+  --pa-font-sm: 0.875rem;
+  --pa-font-md: 1rem;
+  --pa-font-lg: 1.125rem;
+  --pa-font-xl: 1.35rem;
+  --pa-font-2xl: 1.6rem;
+  --pa-font-kpi: clamp(1.35rem, 2.5vw, 1.75rem);
+  --pa-weight-normal: 400;
+  --pa-weight-medium: 560;
+  --pa-weight-semibold: 650;
+  --pa-weight-bold: 750;
+  --pa-leading-tight: 1.2;
+  --pa-leading-normal: 1.5;
+
+  /* Motion — short, purposeful chrome interaction only (charts use ECharts-native) */
+  --pa-motion-fast: 120ms;
+  --pa-motion-normal: 160ms;
+  --pa-motion-enter: 180ms;
+  --pa-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pa-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* N4 scroll reveal — perceptible, premium settle (not a micro-pop) */
+  --pa-reveal-duration: 480ms;
+  --pa-reveal-distance: 18px;
+  --pa-reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Chart neutrals (axes / secondary volume) */
+  --pa-chart-1: #111113;
+  --pa-chart-2: #5c5c66;
+  --pa-chart-3: #8e8e99;
+  --pa-chart-4: #c8c8ce;
+
+  /* Bright intentional data hues (viz only — not chrome) */
+  --pa-viz-1: #2563eb;
+  --pa-viz-2: #0d9488;
+  --pa-viz-3: #ea580c;
+  --pa-viz-4: #db2777;
+  --pa-viz-5: #7c3aed;
+  --pa-viz-up: #059669;
+  --pa-viz-down: #dc2626;
+
+  /* Global chart sizing rhythm */
+  --pa-chart-h-sm: 200px;
+  --pa-chart-h-md: 260px;
+  --pa-chart-h-lg: 320px;
+  --pa-chart-h-max: 380px;
+
   font-family:
     Inter,
     'Segoe UI',
@@ -16,10 +99,67 @@
     sans-serif;
   color: var(--pa-text);
   background: var(--pa-bg);
-  line-height: 1.5;
+  line-height: var(--pa-leading-normal);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  /* Bold canvas↔surface separation (avoid washed-out near-blacks) */
+  --pa-bg: #000000;
+  --pa-bg-elevated: #0a0a0c;
+  --pa-surface: #1a1a1f;
+  --pa-surface-muted: #26262e;
+  --pa-surface-strong: #3a3a46;
+  --pa-border: rgba(255, 255, 255, 0.18);
+  --pa-border-strong: rgba(255, 255, 255, 0.34);
+  --pa-text: #ffffff;
+  --pa-text-secondary: rgba(255, 255, 255, 0.88);
+  --pa-text-tertiary: rgba(255, 255, 255, 0.64);
+  --pa-text-muted: var(--pa-text-secondary);
+  --pa-inverse: #050507;
+  --pa-focus-ring: #ffffff;
+  --pa-btn-primary-bg: #ffffff;
+  --pa-btn-primary-fg: #050507;
+  --pa-btn-primary-hover: #d8d8de;
+  --pa-btn-secondary-bg: #26262e;
+  --pa-btn-secondary-border: rgba(255, 255, 255, 0.34);
+  --pa-btn-secondary-hover: #3a3a46;
+
+  --pa-success: #3dba7e;
+  --pa-success-muted: rgba(61, 186, 126, 0.16);
+  --pa-warning: #e0a03a;
+  --pa-warning-muted: rgba(224, 160, 58, 0.16);
+  --pa-danger: #e86a6f;
+  --pa-danger-muted: rgba(232, 106, 111, 0.16);
+
+  --pa-chart-1: #f5f5f6;
+  --pa-chart-2: rgba(245, 245, 246, 0.7);
+  --pa-chart-3: rgba(245, 245, 246, 0.45);
+  --pa-chart-4: rgba(245, 245, 246, 0.22);
+
+  /* Higher-energy series for dark canvases */
+  --pa-viz-1: #60a5fa;
+  --pa-viz-2: #2dd4bf;
+  --pa-viz-3: #fb923c;
+  --pa-viz-4: #f472b6;
+  --pa-viz-5: #a78bfa;
+  --pa-viz-up: #34d399;
+  --pa-viz-down: #f87171;
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pa-motion-fast: 0ms;
+    --pa-motion-normal: 0ms;
+    --pa-motion-enter: 0ms;
+    --pa-reveal-duration: 0ms;
+    --pa-reveal-distance: 0px;
+  }
 }
 
 *,
@@ -33,10 +173,30 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--pa-bg);
+  color: var(--pa-text);
 }
 
-body {
-  margin: 0;
+h1,
+h2,
+h3,
+h4 {
+  color: var(--pa-text);
+  font-weight: var(--pa-weight-bold);
+  letter-spacing: -0.02em;
+  line-height: var(--pa-leading-tight);
+}
+
+h1 {
+  font-size: var(--pa-font-2xl);
+}
+
+h2 {
+  font-size: var(--pa-font-xl);
+}
+
+h3 {
+  font-size: var(--pa-font-lg);
+  font-weight: var(--pa-weight-semibold);
 }
 
 button,
@@ -44,8 +204,735 @@ input,
 select,
 textarea {
   font: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  background: var(--pa-surface);
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-md);
+  color: var(--pa-text);
+  transition:
+    border-color var(--pa-motion-fast) var(--pa-ease),
+    background-color var(--pa-motion-fast) var(--pa-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-ease);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--pa-text-tertiary);
+  opacity: 1;
 }
 
 a {
-  color: var(--pa-accent);
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pa-focus-ring);
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------------
+ * Shared controls
+ * ----------------------------------------------------------------------------- */
+
+.pa-card,
+.pa-panel {
+  background: var(--pa-surface);
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-lg);
+  padding: 1.25rem 1.35rem;
+  color: var(--pa-text);
+}
+
+.pa-panel--muted {
+  background: var(--pa-surface-muted);
+}
+
+.pa-panel--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pa-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pa-table th,
+.pa-table td {
+  text-align: left;
+  padding: 0.6rem 0.45rem;
+  border-bottom: 1px solid var(--pa-border);
+  color: var(--pa-text);
+}
+
+.pa-table th {
+  font-size: var(--pa-font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pa-text-secondary);
+  font-weight: var(--pa-weight-semibold);
+}
+
+/*
+ * Shared button grammar for <button> and <a> (primary vs secondary hierarchy,
+ * same hover/active/focus/disabled mechanics).
+ */
+.pa-btn,
+a.pa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.65rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--pa-radius-pill);
+  border: 2px solid transparent;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color var(--pa-motion-fast) var(--pa-ease),
+    border-color var(--pa-motion-fast) var(--pa-ease),
+    color var(--pa-motion-fast) var(--pa-ease),
+    transform var(--pa-motion-fast) var(--pa-ease),
+    filter var(--pa-motion-fast) var(--pa-ease);
+}
+
+.pa-btn:hover,
+a.pa-btn:hover {
+  text-decoration: none;
+}
+
+.pa-btn:active:not(:disabled),
+a.pa-btn:active {
+  transform: scale(0.985);
+}
+
+.pa-btn:focus-visible,
+a.pa-btn:focus-visible {
+  outline: 2px solid var(--pa-focus-ring);
+  outline-offset: 2px;
+}
+
+.pa-btn:disabled,
+a.pa-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+.pa-btn--primary,
+a.pa-btn--primary {
+  background: var(--pa-btn-primary-bg);
+  color: var(--pa-btn-primary-fg);
+  border-color: transparent;
+}
+
+.pa-btn--primary:hover:not(:disabled),
+a.pa-btn--primary:hover {
+  background: var(--pa-btn-primary-hover);
+  color: var(--pa-btn-primary-fg);
+}
+
+.pa-btn--secondary,
+a.pa-btn--secondary {
+  background: var(--pa-btn-secondary-bg);
+  color: var(--pa-text);
+  border-color: var(--pa-btn-secondary-border);
+}
+
+.pa-btn--secondary:hover:not(:disabled),
+a.pa-btn--secondary:hover {
+  background: var(--pa-btn-secondary-hover);
+  border-color: var(--pa-text-tertiary);
+  color: var(--pa-text);
+}
+
+.pa-btn--outline,
+a.pa-btn--outline {
+  background: transparent;
+  border-color: var(--pa-border-strong);
+  color: var(--pa-text);
+}
+
+.pa-btn--outline:hover:not(:disabled),
+a.pa-btn--outline:hover {
+  background: var(--pa-surface-muted);
+}
+
+.pa-btn--ghost,
+a.pa-btn--ghost {
+  background: transparent;
+  color: var(--pa-text-secondary);
+  min-height: 2.25rem;
+  padding: 0.4rem 0.85rem;
+  border-color: transparent;
+}
+
+.pa-btn--ghost:hover:not(:disabled),
+a.pa-btn--ghost:hover {
+  color: var(--pa-text);
+  background: var(--pa-surface-muted);
+}
+
+.pa-btn--danger,
+a.pa-btn--danger {
+  background: var(--pa-danger);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pa-btn--danger:hover:not(:disabled),
+a.pa-btn--danger:hover {
+  filter: brightness(1.08);
+}
+
+.pa-btn--sm,
+a.pa-btn--sm {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.875rem;
+}
+
+.pa-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--pa-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--pa-surface-muted);
+  color: var(--pa-text-secondary);
+  border: 1px solid transparent;
+}
+
+.pa-chip--success {
+  background: var(--pa-success-muted);
+  color: var(--pa-success);
+}
+
+.pa-chip--warning {
+  background: var(--pa-warning-muted);
+  color: var(--pa-warning);
+}
+
+.pa-chip--danger {
+  background: var(--pa-danger-muted);
+  color: var(--pa-danger);
+}
+
+.pa-banner {
+  border-radius: var(--pa-radius-md);
+  border: 1px solid var(--pa-border);
+  background: var(--pa-surface-muted);
+  color: var(--pa-text-secondary);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+.pa-banner--draft {
+  border-style: dashed;
+}
+
+/* Shared legal / policy pages (Privacy, Terms, Contact) */
+.legal {
+  max-width: 40rem;
+  padding: 0.5rem 0 2rem;
+}
+
+.legal h1 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  font-weight: 650;
+}
+
+.legal h2 {
+  margin: 1.5rem 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.legal__lede,
+.legal p,
+.legal ul {
+  color: var(--pa-text-secondary);
+  line-height: 1.6;
+}
+
+.legal ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.legal__card {
+  margin: 1.25rem 0;
+  padding: 1rem 1.15rem;
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-lg);
+  background: var(--pa-surface);
+}
+
+.legal__card h2 {
+  margin-top: 0;
+}
+
+.legal__mail {
+  font-weight: 600;
+  color: var(--pa-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.legal__mail:hover {
+  text-decoration: underline;
+}
+
+.pa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pa-field span {
+  font-size: 0.85rem;
+  font-weight: 560;
+  color: var(--pa-text-secondary);
+}
+
+.pa-field input,
+.pa-field select,
+.pa-field textarea {
+  min-height: 2.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--pa-radius-md);
+  border: 2px solid var(--pa-border-strong);
+  background: var(--pa-surface);
+  color: var(--pa-text);
+}
+
+/* Segmented control / pill tabs (workspace picker, portfolio tabs, etc.) */
+.pa-segment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pa-segment > button.pa-btn-reset,
+button.pa-segment__btn {
+  border: 2px solid var(--pa-border-strong);
+  background: var(--pa-surface-muted);
+  color: var(--pa-text-secondary);
+  border-radius: var(--pa-radius-pill);
+  padding: 0.45rem 1rem;
+  min-height: 2.35rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--pa-motion-fast) var(--pa-ease),
+    border-color var(--pa-motion-fast) var(--pa-ease),
+    color var(--pa-motion-fast) var(--pa-ease),
+    transform var(--pa-motion-fast) var(--pa-ease);
+}
+
+.pa-segment > button.pa-btn-reset:hover,
+button.pa-segment__btn:hover {
+  background: var(--pa-surface-strong);
+  color: var(--pa-text);
+}
+
+.pa-segment > button.pa-btn-reset:active:not(:disabled),
+button.pa-segment__btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.pa-segment > button.pa-btn-reset.is-active,
+button.pa-segment__btn.is-active {
+  border-color: var(--pa-text);
+  color: var(--pa-inverse);
+  background: var(--pa-text);
+}
+
+.pa-field input:focus-visible,
+.pa-field select:focus-visible,
+.pa-field textarea:focus-visible {
+  outline: 2px solid var(--pa-focus-ring);
+  outline-offset: 1px;
+}
+
+.pa-page-enter {
+  animation: pa-fade-in var(--pa-motion-enter) var(--pa-ease-out);
+}
+
+.pa-enter {
+  animation: pa-fade-up var(--pa-motion-enter) var(--pa-ease-out);
+}
+
+@keyframes pa-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pa-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * N4 scroll / viewport reveal — composed sections enter with a clear settle.
+ * Chart containers only; ECharts keeps its own series animation.
+ */
+.pa-reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--pa-reveal-distance, 18px), 0);
+  transition:
+    opacity var(--pa-reveal-duration, 480ms) var(--pa-reveal-ease, ease-out),
+    transform var(--pa-reveal-duration, 480ms) var(--pa-reveal-ease, ease-out);
+  transition-delay: var(--pa-reveal-delay, 0ms);
+}
+
+/* Custom-element hosts are inline by default — blockify so transform/opacity apply cleanly. */
+app-recommendation-list.pa-reveal,
+app-attention-table.pa-reveal,
+app-insight-list.pa-reveal,
+app-explorer-filter-panel.pa-reveal,
+app-health-drivers.pa-reveal {
+  display: block;
+  width: 100%;
+}
+
+.pa-reveal.pa-reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+.pa-reveal.pa-reveal--instant {
+  transition: none !important;
+  transition-delay: 0ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/*
+ * Global button system — bare <button> shares the same interaction grammar
+ * as .pa-btn (hover luminance, press scale, focus ring, disabled).
+ * Opt out with .pa-btn-reset (tabs/pickers).
+ */
+button:not(.pa-btn-reset):not(.pa-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.65rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--pa-radius-pill);
+  border: 2px solid var(--pa-btn-secondary-border);
+  background: var(--pa-btn-secondary-bg);
+  color: var(--pa-text);
+  font: inherit;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color var(--pa-motion-fast) var(--pa-ease),
+    border-color var(--pa-motion-fast) var(--pa-ease),
+    color var(--pa-motion-fast) var(--pa-ease),
+    transform var(--pa-motion-fast) var(--pa-ease),
+    filter var(--pa-motion-fast) var(--pa-ease);
+}
+
+button:not(.pa-btn-reset):not(.pa-btn):hover:not(:disabled) {
+  background: var(--pa-btn-secondary-hover);
+  border-color: var(--pa-text-tertiary);
+}
+
+button:not(.pa-btn-reset):not(.pa-btn):active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:not(.pa-btn-reset):not(.pa-btn):focus-visible {
+  outline: 2px solid var(--pa-focus-ring);
+  outline-offset: 2px;
+}
+
+button:not(.pa-btn-reset):not(.pa-btn):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary filled — shared hover token (not opacity-only) */
+button.primary:not(.pa-btn-reset),
+button[type='submit']:not(.pa-btn-reset):not(.secondary):not(.danger):not(.linkish):not(.ghost) {
+  background: var(--pa-btn-primary-bg);
+  color: var(--pa-btn-primary-fg);
+  border-color: transparent;
+}
+
+button.primary:not(.pa-btn-reset):hover:not(:disabled),
+button[type='submit']:not(.pa-btn-reset):not(.secondary):not(.danger):not(.linkish):not(.ghost):hover:not(:disabled) {
+  background: var(--pa-btn-primary-hover);
+  color: var(--pa-btn-primary-fg);
+  opacity: 1;
+}
+
+button.secondary:not(.pa-btn-reset) {
+  background: var(--pa-btn-secondary-bg);
+  color: var(--pa-text);
+  border-color: var(--pa-btn-secondary-border);
+}
+
+button.secondary:not(.pa-btn-reset):hover:not(:disabled) {
+  background: var(--pa-btn-secondary-hover);
+  border-color: var(--pa-text-tertiary);
+}
+
+button.danger:not(.pa-btn-reset) {
+  background: var(--pa-danger);
+  color: #fff;
+  border-color: transparent;
+}
+
+button.danger:not(.pa-btn-reset):hover:not(:disabled) {
+  filter: brightness(1.1);
+  background: var(--pa-danger);
+}
+
+button.linkish:not(.pa-btn-reset),
+button.ghost:not(.pa-btn-reset),
+button.auth__link:not(.pa-btn-reset) {
+  background: transparent;
+  border-color: transparent;
+  color: var(--pa-text-secondary);
+  min-height: auto;
+  padding: 0.25rem 0.15rem;
+  font-weight: 600;
+}
+
+button.linkish:not(.pa-btn-reset):hover:not(:disabled),
+button.ghost:not(.pa-btn-reset):hover:not(:disabled),
+button.auth__link:not(.pa-btn-reset):hover:not(:disabled) {
+  color: var(--pa-text);
+  background: transparent;
+  text-decoration: underline;
+  transform: none;
+}
+
+/* Tab / picker rows that manage their own look */
+button.pa-btn-reset {
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  min-height: 0;
+}
+
+/* Global chart layout rhythm — 2-up desktop, stack on narrow */
+.pa-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.pa-charts--hero {
+  grid-template-columns: 1fr;
+}
+
+/*
+ * Do not clamp chart hosts to --pa-chart-h-max.
+ * Canvas height is already capped inside pa-chart-shell; clamping the host
+ * (padding + title + canvas) makes the shell overflow into the next section.
+ */
+.pa-charts > * {
+  min-width: 0;
+  max-height: none;
+}
+
+/* Chart + fused footer legend as one grid cell */
+.pa-charts > .pa-chart-block,
+.pa-charts > .home__chart-block {
+  height: auto;
+  align-self: start;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Fused chart-footer legend chips (projected into shellFooter) */
+.pa-chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+}
+
+.pa-chart-legend > li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.35rem 0.55rem 0.35rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--pa-border) 85%, transparent);
+  border-radius: var(--pa-radius-pill);
+  background: color-mix(in srgb, var(--pa-surface) 78%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--pa-text) 4%, transparent);
+}
+
+.pa-chart-legend__swatch {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--pa-chart-3, var(--pa-text-tertiary));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pa-text) 12%, transparent);
+}
+
+.pa-chart-legend__swatch--danger {
+  background: var(--pa-danger);
+}
+
+.pa-chart-legend__swatch--warning {
+  background: var(--pa-warning);
+}
+
+.pa-chart-legend__swatch--success {
+  background: var(--pa-success);
+}
+
+.pa-chart-legend__swatch--muted {
+  background: var(--pa-chart-3, var(--pa-text-tertiary));
+}
+
+.pa-chart-legend__swatch--viz1 {
+  background: var(--pa-viz-1, var(--pa-chart-1));
+}
+
+.pa-chart-legend__swatch--viz2 {
+  background: var(--pa-viz-2, var(--pa-chart-2));
+}
+
+.pa-chart-legend__swatch--viz3 {
+  background: var(--pa-viz-3, var(--pa-chart-3));
+}
+
+.pa-chart-legend__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pa-chart-legend__copy strong {
+  color: var(--pa-text);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.pa-chart-legend__meta {
+  color: var(--pa-text-tertiary);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.pa-chart-legend--note {
+  display: block;
+}
+
+.pa-chart-legend__note {
+  margin: 0;
+  color: var(--pa-text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.pa-chart-legend__note strong {
+  color: var(--pa-text);
+  font-weight: 650;
+}
+
+@media (max-width: 900px) {
+  .pa-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-btn:active:not(:disabled),
+  a.pa-btn:active,
+  .pa-segment > button.pa-btn-reset:active:not(:disabled),
+  button.pa-segment__btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .pa-btn--danger:hover:not(:disabled),
+  a.pa-btn--danger:hover {
+    filter: none;
+  }
+
+  .pa-page-enter,
+  .pa-enter {
+    animation: none;
+  }
+
+  .pa-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  button:not(.pa-btn-reset):not(.pa-btn) {
+    transition: none;
+  }
+
+  button:not(.pa-btn-reset):not(.pa-btn):active:not(:disabled) {
+    transform: none;
+  }
+
+  input,
+  select,
+  textarea {
+    transition: none;
+  }
 }

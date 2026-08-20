@@ -7,7 +7,7 @@
     </p>
   </header>
 
-  <form class="portfolios__form" [formGroup]="form" (ngSubmit)="create()">
+  <form class="portfolios__form" paReveal [formGroup]="form" (ngSubmit)="create()">
     <h3>Create portfolio</h3>
     <label>
       <span>Workspace</span>
@@ -41,7 +41,7 @@
       />
     </div>
 
-    <button type="submit" [disabled]="creating()">
+    <button type="submit" class="pa-btn pa-btn--primary" [disabled]="creating()">
       {{ creating() ? 'Creating…' : 'Create portfolio' }}
     </button>
   </form>
@@ -61,7 +61,7 @@
       message="Create a portfolio and select projects with the filter above."
     />
   } @else {
-    <div class="portfolios__grid">
+    <div class="portfolios__grid" paReveal [paRevealStagger]="true">
       @for (portfolio of portfolios(); track portfolio.id) {
         <a class="portfolio-card" [routerLink]="['/portfolios', portfolio.id]">
           <h3>{{ portfolio.name }}</h3>

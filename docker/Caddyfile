@@ -1,0 +1,8 @@
+# TLS-terminating reverse proxy for VPS deploy.
+# Set DOMAIN in prod.env (e.g. analytics.example.com).
+# Caddy obtains Let's Encrypt certificates when DNS points at this host.
+
+{$DOMAIN:localhost} {
+	encode gzip
+	reverse_proxy frontend:80
+}

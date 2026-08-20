@@ -18,44 +18,24 @@
 
 .executive__header p {
   margin: 0;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
   max-width: 40rem;
   line-height: 1.5;
 }
 
 .executive__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.executive__actions button {
-  font: inherit;
-  border: none;
-  border-radius: 0.65rem;
-  padding: 0.65rem 0.9rem;
-  background: #1d4ed8;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.executive__actions button.secondary {
-  background: var(--pa-surface);
-  color: var(--pa-text);
-  border: 1px solid var(--pa-border);
 }
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.9rem;
 }
 
-.charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
+/* Chart grid: global .pa-charts */
 
 .workspace-cards h3 {
   margin: 0 0 0.75rem;
@@ -72,13 +52,36 @@
   text-decoration: none;
   color: inherit;
   padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--pa-border);
+  border-radius: var(--pa-radius-lg);
+  border: 2px solid var(--pa-border-strong);
   background: var(--pa-surface);
+  transition:
+    border-color var(--pa-motion-fast) var(--pa-ease),
+    box-shadow var(--pa-motion-fast) var(--pa-ease),
+    transform var(--pa-motion-fast) var(--pa-ease);
 }
 
 .workspace-card:hover {
-  border-color: #1d4ed8;
+  border-color: var(--pa-text);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--pa-text) 8%, transparent);
+  transform: translateY(-1px);
+}
+
+.workspace-card:active {
+  transform: scale(0.995);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-card {
+    transition: none;
+  }
+
+  .workspace-card:hover,
+  .workspace-card:active {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .workspace-card h4 {
@@ -87,7 +90,7 @@
 
 .workspace-card p {
   margin: 0;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
   font-size: 0.85rem;
 }
 
@@ -102,7 +105,7 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card dd {

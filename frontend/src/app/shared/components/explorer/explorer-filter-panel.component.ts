@@ -117,6 +117,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Min"
+            aria-label="Health minimum"
             [ngModel]="filters().healthMin"
             (ngModelChange)="patch({ healthMin: toNum($event) })"
           />
@@ -125,6 +126,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Max"
+            aria-label="Health maximum"
             [ngModel]="filters().healthMax"
             (ngModelChange)="patch({ healthMax: toNum($event) })"
           />
@@ -139,6 +141,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Min"
+            aria-label="Progress minimum"
             [ngModel]="filters().progressMin"
             (ngModelChange)="patch({ progressMin: toNum($event) })"
           />
@@ -147,6 +150,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Max"
+            aria-label="Progress maximum"
             [ngModel]="filters().progressMax"
             (ngModelChange)="patch({ progressMax: toNum($event) })"
           />
@@ -161,6 +165,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Min"
+            aria-label="Risk minimum"
             [ngModel]="filters().riskMin"
             (ngModelChange)="patch({ riskMin: toNum($event) })"
           />
@@ -169,6 +174,7 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
             min="0"
             max="100"
             placeholder="Max"
+            aria-label="Risk maximum"
             [ngModel]="filters().riskMax"
             (ngModelChange)="patch({ riskMax: toNum($event) })"
           />
@@ -188,7 +194,9 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
         </select>
       </label>
 
-      <button type="button" class="filters__reset" (click)="reset.emit()">Reset filters</button>
+      <button type="button" class="pa-btn pa-btn--outline filters__reset" (click)="reset.emit()">
+        Reset filters
+      </button>
     </aside>
   `,
   styles: `
@@ -197,35 +205,35 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
       flex-direction: column;
       gap: 0.85rem;
       padding: 1rem;
-      border: 1px solid var(--pa-border);
-      border-radius: 12px;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-lg);
       background: var(--pa-surface);
       min-width: 220px;
     }
     h3 {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: var(--pa-font-md);
     }
     label,
     legend {
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
-      font-size: 0.78rem;
+      font-size: var(--pa-font-xs);
       font-weight: 600;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
     input,
     select {
-      border: 1px solid var(--pa-border);
-      border-radius: 0.5rem;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-md);
       padding: 0.45rem 0.55rem;
-      background: #fff;
+      background: var(--pa-surface);
       color: var(--pa-text);
     }
     fieldset {
-      border: 1px solid var(--pa-border);
-      border-radius: 0.65rem;
+      border: 2px solid var(--pa-border);
+      border-radius: var(--pa-radius-md);
       margin: 0;
       padding: 0.55rem 0.65rem;
     }
@@ -243,17 +251,16 @@ import { PortfolioSummary } from '../../../core/models/portfolio.model';
       gap: 0.4rem;
     }
     .filters__reset {
-      border: 1px solid var(--pa-border);
-      background: var(--pa-surface-muted);
-      border-radius: 0.55rem;
-      padding: 0.5rem 0.7rem;
-      cursor: pointer;
+      /* layout only — visual grammar from .pa-btn */
+      align-self: stretch;
+      width: 100%;
+      justify-content: center;
     }
     .filters__hint {
       margin: -0.35rem 0 0;
       font-size: 0.72rem;
       font-weight: 500;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       line-height: 1.3;
     }
   `,

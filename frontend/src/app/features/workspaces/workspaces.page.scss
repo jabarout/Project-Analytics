@@ -12,15 +12,15 @@
 .workspaces header p,
 .workspace-card__url {
   margin: 0;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .workspaces__form {
   display: grid;
   gap: 0.85rem;
   padding: 1.25rem;
-  border: 1px solid var(--pa-border);
-  border-radius: 12px;
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-lg);
   background: var(--pa-surface);
 }
 
@@ -35,33 +35,16 @@
 }
 
 .workspaces__form input,
-.workspaces__form button,
-.workspace-card button {
-  font: inherit;
-}
-
-.workspaces__form input {
-  border: 1px solid var(--pa-border);
-  border-radius: 0.65rem;
+.workspaces__form select,
+.workspace-card input,
+.workspace-card select {
   padding: 0.65rem 0.75rem;
+  min-height: 2.65rem;
 }
 
 .workspaces__form button,
 .workspace-card button {
   justify-self: start;
-  border: none;
-  border-radius: 0.7rem;
-  padding: 0.7rem 1rem;
-  background: #1d4ed8;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.workspaces__form button.secondary {
-  background: var(--pa-surface);
-  color: var(--pa-text);
-  border: 1px solid var(--pa-border);
 }
 
 .workspaces__alt {
@@ -70,33 +53,33 @@
 
 .workspaces__alt-hint {
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--pa-text-muted);
+  font-size: var(--pa-font-sm);
+  color: var(--pa-text-secondary);
 }
 
 .workspaces__oauth-continue {
   display: grid;
   gap: 0.65rem;
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(29, 78, 216, 0.35);
-  border-radius: 0.65rem;
-  background: rgba(29, 78, 216, 0.06);
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-surface-muted);
 }
 
 .workspaces__oauth-continue p {
   margin: 0;
-  font-size: 0.9rem;
-  color: var(--pa-text-muted);
+  font-size: var(--pa-font-sm);
+  color: var(--pa-text-secondary);
 }
 
 .workspaces__setup {
   margin: 0;
   padding: 0.85rem 1rem;
   border: 1px dashed var(--pa-border);
-  border-radius: 0.65rem;
-  background: var(--pa-bg, transparent);
-  font-size: 0.9rem;
-  color: var(--pa-text-muted);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-bg);
+  font-size: var(--pa-font-sm);
+  color: var(--pa-text-secondary);
 }
 
 .workspaces__setup h4 {
@@ -122,22 +105,7 @@
 
 .optional {
   font-weight: 500;
-  color: var(--pa-text-muted);
-}
-
-.workspaces__form button.linkish {
-  background: transparent;
-  color: #1d4ed8;
-  border: none;
-  padding: 0;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.workspace-card button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  color: var(--pa-text-secondary);
 }
 
 .workspaces__list {
@@ -151,9 +119,22 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1.25rem;
-  border: 1px solid var(--pa-border);
-  border-radius: 12px;
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-lg);
   background: var(--pa-surface);
+  min-width: 0;
+  overflow: hidden;
+  transition: border-color var(--pa-motion-fast) var(--pa-ease);
+}
+
+.workspace-card:hover {
+  border-color: var(--pa-text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-card {
+    transition: none;
+  }
 }
 
 .workspace-card h3 {
@@ -168,10 +149,10 @@
 }
 
 .workspace-card dt {
-  font-size: 0.75rem;
+  font-size: var(--pa-font-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card dd {
@@ -180,12 +161,12 @@
 }
 
 .workspaces__ok {
-  color: #0f766e;
+  color: var(--pa-success);
   margin: 0;
 }
 
 .workspaces__error {
-  color: #b91c1c;
+  color: var(--pa-danger);
   margin: 0;
 }
 
@@ -211,18 +192,15 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  font-size: 0.8rem;
+  font-size: var(--pa-font-xs);
   font-weight: 600;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card__rename input {
-  border: 1px solid var(--pa-border);
-  border-radius: 0.5rem;
   padding: 0.45rem 0.55rem;
-  font: inherit;
   min-width: 14rem;
-  color: var(--pa-text);
+  min-height: 2.35rem;
 }
 
 .workspace-card__actions {
@@ -230,42 +208,28 @@
   flex-direction: column;
   gap: 0.45rem;
   align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.workspace-card button.secondary {
-  background: var(--pa-surface);
-  color: var(--pa-text);
-  border: 1px solid var(--pa-border);
-}
-
-.workspace-card button.danger {
-  background: #fff;
-  color: #b91c1c;
-  border: 1px solid rgba(185, 28, 28, 0.4);
+.workspace-card__actions .pa-btn {
+  width: 100%;
 }
 
 .workspace-card__err {
-  color: #b91c1c;
+  color: var(--pa-danger);
 }
 
 .workspaces__multi-hint {
   margin: 0;
   font-weight: 600;
-  color: var(--pa-text-muted);
-}
-
-.workspaces__ok {
-  color: #0f766e;
-}
-
-.workspaces__error {
-  color: #b91c1c;
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card__role {
   margin: 0.45rem 0 0;
-  font-size: 0.85rem;
-  color: var(--pa-text-muted);
+  font-size: var(--pa-font-sm);
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card__members {
@@ -283,8 +247,8 @@
 .workspace-card__members-hint,
 .workspace-card__members-empty {
   margin: 0 0 0.75rem;
-  color: var(--pa-text-muted);
-  font-size: 0.9rem;
+  color: var(--pa-text-secondary);
+  font-size: var(--pa-font-sm);
 }
 
 .workspace-card__grant {
@@ -292,14 +256,26 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.85rem;
+  align-items: flex-end;
+}
+
+.workspace-card__grant-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: var(--pa-font-xs);
+  font-weight: 600;
+  color: var(--pa-text-secondary);
 }
 
 .workspace-card__grant input {
-  flex: 1 1 14rem;
-  border: 1px solid var(--pa-border);
-  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem 0.65rem;
-  font: inherit;
+  min-height: 2.5rem;
 }
 
 .workspace-card__member-list {
@@ -317,16 +293,16 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--pa-border);
-  border-radius: 0.55rem;
-  background: var(--pa-bg, transparent);
+  border: 2px solid var(--pa-border-strong);
+  border-radius: var(--pa-radius-md);
+  background: var(--pa-bg);
 }
 
 .workspace-card__member-meta {
   display: block;
   margin-top: 0.15rem;
-  font-size: 0.8rem;
-  color: var(--pa-text-muted);
+  font-size: var(--pa-font-xs);
+  color: var(--pa-text-secondary);
   font-weight: 500;
 }
 

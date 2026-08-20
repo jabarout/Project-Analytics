@@ -5,6 +5,7 @@ import { WorkspaceApiService } from '../../core/services/workspace-api.service';
 import { SynchronizationStatus, Workspace, WorkspaceMember } from '../../core/models/workspace.model';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { PaRevealDirective } from '../../shared/directives/pa-reveal.directive';
 
 /**
  * Connections: OpenProject OAuth (preferred) / API key / sync / disconnect + M15 access grants.
@@ -12,7 +13,8 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 @Component({
   selector: 'app-workspaces-page',
   standalone: true,
-  imports: [ReactiveFormsModule, LoadingSpinnerComponent, EmptyStateComponent],
+  imports: [
+    PaRevealDirective,ReactiveFormsModule, LoadingSpinnerComponent, EmptyStateComponent],
   templateUrl: './workspaces.page.html',
   styleUrl: './workspaces.page.scss',
 })

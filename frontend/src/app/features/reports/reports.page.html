@@ -7,7 +7,7 @@
         scoring — formal export of existing decision intelligence.
       </p>
     </div>
-    <button type="button" class="secondary" (click)="reloadHistory()">Refresh history</button>
+    <button type="button" class="pa-btn pa-btn--secondary" (click)="reloadHistory()">Refresh history</button>
   </header>
 
   @if (errorMessage()) {
@@ -17,7 +17,7 @@
     <p class="reports__success" role="status">{{ successMessage() }}</p>
   }
 
-  <form class="reports__form" [formGroup]="form" (ngSubmit)="generate()">
+  <form class="reports__form" paReveal [formGroup]="form" (ngSubmit)="generate()">
     <h3>Generate report</h3>
     <div class="reports__fields">
       <label>
@@ -82,12 +82,12 @@
       }
     </div>
 
-    <button type="submit" [disabled]="generating()">
+    <button type="submit" class="pa-btn pa-btn--primary" [disabled]="generating()">
       {{ generating() ? 'Generating…' : 'Generate' }}
     </button>
   </form>
 
-  <section class="reports__history">
+  <section class="reports__history" paReveal>
     <h3>Report history</h3>
     @if (loading()) {
       <app-loading-spinner label="Loading report history…" />
@@ -123,7 +123,9 @@
                 <td>{{ report.generatedAt | date: 'medium' }}</td>
                 <td>
                   @if (report.status === 'COMPLETED') {
-                    <button type="button" class="linkish" (click)="download(report)">Download</button>
+                    <button type="button" class="pa-btn pa-btn--ghost pa-btn--sm" (click)="download(report)">
+                      Download
+                    </button>
                   } @else if (report.errorMessage) {
                     <span class="reports__hint" [title]="report.errorMessage">Failed</span>
                   }

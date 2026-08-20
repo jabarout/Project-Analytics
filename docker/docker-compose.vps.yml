@@ -1,0 +1,54 @@
+# VPS public deploy overlay (Caddy HTTPS).
+#
+# Stack (run from repo root on the VPS):
+#   docker compose -p project-analytics-vps \
+#     -f docker/docker-compose.yml \
+#     -f docker/docker-compose.prod.yml \
+#     -f docker/docker-compose.vps.yml \
+#     --env-file prod.env \
+#     up -d --build
+#
+# Requires DOMAIN (and prod secrets) in prod.env — see docs/ops/vps-deploy.md
+# Public host ports: 80 + 443 only. DB/Redis/backend/frontend stay on the internal network.
+
+name: project-analytics-vps
+
+services:
+  postgres:
+    container_name: pa-vps-postgres
+    ports: !override []
+
+  redis:
+    container_name: pa-vps-redis
+    ports: !override []
+
+  backend:
+    container_name: pa-vps-backend
+    ports: !override []
+
+  frontend:
+    container_name: pa-vps-frontend
+    ports: !override []
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: pa-vps-caddy
+    restart: unless-stopped
+    depends_on:
+      frontend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required (e.g. analytics.example.com)}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - pa-network
+
+volumes:
+  caddy_data:
+  caddy_config:

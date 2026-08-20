@@ -34,8 +34,12 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
           </select>
         </label>
         <div class="picker__actions">
-          <button type="button" class="secondary" (click)="selectAllFiltered()">Select all filtered</button>
-          <button type="button" class="secondary" (click)="clearSelection()">Clear</button>
+          <button type="button" class="pa-btn pa-btn--secondary pa-btn--sm" (click)="selectAllFiltered()">
+            Select all filtered
+          </button>
+          <button type="button" class="pa-btn pa-btn--secondary pa-btn--sm" (click)="clearSelection()">
+            Clear
+          </button>
         </div>
       </div>
 
@@ -196,10 +200,10 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
       display: flex;
       flex-direction: column;
       gap: 0.65rem;
-      border: 1px solid var(--pa-border);
-      border-radius: 12px;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-lg);
       padding: 0.85rem;
-      background: var(--pa-surface-muted, #f8fafc);
+      background: var(--pa-surface-muted);
     }
     .picker__toolbar {
       display: grid;
@@ -220,16 +224,16 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
       gap: 0.3rem;
       font-size: 0.78rem;
       font-weight: 600;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
     input[type='search'],
     input[type='number'],
     select {
       font: inherit;
-      border: 1px solid var(--pa-border);
-      border-radius: 0.55rem;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-md);
       padding: 0.45rem 0.55rem;
-      background: #fff;
+      background: var(--pa-surface);
       color: var(--pa-text);
     }
     .picker__analytics-filters {
@@ -238,9 +242,9 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
       gap: 0.55rem 0.75rem;
       align-items: end;
       padding: 0.55rem 0.65rem;
-      border: 1px solid var(--pa-border);
-      border-radius: 0.65rem;
-      background: #fff;
+      border: 2px solid var(--pa-border);
+      border-radius: var(--pa-radius-md);
+      background: var(--pa-surface);
     }
     .check {
       display: inline-flex;
@@ -262,24 +266,22 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
       flex-wrap: wrap;
     }
     .picker__actions button {
-      font: inherit;
-      cursor: pointer;
-      border: 1px solid var(--pa-border);
-      border-radius: 0.55rem;
-      padding: 0.45rem 0.7rem;
-      background: #fff;
+      /* layout only — global button grammar */
+      min-height: 2.15rem;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.875rem;
     }
     .picker__meta {
       margin: 0;
       font-size: 0.85rem;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
     .picker__list {
       max-height: 320px;
       overflow: auto;
-      border: 1px solid var(--pa-border);
-      border-radius: 0.65rem;
-      background: #fff;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-md);
+      background: var(--pa-surface);
     }
     .picker__row {
       display: grid;
@@ -295,7 +297,7 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
       border-bottom: none;
     }
     .picker__row:hover {
-      background: rgba(29, 78, 216, 0.04);
+      background: var(--pa-surface-muted);
     }
     .picker__name {
       overflow: hidden;
@@ -312,33 +314,35 @@ import { ExplorerProjectRow } from '../../../core/models/explorer.model';
     .chip {
       font-size: 0.68rem;
       border: 1px solid var(--pa-border);
-      border-radius: 999px;
+      border-radius: var(--pa-radius-pill);
       padding: 0.08rem 0.35rem;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       white-space: nowrap;
     }
     .chip--warn {
-      color: #b45309;
-      border-color: rgba(180, 83, 9, 0.35);
+      color: var(--pa-warning);
+      border-color: color-mix(in srgb, var(--pa-warning) 40%, var(--pa-border));
+      background: var(--pa-warning-muted);
     }
     .chip--crit {
-      color: #b91c1c;
-      border-color: rgba(185, 28, 28, 0.35);
+      color: var(--pa-danger);
+      border-color: color-mix(in srgb, var(--pa-danger) 40%, var(--pa-border));
+      background: var(--pa-danger-muted);
     }
     .chip--attn {
-      color: #1d4ed8;
-      border-color: rgba(29, 78, 216, 0.35);
+      color: var(--pa-text);
+      border-color: var(--pa-border-strong);
     }
     .picker__status-badge {
       font-size: 0.72rem;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
     .picker__empty {
       margin: 0;
       padding: 1rem;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
   `,
 })

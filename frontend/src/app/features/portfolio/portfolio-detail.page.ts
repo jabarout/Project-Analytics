@@ -20,19 +20,19 @@ import {
   formatCountWithPercent,
   healthBand,
 } from '../../shared/analytics/analytics-thresholds';
-import { BarChartComponent, BarChartDatum } from '../../shared/components/dashboard/bar-chart.component';
+import { PaBarChartComponent, PaBarDatum } from '../../shared/charts/pa-bar-chart.component';
+import { PaDonutChartComponent, PaDonutSlice } from '../../shared/charts/pa-donut-chart.component';
 import {
   healthDistribution,
-  needsAttentionSplit,
   overdueWpProjectsSplit,
   progressDistribution,
-  riskDistribution,
 } from '../../shared/analytics/distribution';
 import {
   ExplorerProjectRow,
   PORTFOLIO_MEMBER_ANALYTICS_COLUMNS,
 } from '../../core/models/explorer.model';
 import { SCORE_GLOSSARY } from '../../shared/analytics/score-glossary';
+import { PaRevealDirective } from '../../shared/directives/pa-reveal.directive';
 
 /**
  * Portfolio analytical deep-dive + membership management.
@@ -42,6 +42,7 @@ import { SCORE_GLOSSARY } from '../../shared/analytics/score-glossary';
   selector: 'app-portfolio-detail-page',
   standalone: true,
   imports: [
+    PaRevealDirective,
     DatePipe,
     RouterLink,
     LoadingSpinnerComponent,
@@ -52,7 +53,8 @@ import { SCORE_GLOSSARY } from '../../shared/analytics/score-glossary';
     RecommendationListComponent,
     ProjectMembershipPickerComponent,
     ProjectTableComponent,
-    BarChartComponent,
+    PaBarChartComponent,
+    PaDonutChartComponent,
   ],
   templateUrl: './portfolio-detail.page.html',
   styleUrl: './portfolio-detail.page.scss',
@@ -100,11 +102,19 @@ export class PortfolioDetailPage implements OnInit {
     });
   });
 
-  readonly healthChart = computed(() => healthDistribution(this.explorerRows()));
-  readonly riskChart = computed(() => riskDistribution(this.explorerRows()));
-  readonly progressChart = computed(() => progressDistribution(this.explorerRows()));
-  readonly overdueWpChart = computed(() => overdueWpProjectsSplit(this.explorerRows()));
-  readonly needsChart = computed(() => needsAttentionSplit(this.explorerRows()));
+  readonly healthSegments = computed(() => healthDistribution(this.explorerRows()));
+  readonly progressSegments = computed(() => progressDistribution(this.explorerRows()));
+  readonly overdueSegments = computed(() => overdueWpProjectsSplit(this.explorerRows()));
+
+  readonly healthDonut = computed((): PaDonutSlice[] =>
+    this.healthSegments().map((s) => ({ name: s.label, value: s.value, id: s.label }))
+  );
+  readonly progressBars = computed((): PaBarDatum[] =>
+    this.progressSegments().map((s) => ({ name: s.label, value: s.value, id: s.label }))
+  );
+  readonly overdueBars = computed((): PaBarDatum[] =>
+    this.overdueSegments().map((s) => ({ name: s.label, value: s.value, id: s.label }))
+  );
 
   readonly availableProjects = computed(() => {
     const members = new Set((this.detail()?.projects ?? []).map((p) => p.id));
@@ -231,7 +241,15 @@ export class PortfolioDetailPage implements OnInit {
     });
   }
 
-  onChartSegment(segment: BarChartDatum): void {
+  onDistributionClick(name: string): void {
+    const segment = [
+      ...this.healthSegments(),
+      ...this.progressSegments(),
+      ...this.overdueSegments(),
+    ].find((s) => s.label === name);
+    if (!segment) {
+      return;
+    }
     const detail = this.detail();
     const portfolioId = this.portfolioId;
     if (!detail || !portfolioId) {
@@ -240,10 +258,13 @@ export class PortfolioDetailPage implements OnInit {
     if (
       segment.drill === 'critical' ||
       segment.drill === 'delayed' ||
-      segment.drill === 'needsAttention' ||
       segment.drill === 'hasOverdueWp'
     ) {
       this.openExplorer(segment.drill);
+      return;
+    }
+    if (segment.label === 'Has overdue WPs') {
+      this.openExplorer('hasOverdueWp');
       return;
     }
     const params: Record<string, string | number> = {

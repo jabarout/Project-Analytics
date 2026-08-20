@@ -20,7 +20,7 @@ public class UserPreferenceEntity extends BaseEntity {
     private UserEntity user;
 
     @Column(name = "theme", nullable = false, length = 50)
-    private String theme = "light";
+    private String theme = "dark";
 
     @Column(name = "language", nullable = false, length = 20)
     private String language = "en";

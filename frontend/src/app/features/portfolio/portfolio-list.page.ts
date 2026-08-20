@@ -10,11 +10,13 @@ import { ExplorerProjectRow } from '../../core/models/explorer.model';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { ProjectMembershipPickerComponent } from '../../shared/components/portfolio/project-membership-picker.component';
+import { PaRevealDirective } from '../../shared/directives/pa-reveal.directive';
 
 @Component({
   selector: 'app-portfolio-list-page',
   standalone: true,
   imports: [
+    PaRevealDirective,
     RouterLink,
     ReactiveFormsModule,
     LoadingSpinnerComponent,

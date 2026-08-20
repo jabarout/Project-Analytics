@@ -4,15 +4,16 @@ Version: 1.0
 
 Status: Active
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 
-**Active phase:** **N2 — Regression gate** (**complete — awaiting approval to start N3**).  
-**Just completed (product):** **N2 regression gate** (full suite + security matrix + frontend build + smoke) after **N1** + signup email confirmation.  
-**Next (approved order):** **N3/M16a → N4/M16b → N5/M17** (N6/M18 optional).  
-**Gates:** N3 mandatory before deploy packaging; **N4 non-blocking for M17**.  
-**Recent:** N2 green (2026-08-19): 73 backend tests, security matrix, `ng build`, API+UI smoke; email confirmation (V17, `AUTH_008`).  
+**Active phase:** **N5 / M17 Deploy & customer package — complete** (`docs/ops/DEPLOY.md`).  
+**Architecture (Step 0 locked):** SCSS/`--pa-*` = chrome; **ECharts** = sole chart system on pages (PA theme; no defaults leak); Zard/Bklit = reference only.  
+**Just completed:** **N5.1–N5.6** sequential gates — prod Compose, env template, backup/restore, security checklist, demo walkthrough, handoff entrypoint.  
+**Executive (Option C implemented):** 0/1 ws → Home; **2+** → Executive — `docs/ops/executive-page-product-direction.md`.  
+**Next (optional):** **N6 / M18** Soft intelligence — only if explicitly requested.  
+**Gates:** Each major batch stops for approval.  
  
-**Frozen / do not reopen:** M10 hardening, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership, **Hybrid access model**.  
+**Frozen / do not reopen:** M10 hardening, overall architecture, PE principles (`19_Product_Experience.md`), **M11A PE specification** (`20_M11A_Product_Experience_Specification.md` v1.1), M12 ProgressMetrics / score formula ownership, **Hybrid access model**, **Executive option C** (now implemented).  
 **Access model:** Hybrid (OP eligibility for connect; PA grants for ongoing analytics).
 
 ---
@@ -51,9 +52,9 @@ It must be updated after every completed milestone.
 | Milestone 15 — Analytics Access & Isolation | **Complete** — memberships, grant/revoke UI+API, isolation tests |
 | **N1** Connect & auth soak | **Complete** (2026-08-19) — see `docs/ops/known-limitations.md` N1 table |
 | **N2** Regression gate | **Complete** (2026-08-19) — 73 tests, security matrix, build, smoke |
-| **N3 / M16a** Visual polish & dark mode | **Next** — mandatory |
-| **N4 / M16b** Motion & transitions | **Planned** — subtle; non-blocking for M17 |
-| **N5 / M17** Deploy & customer package | **Planned** — after N3 (N4 optional) |
+| **N3 / M16a** Visual polish, dark mode, motion, footer | **Complete** (gated UI modernization) |
+| **N4 / M16b** Optional motion extras | **Complete** — scroll reveals / placement (non-blocking for M17) |
+| **N5 / M17** Deploy & customer package | **Complete** (2026-08-20) — start at `docs/ops/DEPLOY.md` |
 | **N6 / M18** Soft intelligence | **Optional** |
 
 ---
@@ -713,8 +714,8 @@ Full task breakdown, acceptance criteria, and tests: **`docs/11_Development_Road
 | Done | M14a / M14 / M15 | Registration, OAuth (multi-OP clients), grants/isolation | — |
 | **Done** | **N1 Connect & auth soak** | Manual OAuth/API-key/M15/password-reset verified; quirks documented | — |
 | **Done** | **N2 Regression gate** | Full tests + smoke + docs truth | Mandatory before UI |
-| **Next** | **N3 / M16a** | Visual polish + **dark mode** | Mandatory |
-| Then | **N4 / M16b** | Route/loading/KPI/micro-interactions; reduced-motion; scroll reveals **nice-to-have** | **Non-blocking for M17** |
+| **Now** | **N3 / M16a** | Monochrome polish + dark mode + motion + footer/legal | Mandatory |
+| Then | **N4 / M16b** | Optional extras (scroll reveals); core motion in N3 | **Non-blocking for M17** |
 | Then | **N5 / M17** | Deploy & customer package | After N3 |
 | Optional | **N6 / M18** | Soft intelligence | After N5 |
 

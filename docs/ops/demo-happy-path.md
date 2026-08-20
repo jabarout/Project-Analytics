@@ -1,94 +1,107 @@
-# Demo happy path (M13 quality gate)
+# Demo happy path (buyer walkthrough)
 
 Executable checklist for a trustworthy demo or buyer handoff.  
 **Target duration:** under 30 minutes after infra is up.
+
+Related ops: `n5.1-prod-compose.md`, `security-checklist.md`, `known-limitations.md`.
 
 ---
 
 ## 0. Prerequisites
 
+**Local demo**
+
 - [ ] Docker: Postgres + Redis up (`docker compose` in `docker/`)
-- [ ] Repo-root `.env` has non-empty `OPENPROJECT_API_KEY` and sensible `OPENPROJECT_URL`
-- [ ] Backend via **`./scripts/run-backend.sh`** (not bare `mvn spring-boot:run`)
-- [ ] Frontend: `cd frontend && npm start` → UI reachable
-- [ ] Log shows: `OpenProject credentials: API key configured`
+- [ ] Repo-root `.env` has OpenProject URL + credentials path you will use (API key and/or OAuth)
+- [ ] Backend via **`./scripts/run-backend.sh`**
+- [ ] Frontend: `cd frontend && npm start` → `http://localhost:4200`
+
+**Optional prod-style stack:** see `n5.1-prod-compose.md` (isolated ports 8089 / 8081).
 
 ---
 
-## 1. Login
+## 1. Login & chrome
 
-- [ ] Open UI → login with seed admin (`admin` / `Admin123!` in dev)
-- [ ] No console/network auth errors
+- [ ] Open UI → login (local seed: `admin` / `Admin123!` — **change before real deploy**)
+- [ ] Theme works (Settings or existing preference); language shows **English only**
+- [ ] Footer links: **Privacy**, **Terms of use**, **Contact** (Contact email opens mail client)
 
 ---
 
 ## 2. Connect & synchronize
 
-- [ ] **Connections** → connect workspace with correct OpenProject **base URL**
+- [ ] **Connections** → connect workspace (API key or OAuth) with correct OpenProject base URL
 - [ ] **Synchronize** → SUCCESS
-- [ ] Projects appear in **Explorer** (or Home exception data non-empty after analytics)
+- [ ] Projects appear in **Explorer** (or Home has triage data after analytics)
 
-**If fail:** see `README-XTENSUS.md` troubleshooting (key not loaded, 401, SSL, timeout).
-
----
-
-## 3. Recalculate analytics (if scores empty)
-
-- [ ] Home → **Recalculate** (or post-sync auto-recalc already ran)
-- [ ] Health / Risk / Attention values present on projects
-- [ ] Progress shows a number when work packages exist (not stuck on blank when WPs exist)
+**If fail:** `README-XTENSUS.md` / `known-limitations.md` (key, 401, SSL, timeout).
 
 ---
 
-## 4. Home triage
+## 3. Recalculate (if scores empty)
 
-- [ ] Exception KPIs clickable → Explorer with expected filters
-- [ ] Charts render; segment click drills to Explorer
-- [ ] Exception queue lists critical / delayed / Needs Attention projects
-- [ ] Recommendations section loads or empty state (no crash)
+- [ ] Home → **Recalculate** (or confirm post-sync recalc already ran)
+- [ ] Health / Risk / Needs Attention present on projects
+- [ ] Progress shows a value when work packages exist
+
+---
+
+## 4. Home (Synthesis-first)
+
+Sticky **On this page** order:
+
+1. Synthesis → 2. Overview → 3. Visual analytics → 4. Exception queue → 5. Recommendations
+
+- [ ] **Synthesis** first: Average progress / health / risk (hover shows detailed Health & Risk copy)
+- [ ] **Overview** counts; Critical / Needs Attention hovers are short (point up to Synthesis)
+- [ ] **Visual analytics**: Average Health line; distribution charts with fused legends (no overlapping text)
+- [ ] KPI / chart drill → Explorer with expected filters
+- [ ] **Exception queue** lists flagged projects; open one → Project Detail
+- [ ] **Recommendations** load or show a clean empty state (no crash)
 
 ---
 
 ## 5. Explorer
 
-- [ ] Filter by Needs Attention / Critical / Delayed works
-- [ ] Sort and group work
-- [ ] Open a project row → Project Detail
+- [ ] Filters: Needs Attention / Critical / overdue WPs work
+- [ ] Sort works; open a project row → Project Detail
 
 ---
 
 ## 6. Project Detail
 
-- [ ] Health / Risk / Needs Attention scores + explanations
-- [ ] Factor bars show after recalculation (not permanently empty)
-- [ ] Completion / progress consistent with Explorer for same project
-- [ ] Overdue WP table / assignee bottlenecks load without error
+- [ ] Top KPIs: Health, Risk, Needs Attention, Actual progress (detailed hovers)
+- [ ] Work package delivery KPIs; charts: **Work package status** + **Completion** (no “Completed vs remaining”)
+- [ ] Health / Risk / Needs Attention **factor** charts: short axis labels; hover shows full factor text
+- [ ] Score trends chart; clear gap before **Overdue work packages** table
+- [ ] Assignee bottlenecks load without error
 
 ---
 
 ## 7. Portfolio
 
-- [ ] Create or open a portfolio; members visible
-- [ ] Analytics tab: summary, exceptions, progress quality, member table
-- [ ] Drill to Explorer scoped to portfolio
+- [ ] Create or open a portfolio; Membership can add projects
+- [ ] Analytics order: **Progress & delivery quality** → **Overview** → **Visual analytics**
+- [ ] Charts present: Health distribution, Progress bands, Overdue split (legends fused; **no** Risk distribution / Needs Attention split charts)
+- [ ] Copy says **projects** (not “members”) in user-facing analytics text
+- [ ] Drill to Explorer scoped to the portfolio
 
 ---
 
-## 8. Reports & recommendations
+## 8. Reports & settings
 
-- [ ] Generate a workspace KPI report (or open Reports with scope prefilled)
-- [ ] Recommendations list for workspace or project without API error
+- [ ] Generate or open a workspace report without API error
+- [ ] **Settings**: email stays inside the profile card; Language = English only; save theme
 
 ---
 
-## 9. Known acceptable limits (not failures)
+## 9. Known acceptable limits (not demo failures)
 
-See **Known limitations** in `13_Project_State.md` §14 / below. Do not treat as demo blockers:
+See `docs/ops/known-limitations.md` and Project State. Examples:
 
-- Budget variance often null (no spent budget in local model)
-- Expected progress / gap null when project start/end dates missing
-- API key still temporary until M14 OAuth
-- Access grants UI incomplete until M15
+- Expected progress / gap unavailable without project start/end dates
+- Budget variance often null without spend data
+- Community OpenProject date/field quirks as documented
 
 ---
 
@@ -96,9 +109,5 @@ See **Known limitations** in `13_Project_State.md` §14 / below. Do not treat as
 
 | Role | Name | Date | Pass? |
 |------|------|------|-------|
-| Automated quality gate | CI / local `mvn test` + frontend build | 2026-08-10 | **Pass** |
-| Doc pack | Happy path + known limitations + Xtensus | 2026-08-10 | **Pass** |
-| Company manual walkthrough | (optional re-confirm on their OP) | | |
-
-**M13 closed:** automated critical path green; handoff docs complete; no known P0 on automated paths.  
-**Company testers:** follow this checklist on their OpenProject; report any P0 against `known-limitations.md` first (may be accepted limits).
+| Demo operator | | | |
+| Buyer / reviewer | | | |

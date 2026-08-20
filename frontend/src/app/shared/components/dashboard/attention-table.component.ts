@@ -40,8 +40,8 @@ import { ProjectAttentionSummary } from '../../../core/models/analytics.model';
   styles: `
     .table-widget {
       padding: 1.1rem;
-      border: 1px solid var(--pa-border);
-      border-radius: 12px;
+      border: 2px solid var(--pa-border-strong);
+      border-radius: var(--pa-radius-lg);
       background: var(--pa-surface);
       overflow: auto;
     }
@@ -63,16 +63,16 @@ import { ProjectAttentionSummary } from '../../../core/models/analytics.model';
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
     a {
-      color: #1d4ed8;
+      color: var(--pa-text);
       text-decoration: none;
       font-weight: 600;
     }
     .table-widget__empty {
       margin: 0;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
     }
   `,
 })

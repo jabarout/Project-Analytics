@@ -2,6 +2,9 @@
 
 Simple steps to open the app on your computer and connect OpenProject.
 
+**Production / customer deploy:** start at [`docs/ops/DEPLOY.md`](docs/ops/DEPLOY.md)  
+(prod Compose overlay, env template, backup, security checklist, demo walkthrough).
+
 ---
 
 ## What you need installed

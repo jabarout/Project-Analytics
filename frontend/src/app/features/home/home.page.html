@@ -1,18 +1,48 @@
 <section class="home">
   <header class="home__header">
-    <div>
+    <div class="home__header-main">
       <h2>Home</h2>
       <p>Triage what needs attention across the workspace. Charts and KPIs drill into Explorer.</p>
+
+      @if (workspaces().length === 0 && !loading()) {
+        <app-empty-state
+          title="No workspace connected"
+          message="Connect and synchronize an OpenProject workspace to see analytics."
+        />
+        <a routerLink="/workspaces" class="home__link">Go to Connections →</a>
+      } @else if (workspaces().length > 0) {
+        <div class="home__workspace" role="group" aria-label="Workspace">
+          <span class="home__workspace-label">Workspace</span>
+          <div class="home__workspace-picker">
+            @for (workspace of workspaces(); track workspace.id) {
+              <button
+                type="button"
+                class="pa-btn-reset home__workspace-chip"
+                [class.is-active]="selectedWorkspaceId() === workspace.id"
+                (click)="selectWorkspace(workspace.id)"
+              >
+                {{ workspace.name }}
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
     <div class="home__actions">
       @if (selectedWorkspaceId()) {
-        <a class="home__explorer-link" [routerLink]="['/explorer']" [queryParams]="{ workspaceId: selectedWorkspaceId() }">
+        <a
+          class="pa-btn pa-btn--primary"
+          [routerLink]="['/explorer']"
+          [queryParams]="{ workspaceId: selectedWorkspaceId() }"
+        >
           Open Explorer
         </a>
-        <button type="button" class="secondary" (click)="generateReport()">Generate report</button>
+        <button type="button" class="pa-btn pa-btn--secondary" (click)="generateReport()">
+          Generate report
+        </button>
         <button
           type="button"
-          class="secondary"
+          class="pa-btn pa-btn--secondary"
           (click)="recalculate()"
           [disabled]="recalculating() || loading()"
           title="Recomputes Health/Risk/Attention from local data. Does not pull deletions from OpenProject — use Connections → Synchronize for that."
@@ -23,26 +53,6 @@
     </div>
   </header>
 
-  @if (workspaces().length === 0 && !loading()) {
-    <app-empty-state
-      title="No workspace connected"
-      message="Connect and synchronize an OpenProject workspace to see analytics."
-    />
-    <a routerLink="/workspaces" class="home__link">Go to Connections →</a>
-  } @else {
-    <div class="home__workspace-picker">
-      @for (workspace of workspaces(); track workspace.id) {
-        <button
-          type="button"
-          [class.is-active]="selectedWorkspaceId() === workspace.id"
-          (click)="selectWorkspace(workspace.id)"
-        >
-          {{ workspace.name }}
-        </button>
-      }
-    </div>
-  }
-
   @if (errorMessage()) {
     <p class="home__error" role="alert">{{ errorMessage() }}</p>
   }
@@ -50,6 +60,84 @@
   @if (loading()) {
     <app-loading-spinner label="Loading workspace triage…" />
   } @else if (dashboard(); as board) {
+    <nav class="home__section-nav" aria-label="On this page">
+      <span class="home__section-nav-label">On this page</span>
+      <div class="home__section-nav-track">
+        @for (section of homeSections; track section.id) {
+          <button
+            type="button"
+            class="pa-btn-reset home__section-nav-btn"
+            [class.is-active]="activeSectionId() === section.id"
+            (click)="scrollToSection(section.id)"
+          >
+            {{ section.label }}
+          </button>
+        }
+      </div>
+    </nav>
+
+    <section id="home-synthesis" class="home__section" data-home-section="home-synthesis" paReveal>
+    <h3 class="home__section-title">Synthesis</h3>
+    <div class="kpi-row">
+      <app-kpi-card
+        label="Average progress"
+        [value]="formatPercent(board.kpis.averageCompletion)"
+        kind="score"
+        hint="Average share of work packages completed across projects."
+        [infoTitle]="glossary.actualProgress.title"
+        [infoBody]="glossary.actualProgress.summary + ' ' + glossary.actualProgress.detail"
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Average health"
+        [value]="board.kpis.averageHealthScore ?? '—'"
+        kind="score"
+        severity="positive"
+        hint="Average of every project’s Health score (0–100). Higher = healthier delivery."
+        [infoTitle]="glossary.health.title"
+        [infoBody]="
+          'Average Health = mean of each project’s Health score (each project counts equally). ' +
+          glossary.health.summary +
+          ' ' +
+          glossary.health.thresholds +
+          ' ' +
+          glossary.health.detail
+        "
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Average risk"
+        [value]="board.kpis.averageRiskScore ?? '—'"
+        kind="score"
+        severity="watch"
+        hint="Average of every project’s Risk score (0–100). Higher = more delivery risk."
+        [infoTitle]="glossary.risk.title"
+        [infoBody]="
+          'Average Risk = mean of each project’s Risk score (each project counts equally). ' +
+          glossary.risk.summary +
+          ' ' +
+          glossary.risk.thresholds +
+          ' ' +
+          glossary.risk.detail
+        "
+        [clickable]="true"
+        actionLabel="Explore →"
+        (activated)="openExplorer('clearExceptions')"
+      />
+      <app-kpi-card
+        label="Recommendations"
+        [value]="recommendations()?.recommendations?.length ?? 0"
+        kind="count"
+        hint="Open recommendations in this workspace."
+      />
+    </div>
+    </section>
+
+    <section id="home-overview" class="home__section" data-home-section="home-overview" paReveal>
     <h3 class="home__section-title">Overview</h3>
     <div class="kpi-row">
       <app-kpi-card
@@ -66,16 +154,22 @@
         label="Active projects"
         [value]="board.kpis.activeProjects"
         kind="volume"
-        hint="Not archived in OpenProject (status may be On track / At risk / …)"
+        hint="Projects that are not archived in OpenProject."
+        infoTitle="Active projects"
+        infoBody="Counts synchronized projects whose status is not ARCHIVED. Statuses like On track or At risk still count as active."
       />
       <app-kpi-card
         label="Projects needing attention"
         [value]="needsAttentionDisplay()"
         kind="count"
         severity="critical"
-        [hint]="glossary.needsAttention.thresholds"
+        hint="Projects with a Needs Attention score of 50 or higher."
         [infoTitle]="glossary.needsAttention.title"
-        [infoBody]="glossary.needsAttention.summary + ' ' + glossary.needsAttention.detail"
+        [infoBody]="
+          'Count of projects with Needs Attention ≥ 50. ' +
+          glossary.needsAttention.summary +
+          ' Built from Health, Risk, and overdue / past-finish pressure (see Average Health and Average Risk above).'
+        "
         actionLabel="View all →"
         [clickable]="true"
         (activated)="openExplorer('needsAttention')"
@@ -85,9 +179,9 @@
         [value]="board.kpis.criticalProjects"
         kind="count"
         severity="critical"
-        hint="Health &lt; 40"
-        [infoTitle]="glossary.health.title"
-        [infoBody]="glossary.health.thresholds"
+        hint="Projects with Critical Health (Health score below 40)."
+        infoTitle="Critical projects"
+        infoBody="Count of projects with Health below 40 (Critical band). Health definition is explained under Average Health above."
         actionLabel="View all →"
         [clickable]="true"
         (activated)="openExplorer('critical')"
@@ -97,7 +191,9 @@
         [value]="board.kpis.projectsWithOverdueWorkPackages"
         kind="count"
         severity="watch"
-        hint="At least one open work package past due"
+        hint="Projects with at least one open work package past its due date."
+        infoTitle="Projects with overdue work packages"
+        infoBody="Counts projects that have at least one open synchronized work package whose due date is before today."
         actionLabel="View all →"
         [clickable]="true"
         (activated)="openExplorer('hasOverdueWp')"
@@ -107,7 +203,9 @@
         [value]="overdueWpTotal()"
         kind="count"
         severity="watch"
-        hint="Open WPs past due (local)"
+        hint="Open work packages past their due date."
+        infoTitle="Overdue work packages"
+        infoBody="Total count of open synchronized work packages whose due date is before today, across projects in this workspace."
         actionLabel="View all →"
         [clickable]="true"
         (activated)="openExplorer('hasOverdueWp')"
@@ -116,95 +214,185 @@
         label="Upcoming WP deadlines"
         [value]="upcomingCount()"
         kind="count"
-        hint="Next 14 days · next open work-package due date"
+        hint="Work packages due in the next 14 days."
+        infoTitle="Upcoming work-package deadlines"
+        infoBody="Counts projects whose next open work-package due date falls within the next 14 days."
         actionLabel="View all →"
         [clickable]="true"
         (activated)="openExplorer('upcoming')"
       />
     </div>
+    </section>
 
+    <section id="home-visual" class="home__section" data-home-section="home-visual" paReveal>
     <h3 class="home__section-title">Visual analytics</h3>
-    <div class="charts">
-      <app-bar-chart title="Health distribution" [data]="healthChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-      <app-bar-chart title="Progress distribution" [data]="progressChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-      <app-bar-chart title="Overdue work packages" [data]="overdueWpChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-      <app-bar-chart title="Needs Attention split" [data]="needsChart()" [interactive]="true" (segmentClick)="onChartSegment($event)" />
-      <app-bar-chart
-        title="Recommendation severity"
-        [data]="recoChart()"
-        [interactive]="true"
-        (segmentClick)="onChartSegment($event)"
+
+    <div class="pa-charts pa-charts--hero home__viz-hero">
+      <app-pa-line-chart
+        title="Average Health over time"
+        [subtitle]="avgHealthSubtitle()"
+        size="lg"
+        metricLabel="Average Health"
+        [categories]="avgHealthCategories()"
+        [series]="avgHealthSeries()"
+        [sampleSizes]="avgHealthSampleSizes()"
+        [autoTrendSummary]="false"
+        [featured]="true"
+        [yMin]="0"
+        [yMax]="100"
+        yName="Average Health"
+        emptyMessage="Not enough recalculation history yet. Synchronize and recalculate analytics to build Average Health trends."
       />
     </div>
 
-    <h3 class="home__section-title">Synthesis</h3>
-    <div class="kpi-row">
-      <app-kpi-card
-        label="Average progress"
-        [value]="formatPercent(board.kpis.averageCompletion)"
-        kind="score"
-        hint="WP completion average (0–100%)"
-        [clickable]="true"
-        actionLabel="Explore →"
-        (activated)="openExplorer('clearExceptions')"
+    @if (healthTrend(); as trend) {
+      <app-health-drivers
+        title="Health drivers"
+        subtitle="Projects with the largest Health score change across stored snapshots (last − first). Explains the aggregate trend."
+        [improving]="trend.improving"
+        [worsening]="trend.worsening"
       />
-      <app-kpi-card
-        label="Average health"
-        [value]="board.kpis.averageHealthScore ?? '—'"
-        kind="score"
-        severity="positive"
-        hint="Score 0–100 (not a %)"
-        [infoTitle]="glossary.health.title"
-        [infoBody]="glossary.health.summary + ' ' + glossary.health.thresholds"
-        [clickable]="true"
-        actionLabel="Explore →"
-        (activated)="openExplorer('clearExceptions')"
-      />
-      <app-kpi-card
-        label="Average risk"
-        [value]="board.kpis.averageRiskScore ?? '—'"
-        kind="score"
-        severity="watch"
-        hint="Score 0–100 (not a %)"
-        [infoTitle]="glossary.risk.title"
-        [infoBody]="glossary.risk.summary + ' ' + glossary.risk.thresholds"
-        [clickable]="true"
-        actionLabel="Explore →"
-        (activated)="openExplorer('clearExceptions')"
-      />
-      <app-kpi-card
-        label="Recommendations"
-        [value]="recommendations()?.recommendations?.length ?? 0"
-        kind="count"
-        hint="Open recommendations in scope"
-      />
-    </div>
+    }
 
+    <div class="pa-charts charts">
+      <div class="home__chart-block">
+        <app-pa-donut-chart
+          title="Health distribution"
+          subtitle="Projects grouped by Health score band"
+          centerLabel="Projects"
+          [data]="healthDonut()"
+          [interactive]="true"
+          (sliceClick)="onDistributionClick($event.name)"
+        >
+          <ul class="pa-chart-legend" shellFooter aria-label="Health band meanings">
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--danger" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Critical</strong>
+                <span class="pa-chart-legend__meta">Health below 40</span>
+              </span>
+            </li>
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--warning" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Watch</strong>
+                <span class="pa-chart-legend__meta">Health 40–69</span>
+              </span>
+            </li>
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--success" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Healthy</strong>
+                <span class="pa-chart-legend__meta">Health 70–100</span>
+              </span>
+            </li>
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--muted" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Unknown</strong>
+                <span class="pa-chart-legend__meta">Not scored yet (if shown)</span>
+              </span>
+            </li>
+          </ul>
+        </app-pa-donut-chart>
+      </div>
+      <div class="home__chart-block">
+        <app-pa-bar-chart
+          title="Progress distribution"
+          subtitle="Projects grouped by how much of their work is completed"
+          [data]="progressBars()"
+          [interactive]="true"
+          (barClick)="onDistributionClick($event.name)"
+        >
+          <div class="pa-chart-legend pa-chart-legend--note" shellFooter>
+            <p class="pa-chart-legend__note">
+              Progress uses completed work packages ÷ total (same as Average Progress).
+              Bands: <strong>0–33%</strong>, <strong>34–66%</strong>, <strong>67–100%</strong> complete.
+            </p>
+          </div>
+        </app-pa-bar-chart>
+      </div>
+      <div class="home__chart-block">
+        <app-pa-bar-chart
+          title="Needs Attention split"
+          subtitle="Projects above vs below the Needs Attention threshold"
+          [data]="needsBars()"
+          [interactive]="true"
+          (barClick)="onDistributionClick($event.name)"
+        >
+          <ul class="pa-chart-legend" shellFooter aria-label="Needs Attention split meanings">
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--warning" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Needs Attention</strong>
+                <span class="pa-chart-legend__meta">Attention ≥ 50</span>
+              </span>
+            </li>
+            <li>
+              <span class="pa-chart-legend__swatch pa-chart-legend__swatch--success" aria-hidden="true"></span>
+              <span class="pa-chart-legend__copy">
+                <strong>Stable</strong>
+                <span class="pa-chart-legend__meta">Attention below 50</span>
+              </span>
+            </li>
+          </ul>
+        </app-pa-bar-chart>
+      </div>
+      <div class="home__chart-block">
+        <app-pa-donut-chart
+          title="Average progress"
+          subtitle="Overall workspace Progress (work-package completion)"
+          centerLabel="% complete"
+          [centerValue]="averageProgressCenter()"
+          [data]="averageProgressDonut()"
+        >
+          <div class="pa-chart-legend pa-chart-legend--note" shellFooter>
+            <p class="pa-chart-legend__note">
+              Same definition as Average Progress: share of synchronized work packages that are completed.
+            </p>
+          </div>
+        </app-pa-donut-chart>
+      </div>
+    </div>
+    </section>
+
+    <section id="home-exceptions" class="home__section" data-home-section="home-exceptions" paReveal>
     <h3 class="home__section-title">Exception queue</h3>
+    <p class="home__section-lede">
+      Projects flagged because they need attention, are in Critical Health, and/or have overdue work packages
+      (up to 8, highest Needs Attention first).
+    </p>
     @if (exceptionQueue().length) {
       <app-project-table
         [rows]="exceptionQueue()"
         [columns]="queueColumns"
         [sort]="[{ key: 'attentionScore', direction: 'desc' }]"
       />
-      <button type="button" class="home__view-all" (click)="openExplorer('needsAttention')">
+      <button type="button" class="pa-btn pa-btn--secondary" (click)="openExplorer('needsAttention')">
         View all in Explorer →
       </button>
     } @else {
       <app-empty-state
         title="No exceptions in queue"
-        message="No critical, overdue-WP, or Needs Attention projects in this workspace right now."
+        message="No projects currently meet Attention ≥ 50, Critical Health (Health &lt; 40), or overdue work packages."
       />
     }
 
     <app-attention-table title="Top Needs Attention" [projects]="board.topAttentionProjects" />
+    </section>
 
-    @if (recommendations(); as reco) {
-      <app-recommendation-list
-        title="Recommendations"
-        [summary]="reco.executiveSummary"
-        [items]="reco.recommendations.slice(0, 5)"
-      />
-    }
+    <section id="home-recommendations" class="home__section" data-home-section="home-recommendations" paReveal>
+      @if (recommendations(); as reco) {
+        <app-recommendation-list
+          title="Recommendations"
+          [summary]="reco.executiveSummary"
+          [items]="reco.recommendations.slice(0, 5)"
+          [compact]="true"
+        />
+      } @else {
+        <h3 class="home__section-title">Recommendations</h3>
+        <p class="home__summary">Loading recommendations…</p>
+      }
+    </section>
   }
 </section>

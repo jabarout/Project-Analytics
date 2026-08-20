@@ -45,6 +45,7 @@ Fix targets are noted when planned.
 | Email confirmation | Local/dev logs confirmation link when mail is disabled. **Real deploy needs SMTP** (same as password reset). TTL `EMAIL_CONFIRMATION_TTL_MINUTES` (default 24h). | **N5 / M17** |
 | Password reset | Works locally with mail disabled (reset link logged / token stored). **Real deploy needs SMTP** (`PASSWORD_RESET_MAIL_ENABLED=true` + `spring.mail.*`). | **N5 / M17** |
 | Dev seed admin | `admin` / documented demo password — **must change/disable for real deploy** (see security-checklist). Seed/backfilled users are already `email_verified`. | M17 / ops |
+| Legal pages | Privacy / Contact / Terms are **draft placeholders** in the product footer — replace with real copy before customer deploy. | **N5 / M17** |
 
 ### N1 soak (2026-08-19) — confirmed
 

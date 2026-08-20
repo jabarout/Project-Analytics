@@ -4,11 +4,25 @@
     <p>Sign in, create an account, or reset your password. Connecting OpenProject comes after signup.</p>
   </header>
 
-  <div class="auth__tabs" role="tablist">
-    <button type="button" role="tab" [class.is-active]="mode() === 'login'" (click)="setMode('login')">
+  <div class="auth__tabs pa-segment" role="tablist" aria-label="Authentication mode">
+    <button
+      type="button"
+      class="pa-btn-reset"
+      role="tab"
+      [attr.aria-selected]="mode() === 'login'"
+      [class.is-active]="mode() === 'login'"
+      (click)="setMode('login')"
+    >
       Sign in
     </button>
-    <button type="button" role="tab" [class.is-active]="mode() === 'register'" (click)="setMode('register')">
+    <button
+      type="button"
+      class="pa-btn-reset"
+      role="tab"
+      [attr.aria-selected]="mode() === 'register'"
+      [class.is-active]="mode() === 'register'"
+      (click)="setMode('register')"
+    >
       Sign up
     </button>
   </div>
@@ -29,11 +43,11 @@
       @if (infoMessage()) {
         <p class="auth__ok" role="status">{{ infoMessage() }}</p>
       }
-      <button type="submit" class="login-form__submit" [disabled]="loading()">
+      <button type="submit" class="pa-btn pa-btn--primary login-form__submit" [disabled]="loading()">
         {{ loading() ? 'Signing in…' : 'Sign in' }}
       </button>
-      <button type="button" class="auth__link" (click)="setMode('forgot')">Forgot password?</button>
-      <button type="button" class="auth__link" (click)="setMode('resend')">Resend confirmation email</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('forgot')">Forgot password?</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('resend')">Resend confirmation email</button>
     </form>
   } @else if (mode() === 'register') {
     <form class="login-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
@@ -53,7 +67,7 @@
       @if (errorMessage()) {
         <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="submit" class="login-form__submit" [disabled]="loading()">
+      <button type="submit" class="pa-btn pa-btn--primary login-form__submit" [disabled]="loading()">
         {{ loading() ? 'Creating account…' : 'Create account' }}
       </button>
     </form>
@@ -70,10 +84,10 @@
       @if (errorMessage()) {
         <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="submit" class="login-form__submit" [disabled]="loading()">
+      <button type="submit" class="pa-btn pa-btn--primary login-form__submit" [disabled]="loading()">
         {{ loading() ? 'Sending…' : 'Send reset link' }}
       </button>
-      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('login')">Back to sign in</button>
     </form>
   } @else if (mode() === 'reset') {
     <form class="login-form" [formGroup]="resetForm" (ngSubmit)="submitReset()" novalidate>
@@ -90,10 +104,10 @@
       @if (errorMessage()) {
         <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="submit" class="login-form__submit" [disabled]="loading()">
+      <button type="submit" class="pa-btn pa-btn--primary login-form__submit" [disabled]="loading()">
         {{ loading() ? 'Updating…' : 'Update password' }}
       </button>
-      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('login')">Back to sign in</button>
     </form>
   } @else if (mode() === 'confirm') {
     <div class="login-form">
@@ -106,8 +120,8 @@
       @if (errorMessage()) {
         <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
-      <button type="button" class="auth__link" (click)="setMode('resend')">Resend confirmation</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('login')">Back to sign in</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('resend')">Resend confirmation</button>
     </div>
   } @else {
     <form class="login-form" [formGroup]="resendForm" (ngSubmit)="submitResend()" novalidate>
@@ -122,10 +136,10 @@
       @if (errorMessage()) {
         <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
       }
-      <button type="submit" class="login-form__submit" [disabled]="loading()">
+      <button type="submit" class="pa-btn pa-btn--primary login-form__submit" [disabled]="loading()">
         {{ loading() ? 'Sending…' : 'Resend confirmation email' }}
       </button>
-      <button type="button" class="auth__link" (click)="setMode('login')">Back to sign in</button>
+      <button type="button" class="pa-btn pa-btn--ghost auth__link" (click)="setMode('login')">Back to sign in</button>
     </form>
   }
 </section>

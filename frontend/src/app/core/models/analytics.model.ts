@@ -79,6 +79,42 @@ export interface ScopeDashboard {
   readonly insights: readonly string[];
 }
 
+/** One stored analytics snapshot point (from AnalyticsSnapshot / trends API). */
+export interface ProjectTrendPoint {
+  readonly calculatedAt: string;
+  /** Health score 0–100 */
+  readonly healthScore: number;
+  /** Risk score 0–100 */
+  readonly riskScore: number;
+  /** Needs Attention score 0–100 */
+  readonly attentionScore: number;
+  /** Canonical actual progress %; null when unavailable */
+  readonly completionPercentage: number | null;
+}
+
+/** Workspace Average Health at one recalculation wave (same definition as averageHealthScore KPI). */
+export interface WorkspaceHealthTrendPoint {
+  readonly calculatedAt: string;
+  readonly averageHealthScore: number;
+  readonly sampleSize: number;
+}
+
+export interface ProjectHealthDriver {
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly firstHealthScore: number;
+  readonly lastHealthScore: number;
+  readonly delta: number;
+  readonly firstAt: string;
+  readonly lastAt: string;
+}
+
+export interface WorkspaceHealthTrend {
+  readonly points: readonly WorkspaceHealthTrendPoint[];
+  readonly improving: readonly ProjectHealthDriver[];
+  readonly worsening: readonly ProjectHealthDriver[];
+}
+
 export interface ProjectDashboard {
   readonly projectId: string;
   readonly projectName: string;
@@ -91,13 +127,7 @@ export interface ProjectDashboard {
   readonly endDate: string | null;
   readonly synchronizedAt: string | null;
   readonly analytics: ProjectAnalytics;
-  readonly trends: readonly {
-    readonly calculatedAt: string;
-    readonly healthScore: number;
-    readonly riskScore: number;
-    readonly attentionScore: number;
-    readonly completionPercentage: number | null;
-  }[];
+  readonly trends: readonly ProjectTrendPoint[];
 }
 
 export interface ProjectWorkPackageAnalytics {

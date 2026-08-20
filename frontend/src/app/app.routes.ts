@@ -1,10 +1,15 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { ContactPage } from './features/legal/contact.page';
+import { PrivacyPage } from './features/legal/privacy.page';
+import { TermsPage } from './features/legal/terms.page';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 
 /**
  * Application routes. Feature modules are lazy-loaded; protected routes use authGuard.
+ * Legal pages are public (reachable without login).
  */
 export const routes: Routes = [
   {
@@ -13,6 +18,21 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadChildren: () =>
       import('./features/authentication/authentication.routes').then((m) => m.AUTHENTICATION_ROUTES),
+  },
+  {
+    path: 'privacy',
+    component: PublicLayoutComponent,
+    children: [{ path: '', component: PrivacyPage }],
+  },
+  {
+    path: 'contact',
+    component: PublicLayoutComponent,
+    children: [{ path: '', component: ContactPage }],
+  },
+  {
+    path: 'terms',
+    component: PublicLayoutComponent,
+    children: [{ path: '', component: TermsPage }],
   },
   {
     path: '',

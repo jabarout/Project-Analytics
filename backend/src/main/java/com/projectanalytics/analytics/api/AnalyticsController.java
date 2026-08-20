@@ -3,6 +3,7 @@ package com.projectanalytics.analytics.api;
 import com.projectanalytics.analytics.api.dto.ExplorerProjectRowResponse;
 import com.projectanalytics.analytics.api.dto.ProjectAnalyticsResponse;
 import com.projectanalytics.analytics.api.dto.TrendPointResponse;
+import com.projectanalytics.analytics.api.dto.WorkspaceHealthTrendResponse;
 import com.projectanalytics.analytics.application.AnalyticsQueryService;
 import com.projectanalytics.analytics.application.AnalyticsRecalculationService;
 import com.projectanalytics.authentication.security.AuthenticatedUser;
@@ -104,6 +105,20 @@ public class AnalyticsController {
     ) {
         workspaceAccessService.requireAnalyticsAccessForProject(id, user.getId());
         return ApiResponse.of(analyticsQueryService.getProjectTrends(id));
+    }
+
+    @GetMapping("/workspaces/{workspaceId}/health-trends")
+    @Operation(
+            summary = "Workspace Average Health trends",
+            description = "Historical equal-weight mean of project Health scores per recalculation wave "
+                    + "(same definition as averageHealthScore KPI), plus ranked improving/worsening drivers."
+    )
+    public ApiResponse<WorkspaceHealthTrendResponse> workspaceHealthTrends(
+            @PathVariable UUID workspaceId,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        workspaceAccessService.requireAnalyticsAccess(workspaceId, user.getId());
+        return ApiResponse.of(analyticsQueryService.getWorkspaceHealthTrends(workspaceId));
     }
 
     @PostMapping("/workspaces/{workspaceId}/recalculate")

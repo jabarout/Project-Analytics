@@ -13,6 +13,14 @@ public interface AnalyticsSnapshotRepository extends JpaRepository<AnalyticsSnap
 
     List<AnalyticsSnapshotEntity> findTop20ByProjectIdOrderByCalculatedAtDesc(UUID projectId);
 
+    @Query("""
+            select s from AnalyticsSnapshotEntity s
+            join fetch s.project p
+            where p.workspace.id = :workspaceId
+            order by s.calculatedAt asc
+            """)
+    List<AnalyticsSnapshotEntity> findByWorkspaceIdOrderByCalculatedAtAsc(@Param("workspaceId") UUID workspaceId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from AnalyticsSnapshotEntity s where s.calculatedAt < :cutoff")
     int deleteByCalculatedAtBefore(@Param("cutoff") Instant cutoff);

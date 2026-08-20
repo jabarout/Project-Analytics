@@ -1,4 +1,6 @@
 <section class="explorer">
+  <a routerLink="/" class="explorer__back">← Home triage</a>
+
   <header class="explorer__header">
     <div>
       <h2>Project Explorer</h2>
@@ -22,13 +24,23 @@
         </label>
       }
       <label class="explorer__save">
-        <input
-          type="text"
-          placeholder="Saved view name"
-          [ngModel]="saveName()"
-          (ngModelChange)="saveName.set($event)"
-        />
-        <button type="button" (click)="saveCurrentView()" [disabled]="!saveName().trim()">Save view</button>
+        <span class="explorer__save-label">Saved view name</span>
+        <span class="explorer__save-controls">
+          <input
+            type="text"
+            placeholder="e.g. Critical overdue"
+            [ngModel]="saveName()"
+            (ngModelChange)="saveName.set($event)"
+          />
+          <button
+            type="button"
+            class="pa-btn pa-btn--secondary"
+            (click)="saveCurrentView()"
+            [disabled]="!saveName().trim()"
+          >
+            Save view
+          </button>
+        </span>
       </label>
       @if (savedViewList().length) {
         <label class="explorer__scope">
@@ -41,10 +53,14 @@
           </select>
         </label>
       }
-      <button type="button" class="explorer__link" (click)="exportCsv()" [disabled]="matchCount() === 0">
+      <button
+        type="button"
+        class="pa-btn pa-btn--secondary"
+        (click)="exportCsv()"
+        [disabled]="matchCount() === 0"
+      >
         Export CSV
       </button>
-      <a routerLink="/" class="explorer__link">← Home triage</a>
     </div>
   </header>
 
@@ -53,7 +69,7 @@
       title="No workspace connected"
       message="Connect and synchronize OpenProject to explore projects."
     />
-    <a routerLink="/workspaces" class="explorer__link">Go to Connections →</a>
+    <a routerLink="/workspaces" class="pa-btn pa-btn--secondary">Go to Connections →</a>
   }
 
   @if (errorMessage()) {
@@ -74,15 +90,20 @@
         (reset)="resetFilters()"
       />
 
-      <div class="explorer__results">
+      <div class="explorer__results" paReveal>
         <p class="explorer__count">{{ matchCount() }} project(s) match</p>
 
-        <app-bar-chart
-          title="Health distribution (current result set)"
-          [data]="resultHealthChart()"
-          [interactive]="true"
-          (segmentClick)="onResultChartSegment($event)"
-        />
+        <div class="pa-charts pa-charts--hero explorer__chart">
+          <app-pa-bar-chart
+            title="Health distribution"
+            subtitle="Current filtered result set · click a band to refine Health filters"
+            size="md"
+            [data]="resultHealthBars()"
+            [interactive]="true"
+            (barClick)="onResultHealthBarClick($event)"
+            emptyMessage="No projects in the current result set."
+          />
+        </div>
 
         @for (group of pipeline().groups; track group.key) {
           @if (viewState().groupBy !== 'none') {

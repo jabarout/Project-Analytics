@@ -1,0 +1,113 @@
+# Production overlay for Project Analytics (N5.1).
+#
+# Does not replace docker-compose.yml — compose both files together.
+# Secrets come from the env file (never commit real secrets).
+#
+# Isolated smoke (does not clash with local pa-postgres / pa-redis):
+#   docker compose -p project-analytics-prod \
+#     -f docker/docker-compose.yml \
+#     -f docker/docker-compose.prod.yml \
+#     --env-file /path/to/prod.env \
+#     up -d --build
+#
+# Host ports (isolated): Postgres 5433, Redis 6380, Backend 8081, Frontend 8089
+# Required backend secrets (ProductionSecurityValidator):
+#   JWT_SECRET (>=32, not the dev default)
+#   CREDENTIALS_ENCRYPTION_KEY (>=32, distinct from JWT_SECRET)
+#   CORS_ALLOWED_ORIGINS (explicit list, no *)
+#
+# Missing / weak secrets must fail backend startup — do not weaken the validator.
+
+name: project-analytics-prod
+
+services:
+  postgres:
+    container_name: pa-prod-postgres
+    # !override replaces base ports (Compose merges sequences by append otherwise)
+    ports: !override
+      - "${PROD_DB_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+
+  redis:
+    container_name: pa-prod-redis
+    ports: !override
+      - "${PROD_REDIS_PORT:-6380}:6379"
+
+  backend:
+    container_name: pa-prod-backend
+    ports: !override
+      - "${PROD_SERVER_PORT:-8081}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_ENABLED: "true"
+      # No defaults — empty/missing values fail ProductionSecurityValidator
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-86400}
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY:?CREDENTIALS_ENCRYPTION_KEY is required}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      OPENAPI_PUBLIC: "false"
+      OP_ALLOW_ENV_API_KEY_FALLBACK: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_VERSION: ${APP_VERSION:-1.0.0-SNAPSHOT}
+      OPENPROJECT_URL: ${OPENPROJECT_URL:-}
+      OPENPROJECT_API_KEY: ${OPENPROJECT_API_KEY:-}
+      OPENPROJECT_TIMEOUT: ${OPENPROJECT_TIMEOUT:-30}
+      OPENPROJECT_VERIFY_SSL: ${OPENPROJECT_VERIFY_SSL:-true}
+      OPENPROJECT_OAUTH_CLIENT_ID: ${OPENPROJECT_OAUTH_CLIENT_ID:-}
+      OPENPROJECT_OAUTH_CLIENT_SECRET: ${OPENPROJECT_OAUTH_CLIENT_SECRET:-}
+      OPENPROJECT_OAUTH_REDIRECT_URI: ${OPENPROJECT_OAUTH_REDIRECT_URI:-}
+      OPENPROJECT_OAUTH_SCOPES: ${OPENPROJECT_OAUTH_SCOPES:-api_v3}
+      OPENPROJECT_OAUTH_FRONTEND_SUCCESS_URL: ${OPENPROJECT_OAUTH_FRONTEND_SUCCESS_URL:-}
+      OPENPROJECT_OAUTH_FRONTEND_ERROR_URL: ${OPENPROJECT_OAUTH_FRONTEND_ERROR_URL:-}
+      OPENPROJECT_OAUTH_STATE_TTL_SECONDS: ${OPENPROJECT_OAUTH_STATE_TTL_SECONDS:-600}
+      REPORT_STORAGE_PATH: ${REPORT_STORAGE_PATH:-/data/reports}
+      REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-90}
+      REPORT_PURGE_ENABLED: ${REPORT_PURGE_ENABLED:-true}
+      ANALYTICS_SNAPSHOT_RETENTION_DAYS: ${ANALYTICS_SNAPSHOT_RETENTION_DAYS:-90}
+      ANALYTICS_SNAPSHOT_PURGE_ENABLED: ${ANALYTICS_SNAPSHOT_PURGE_ENABLED:-true}
+      SYNC_ENABLED: ${SYNC_ENABLED:-true}
+      SYNC_INTERVAL_MS: ${SYNC_INTERVAL_MS:-3600000}
+      PASSWORD_RESET_MAIL_ENABLED: ${PASSWORD_RESET_MAIL_ENABLED:-false}
+      PASSWORD_RESET_MAIL_FROM: ${PASSWORD_RESET_MAIL_FROM:-}
+      PASSWORD_RESET_FRONTEND_BASE_URL: ${PASSWORD_RESET_FRONTEND_BASE_URL:-}
+      EMAIL_CONFIRMATION_TTL_MINUTES: ${EMAIL_CONFIRMATION_TTL_MINUTES:-1440}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-true}
+      MAIL_SMTP_STARTTLS_REQUIRED: ${MAIL_SMTP_STARTTLS_REQUIRED:-true}
+    volumes:
+      - prod_reports_data:/data/reports
+
+  frontend:
+    container_name: pa-prod-frontend
+    ports: !override
+      - "${PROD_FRONTEND_PORT:-8089}:80"
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        # Build-arg retained for compatibility; production Angular uses relative /api/v1
+        # and nginx proxies /api/ to the backend service.
+        API_BASE_URL: ${API_BASE_URL:-/api/v1}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  prod_reports_data:

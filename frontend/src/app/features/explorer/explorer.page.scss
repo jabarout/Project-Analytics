@@ -1,3 +1,17 @@
+.explorer__back {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  color: var(--pa-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.explorer__back:hover {
+  text-decoration: none;
+}
+
 .explorer__header {
   display: flex;
   justify-content: space-between;
@@ -12,7 +26,7 @@
 
 .explorer__header p {
   margin: 0;
-  color: var(--pa-text-muted);
+  color: var(--pa-text-secondary);
   max-width: 40rem;
 }
 
@@ -28,44 +42,43 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--pa-text-muted);
+  font-size: var(--pa-font-xs);
+  font-weight: var(--pa-weight-semibold);
+  color: var(--pa-text-secondary);
 }
 
 .explorer__scope select,
 .explorer__save input {
-  border: 1px solid var(--pa-border);
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.55rem;
+  padding: 0.55rem 0.7rem;
   min-width: 10rem;
-  background: #fff;
+  min-height: 2.5rem;
 }
 
 .explorer__save {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.explorer__save button,
-.explorer__link {
-  border: 1px solid var(--pa-border);
-  background: var(--pa-surface);
-  border-radius: 0.55rem;
-  padding: 0.45rem 0.75rem;
-  cursor: pointer;
-  text-decoration: none;
-  color: var(--pa-text);
-  font-weight: 600;
-  font-size: 0.85rem;
+.explorer__save-label {
+  font-size: var(--pa-font-xs);
+  font-weight: var(--pa-weight-semibold);
+  color: var(--pa-text-secondary);
+}
+
+.explorer__save-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .explorer__error {
-  color: #b91c1c;
-  background: rgba(185, 28, 28, 0.08);
+  color: var(--pa-danger);
+  background: var(--pa-danger-muted);
+  border: 2px solid color-mix(in srgb, var(--pa-danger) 35%, var(--pa-border-strong));
   padding: 0.75rem 1rem;
-  border-radius: 0.65rem;
+  border-radius: var(--pa-radius-md);
 }
 
 .explorer__body {
@@ -77,13 +90,13 @@
 
 .explorer__count {
   margin: 0 0 0.75rem;
-  color: var(--pa-text-muted);
-  font-size: 0.9rem;
+  color: var(--pa-text-secondary);
+  font-size: var(--pa-font-sm);
 }
 
 .explorer__group {
   margin: 1rem 0 0.5rem;
-  font-size: 0.95rem;
+  font-size: var(--pa-font-md);
 }
 
 .explorer__results {
@@ -91,6 +104,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.explorer__chart {
+  /* Single chart: use hero grid (1 col) + global --pa-chart-h-md via size="md" */
+  max-width: 100%;
 }
 
 @media (max-width: 960px) {

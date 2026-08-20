@@ -9,7 +9,7 @@
     </p>
   </header>
 
-  <form class="workspaces__form" [formGroup]="form" (ngSubmit)="oauthEnabled() ? connectWithOAuth() : createWithApiKey()">
+  <form class="workspaces__form" paReveal [formGroup]="form" (ngSubmit)="oauthEnabled() ? connectWithOAuth() : createWithApiKey()">
     <h3>Connect OpenProject</h3>
     <label>
       <span>Display name</span>
@@ -58,14 +58,21 @@
           autocomplete="new-password"
         />
       </label>
-      <button type="button" (click)="connectWithOAuth()" [disabled]="oauthConnecting()">
+      <button
+        type="button"
+        class="pa-btn pa-btn--primary"
+        (click)="connectWithOAuth()"
+        [disabled]="oauthConnecting()"
+      >
         {{ oauthConnecting() ? 'Preparing OAuth…' : 'Connect with OpenProject OAuth' }}
       </button>
 
       @if (pendingAuthorizationUrl()) {
         <div class="workspaces__oauth-continue" role="status">
-          <button type="button" (click)="openOpenProjectSignIn()">Open OpenProject sign-in</button>
-          <button type="button" class="linkish" (click)="cancelPendingOAuth()">Cancel</button>
+          <button type="button" class="pa-btn pa-btn--primary" (click)="openOpenProjectSignIn()">
+            Open OpenProject sign-in
+          </button>
+          <button type="button" class="pa-btn pa-btn--ghost" (click)="cancelPendingOAuth()">Cancel</button>
           <p class="workspaces__alt-hint">
             If OpenProject shows a 422/CSRF error, refresh this page — the connection should appear.
           </p>
@@ -76,7 +83,7 @@
         </p>
       }
       <p class="workspaces__alt">
-        <button type="button" class="linkish" (click)="toggleApiKeyForm()">
+        <button type="button" class="pa-btn pa-btn--ghost" (click)="toggleApiKeyForm()">
           {{ showApiKeyForm() ? 'Hide API key option' : 'Use API key instead' }}
         </button>
       </p>
@@ -87,11 +94,16 @@
         <span>API key <span class="optional">(optional if .env fallback)</span></span>
         <input type="password" formControlName="apiKey" placeholder="OpenProject API token" autocomplete="off" />
       </label>
-      <button type="button" class="secondary" (click)="createWithApiKey()" [disabled]="connecting()">
+      <button
+        type="button"
+        class="pa-btn pa-btn--secondary"
+        (click)="createWithApiKey()"
+        [disabled]="connecting()"
+      >
         {{ connecting() ? 'Connecting…' : 'Connect with API key' }}
       </button>
     } @else if (!oauthEnabled()) {
-      <button type="submit" [disabled]="connecting()">
+      <button type="submit" class="pa-btn pa-btn--primary" [disabled]="connecting()">
         {{ connecting() ? 'Connecting…' : 'Connect & verify eligibility' }}
       </button>
     }
@@ -117,7 +129,7 @@
     } @else {
       <p class="workspaces__multi-hint">Active connection</p>
     }
-    <div class="workspaces__list" [class.workspaces__list--single]="!isMulti()">
+    <div class="workspaces__list" paReveal [paRevealStagger]="true" [class.workspaces__list--single]="!isMulti()">
       @for (workspace of workspaces(); track workspace.id) {
         <article class="workspace-card">
           <div class="workspace-card__body">
@@ -178,20 +190,27 @@
               <div class="workspace-card__actions">
                 <button
                   type="button"
-                  class="secondary"
+                  class="pa-btn pa-btn--secondary pa-btn--sm"
                   (click)="rename(workspace.id)"
                   [disabled]="renamingId() === workspace.id"
                 >
                   {{ renamingId() === workspace.id ? 'Saving…' : 'Save name' }}
                 </button>
-                <button type="button" (click)="synchronize(workspace.id)" [disabled]="syncingId() === workspace.id">
+                <button
+                  type="button"
+                  class="pa-btn pa-btn--primary pa-btn--sm"
+                  (click)="synchronize(workspace.id)"
+                  [disabled]="syncingId() === workspace.id"
+                >
                   @if (syncingId() === workspace.id) {
                     Synchronizing…
                   } @else {
                     Synchronize
                   }
                 </button>
-                <button type="button" class="danger" (click)="disconnect(workspace)">Disconnect</button>
+                <button type="button" class="pa-btn pa-btn--danger pa-btn--sm" (click)="disconnect(workspace)">
+                  Disconnect
+                </button>
               </div>
             }
           </div>
@@ -204,15 +223,19 @@
                 PA account. This does not make them Workspace Admin.
               </p>
               <div class="workspace-card__grant">
-                <input
-                  type="email"
-                  [value]="grantEmail()[workspace.id] ?? ''"
-                  (input)="setGrantEmail(workspace.id, $any($event.target).value)"
-                  placeholder="colleague@example.com"
-                  autocomplete="off"
-                />
+                <label class="workspace-card__grant-field">
+                  <span>Grant analytics access</span>
+                  <input
+                    type="email"
+                    [value]="grantEmail()[workspace.id] ?? ''"
+                    (input)="setGrantEmail(workspace.id, $any($event.target).value)"
+                    placeholder="colleague@example.com"
+                    autocomplete="off"
+                  />
+                </label>
                 <button
                   type="button"
+                  class="pa-btn pa-btn--secondary pa-btn--sm"
                   (click)="grantAccess(workspace.id)"
                   [disabled]="grantingId() === workspace.id || !(grantEmail()[workspace.id] ?? '').trim()"
                 >
@@ -241,7 +264,7 @@
                         @if (!member.workspaceAdmin) {
                           <button
                             type="button"
-                            class="danger secondary"
+                            class="pa-btn pa-btn--danger pa-btn--sm"
                             (click)="revokeAccess(workspace.id, member)"
                             [disabled]="revokingUserId() === member.userId"
                           >

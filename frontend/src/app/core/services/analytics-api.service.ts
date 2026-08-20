@@ -5,9 +5,11 @@ import { ApiResponse } from '../models/api-response.model';
 import {
   ProjectAnalytics,
   ProjectDashboard,
+  ProjectTrendPoint,
   ProjectWorkPackageAnalytics,
   ScopeAnalyticsKpis,
   ScopeDashboard,
+  WorkspaceHealthTrend,
 } from '../models/analytics.model';
 import { ExplorerProjectRow } from '../models/explorer.model';
 import { ConfigurationService } from './configuration.service';
@@ -77,6 +79,30 @@ export class AnalyticsApiService {
     return this.http
       .get<ApiResponse<ProjectAnalytics>>(
         `${this.configuration.apiBaseUrl}/analytics/projects/${projectId}/kpis`
+      )
+      .pipe(map((response) => response.data));
+  }
+
+  /**
+   * Historical analytics snapshots for a project.
+   * Scores are stored Health / Risk / Needs Attention (0–100) plus optional completion %.
+   */
+  getProjectTrends(projectId: string): Observable<ProjectTrendPoint[]> {
+    return this.http
+      .get<ApiResponse<ProjectTrendPoint[]>>(
+        `${this.configuration.apiBaseUrl}/analytics/projects/${projectId}/trends`
+      )
+      .pipe(map((response) => response.data));
+  }
+
+  /**
+   * Workspace Average Health over recalculation waves (same aggregation as averageHealthScore KPI)
+   * plus ranked Health drivers (last − first snapshot).
+   */
+  getWorkspaceHealthTrends(workspaceId: string): Observable<WorkspaceHealthTrend> {
+    return this.http
+      .get<ApiResponse<WorkspaceHealthTrend>>(
+        `${this.configuration.apiBaseUrl}/analytics/workspaces/${workspaceId}/health-trends`
       )
       .pipe(map((response) => response.data));
   }

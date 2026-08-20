@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AppFooterComponent } from '../../shared/components/app-footer/app-footer.component';
+import { BrandLogoComponent } from '../../shared/components/brand-logo/brand-logo.component';
 
 /**
  * Minimal layout for unauthenticated screens.
@@ -7,62 +9,74 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-auth-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, AppFooterComponent, BrandLogoComponent],
   template: `
     <div class="auth-shell">
-      <div class="auth-shell__panel">
-        <header class="auth-shell__header">
-          <p class="auth-shell__eyebrow">Project Analytics</p>
-          <h1>Secure sign-in</h1>
-          <p class="auth-shell__subtitle">
-            Decision intelligence for OpenProject. Operational data remains in OpenProject.
-          </p>
-        </header>
-        <router-outlet />
+      <div class="auth-shell__center">
+        <div class="auth-shell__panel pa-card">
+          <header class="auth-shell__header">
+            <app-brand-logo size="lg" />
+            <p class="auth-shell__eyebrow">Secure access</p>
+            <h1>Sign in to Project Analytics</h1>
+            <p class="auth-shell__subtitle">
+              Decision intelligence for OpenProject. Operational data remains in OpenProject.
+            </p>
+          </header>
+          <router-outlet />
+        </div>
       </div>
+      <app-footer />
     </div>
   `,
   styles: `
     .auth-shell {
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--pa-bg);
+      color: var(--pa-text);
+    }
+
+    .auth-shell__center {
+      flex: 1;
       display: grid;
       place-items: center;
-      padding: 2rem;
-      background:
-        radial-gradient(circle at top left, rgba(29, 78, 216, 0.12), transparent 40%),
-        var(--pa-bg);
+      padding: 2rem 1.25rem;
     }
 
     .auth-shell__panel {
-      width: min(420px, 100%);
-      background: var(--pa-surface);
-      border: 1px solid var(--pa-border);
-      border-radius: 16px;
+      width: min(440px, 100%);
       padding: 2rem;
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
     }
 
     .auth-shell__header {
       margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
     }
 
     .auth-shell__eyebrow {
-      margin: 0 0 0.35rem;
+      margin: 0.35rem 0 0;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 0.75rem;
-      color: var(--pa-text-muted);
+      font-size: 0.72rem;
+      font-weight: 650;
+      color: var(--pa-text-tertiary);
     }
 
     h1 {
-      margin: 0 0 0.5rem;
-      font-size: 1.5rem;
+      margin: 0;
+      font-size: 1.45rem;
+      letter-spacing: -0.02em;
+      font-weight: 700;
     }
 
     .auth-shell__subtitle {
       margin: 0;
-      color: var(--pa-text-muted);
+      color: var(--pa-text-secondary);
       line-height: 1.5;
+      font-size: 0.95rem;
     }
   `,
 })

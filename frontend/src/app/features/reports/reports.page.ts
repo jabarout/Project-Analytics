@@ -15,6 +15,7 @@ import { Workspace } from '../../core/models/workspace.model';
 import { PortfolioSummary } from '../../core/models/portfolio.model';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { PaRevealDirective } from '../../shared/directives/pa-reveal.directive';
 
 /**
  * Report generation and history. Presentation only — backend owns assembly and export.
@@ -22,7 +23,8 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 @Component({
   selector: 'app-reports-page',
   standalone: true,
-  imports: [ReactiveFormsModule, LoadingSpinnerComponent, EmptyStateComponent, DatePipe],
+  imports: [
+    PaRevealDirective,ReactiveFormsModule, LoadingSpinnerComponent, EmptyStateComponent, DatePipe],
   templateUrl: './reports.page.html',
   styleUrl: './reports.page.scss',
 })
