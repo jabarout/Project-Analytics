@@ -33,7 +33,8 @@ spring:
       password: ${REDIS_PASSWORD:}
       timeout: 2s
   # Transactional mail (signup confirmation + password reset).
-  # JavaMailSender is only useful when MAIL_HOST is set and PASSWORD_RESET_MAIL_ENABLED=true.
+  # Only set MAIL_HOST when SMTP is configured. An empty host still registers a
+  # JavaMailSender and would make Actuator mail health fail (503).
   mail:
     host: ${MAIL_HOST:}
     port: ${MAIL_PORT:587}
@@ -80,6 +81,9 @@ management:
   health:
     redis:
       enabled: ${projectanalytics.redis.enabled:true}
+    # Optional SMTP must not mark the whole app DOWN (Docker/K8s healthchecks).
+    mail:
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
   metrics:
     tags:
       application: ${spring.application.name}

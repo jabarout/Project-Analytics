@@ -14,6 +14,9 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      # Avoid empty-host JavaMailSender + MailHealthIndicator failing /actuator/health in CI
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderValidatorAutoConfiguration
 
 projectanalytics:
   redis:
@@ -55,6 +58,8 @@ projectanalytics:
 management:
   health:
     redis:
+      enabled: false
+    mail:
       enabled: false
   endpoint:
     health:
