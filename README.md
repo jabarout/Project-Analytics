@@ -179,8 +179,7 @@ If the zip already has `.env`, use it; start with `./scripts/run-backend.sh`.
 - Deployment: Docker Compose (local Postgres + Redis); backend via `run-backend.sh` or compose
 
 See `docs/13_Project_State.md` for details.
-
-Default local admin (development seed only): `admin` / `Admin123!`  
+  
 OpenProject connection: set `OPENPROJECT_URL` and `OPENPROJECT_API_KEY`.
 
 **How to run for company / Xtensus testing:** see **[README-XTENSUS.md](README-XTENSUS.md)**  
