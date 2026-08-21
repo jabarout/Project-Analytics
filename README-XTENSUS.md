@@ -79,20 +79,13 @@ When it is ready, open a browser:
 
 ---
 
-## Step 5 — Sign up or log in
+## Step 5 — Sign up
 
-You can **Sign up** with email/password on the auth page (creates a Project Analytics account only — no OpenProject access yet).
+On the auth page, use **Sign up** (email + password). That creates a Project Analytics account only — it does **not** connect OpenProject yet.
 
-For local admin/demo:
+You must **confirm your email** before you can sign in. With the default local `.env` (`PASSWORD_RESET_MAIL_ENABLED=false`), the confirmation link is printed in the **backend terminal**. Open that link, then sign in.
 
-| Field    | Value        |
-|----------|--------------|
-| Username | `admin`      |
-| Password | `Admin123!`  |
-
-Login also accepts the admin **email** `admin@projectanalytics.local`.
-
-After signup you land on **Connections**. Analytics access requires connecting OpenProject and passing eligibility / grants.
+After login you land on **Connections**. Analytics access requires connecting OpenProject (next step) and passing eligibility / grants.
 
 ---
 
