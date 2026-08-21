@@ -26,42 +26,15 @@ Open a terminal in the project folder (the one that contains `scripts`, `backend
 
 ## Step 1 — Configuration file (`.env`)
 
-You need a file named **`.env`** at the **root** of the project (same level as `README.md`).
-
-### Case A — You got the project as a **zip / email**
-
-The `.env` file is usually **already there**.
-
-1. Open `.env` in a text editor.
-2. Set (or fix) these two lines for your OpenProject:
-
-```text
-OPENPROJECT_URL=https://your-openproject-address
-OPENPROJECT_API_KEY=your-token-here
-```
-
-3. Save the file. Done — do not recreate it from the example unless the file is missing.
-
-### Case B — You got the project from **GitHub** (clone / pull)
-
-GitHub **does not** include `.env` (secrets are not committed). You must create it:
+GitHub **does not** include `.env` (secrets are not committed). Create one from the example:
 
 ```bash
 cp .env.example .env
 ```
 
-Then edit `.env` and set at least:
+You do **not** need to put an OpenProject URL or API key in `.env`. Those are entered later on the **Connections** screen (OAuth client id/secret, or an API key as an alternative).
 
-```text
-OPENPROJECT_URL=https://your-openproject-address
-OPENPROJECT_API_KEY=your-token-here
-```
-
-### Remember
-
-- The website **Connections** screen only stores the OpenProject **URL**.  
-- The **API key** always comes from `.env` (loaded when you start the backend in Step 3).  
-- After any change to `.env`, **restart** the backend script.
+The example file already has working local defaults (database, JWT, OAuth redirect to `http://localhost:8080/...`). Save `.env` at the **root** of the project (same level as `README.md`).
 
 ---
 
@@ -85,7 +58,6 @@ Wait a few seconds. Docker must stay running.
 
 - Leave this window **open** (the app backend is this process).
 - Wait until you see something like “Started ProjectAnalyticsApplication”.
-- If it says the API key is **not** configured → fix `.env` and run the script again.
 
 **Do not** start the backend with only `mvn spring-boot:run` (that ignores `.env`).
 
@@ -120,19 +92,21 @@ For local admin/demo:
 
 Login also accepts the admin **email** `admin@projectanalytics.local`.
 
-After signup you land on **Connections**. Analytics access requires connecting OpenProject and passing eligibility (M14) / grants (M15).
+After signup you land on **Connections**. Analytics access requires connecting OpenProject and passing eligibility / grants.
 
 ---
 
 ## Step 6 — Connect OpenProject and sync
 
 1. Go to **Connections** in the menu.
-2. Connect a workspace.
-3. Set the **Base URL** to your OpenProject address (same as in the browser, e.g. `https://….openproject.eu`).
-4. Click **Synchronize** (this copies OpenProject into local data and **drops** projects/work packages that were deleted in OpenProject).
-5. When sync succeeds, open **Home** or **Explorer**.
+2. Enter your OpenProject **Base URL** (same as in the browser, e.g. `https://….openproject.com`).
+3. **Preferred:** paste the OAuth **Client ID** and **Client secret** from OpenProject  
+   (**Administration → Authentication → OAuth applications**). Use the redirect URI shown on the Connections screen.
+4. Click **Connect with OpenProject OAuth**, then **Open OpenProject sign-in** and authorize.
+5. After a successful connect, click **Synchronize** (this copies OpenProject data locally and **drops** projects/work packages that were deleted in OpenProject).
+6. When sync succeeds, open **Home** or **Explorer**.
 
-The **API key is not typed in the UI**. It only comes from the `.env` file (Step 1 + Step 3).
+You can also **Use API key instead** on the same screen if you prefer an API token. Credentials are stored **server-side**, not in `.env`.
 
 **Home → Recalculate** only refreshes scores from data already stored locally. After deleting something in OpenProject, run **Synchronize** again — Recalculate alone will not remove it.
 
@@ -142,8 +116,9 @@ The **API key is not typed in the UI**. It only comes from the `.env` file (Step
 
 | What you see | What to do |
 |--------------|------------|
-| API key not configured | Use `./scripts/run-backend.sh` and check `.env` |
-| Sync fails with 401 | API key wrong or expired — update `.env`, restart Step 3 |
+| Backend does not start | Use `./scripts/run-backend.sh` and check that `.env` exists at the project root |
+| OAuth / connect fails | Check Base URL, client id/secret, and that the OpenProject OAuth app uses the redirect URI shown on Connections |
+| Sync fails with 401 | Reconnect the workspace (OAuth or API key) on Connections, then Synchronize again |
 | Cannot open the page | Is Step 4 still running? Is the URL http://localhost:4200 ? |
 | Port already in use | Close the old backend/frontend and start again |
 
