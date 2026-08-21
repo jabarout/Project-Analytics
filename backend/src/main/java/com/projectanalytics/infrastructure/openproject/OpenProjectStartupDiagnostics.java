@@ -32,15 +32,14 @@ public class OpenProjectStartupDiagnostics implements ApplicationRunner {
 
         if (keyConfigured) {
             log.info(
-                    "OpenProject credentials: API key configured (length={}), default URL={}",
+                    "OpenProject credentials: optional env API key configured (length={}), default URL={}",
                     apiKey.length(),
                     urlConfigured ? url : "(unset — use workspace base URL from Connections)"
             );
         } else {
-            log.warn(
-                    "OpenProject API key is NOT configured in this process. Synchronization will fail with "
-                            + "'OpenProject API key is not configured'. Set OPENPROJECT_API_KEY and restart via "
-                            + "./scripts/run-backend.sh (Spring does not auto-reload .env)."
+            log.info(
+                    "No env OPENPROJECT_API_KEY — connect OpenProject from the Connections screen "
+                            + "(OAuth or API key). Env key is an optional local fallback only."
             );
         }
     }
